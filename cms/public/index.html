@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>elvec1o CMS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.6; background: #fafafa; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+
+    header { background: #111; color: #fff; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    .git-status { font-size: 0.85rem; display: flex; gap: 1rem; align-items: center; }
+    .git-status .indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .git-status .indicator.clean { background: #4CAF50; }
+    .git-status .indicator.dirty { background: #ff9800; }
+
+    .tabs { display: flex; gap: 0; border-bottom: 2px solid #111; margin-bottom: 1rem; }
+    .tab { background: #fff; color: #111; border: 1px solid #ddd; border-bottom: none; padding: 0.75rem 1.5rem; cursor: pointer; font-family: inherit; margin-bottom: -2px; }
+    .tab:hover { background: #f5f5f5; color: #111; }
+    .tab.active { background: #111; color: #fff; border-color: #111; }
+
+    .panel { display: none; background: #fff; padding: 1.5rem; border: 1px solid #ddd; }
+    .panel.active { display: block; }
+
+    .toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+
+    button { background: #111; color: #fff; border: none; padding: 0.5rem 1rem; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+    button:hover { background: #333; }
+    button.secondary { background: #fff; color: #111; border: 1px solid #ddd; }
+    button.secondary:hover { background: #f5f5f5; }
+    button.danger { background: #c00; }
+    button.danger:hover { background: #a00; }
+    button.success { background: #2e7d32; }
+    button.success:hover { background: #1b5e20; }
+
+    .entry-list { max-height: 400px; overflow-y: auto; border: 1px solid #ddd; }
+    .entry-item { padding: 0.75rem 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .entry-item:hover { background: #f9f9f9; }
+    .entry-item.selected { background: #e3f2fd; }
+    .entry-item-info { flex: 1; }
+    .entry-item-title { font-weight: bold; }
+    .entry-item-meta { font-size: 0.8rem; color: #666; }
+    .entry-item-type { font-size: 0.7rem; background: #f0f0f0; padding: 0.15rem 0.4rem; margin-left: 0.5rem; }
+
+    .editor { margin-top: 1rem; }
+    .editor h3 { margin-bottom: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; }
+
+    .form-row { margin-bottom: 1rem; }
+    .form-row label { display: block; margin-bottom: 0.3rem; font-weight: bold; }
+    .form-row input, .form-row textarea, .form-row select { width: 100%; padding: 0.5rem; border: 1px solid #ddd; font-family: inherit; font-size: inherit; }
+    .form-row textarea { min-height: 100px; resize: vertical; }
+    .form-row .help { font-size: 0.8rem; color: #666; margin-top: 0.2rem; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .toast { position: fixed; bottom: 20px; right: 20px; padding: 1rem 1.5rem; background: #111; color: #fff; border-radius: 4px; display: none; z-index: 1000; }
+    .toast.success { background: #2e7d32; }
+    .toast.error { background: #c62828; }
+    .toast.show { display: block; animation: slideIn 0.3s ease; }
+
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: #fff; padding: 2rem; max-width: 500px; width: 90%; }
+    .modal-content h3 { margin-bottom: 1rem; }
+    .modal-actions { margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+    /* Debug Panel */
+    .debug-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; color: #0f0; font-family: 'Courier New', monospace; font-size: 12px; z-index: 1001; }
+    .debug-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: #000; border-top: 2px solid #333; }
+    .debug-header span { font-weight: bold; }
+    .debug-controls { display: flex; gap: 0.5rem; }
+    .debug-controls button { background: #333; color: #fff; border: none; padding: 0.3rem 0.6rem; font-size: 11px; cursor: pointer; }
+    .debug-controls button:hover { background: #555; }
+    .debug-log { max-height: 150px; overflow-y: auto; padding: 0.5rem 1rem; display: none; }
+    .debug-panel.expanded .debug-log { display: block; }
+    .debug-entry { padding: 0.2rem 0; border-bottom: 1px solid #333; }
+    .debug-entry.error { color: #f55; }
+    .debug-entry.success { color: #5f5; }
+    .debug-entry.info { color: #5af; }
+    .debug-time { color: #888; margin-right: 0.5rem; }
+    body { padding-bottom: 40px; }
+    .debug-panel.expanded ~ body, body:has(.debug-panel.expanded) { padding-bottom: 200px; }
+
+    /* Error Modal */
+    .error-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
+    .error-modal.active { display: flex; }
+    .error-modal-content { background: #1a1a1a; color: #fff; padding: 1.5rem; max-width: 600px; width: 90%; border: 2px solid #f55; border-radius: 8px; }
+    .error-modal-content h3 { color: #f55; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .error-modal-content .error-message { background: #111; padding: 1rem; margin-bottom: 1rem; border-radius: 4px; font-size: 13px; }
+    .error-modal-content .fix-section { background: #0a2a0a; border: 1px solid #2e7d32; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+    .error-modal-content .fix-section h4 { color: #5f5; margin-bottom: 0.5rem; }
+    .error-modal-content .fix-command { background: #000; padding: 0.75rem; font-family: 'Courier New', monospace; font-size: 13px; color: #0f0; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .error-modal-content .fix-command code { flex: 1; word-break: break-all; }
+    .error-modal-content .fix-command button { background: #333; color: #fff; border: none; padding: 0.4rem 0.8rem; cursor: pointer; white-space: nowrap; }
+    .error-modal-content .fix-command button:hover { background: #555; }
+    .error-modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+    .error-modal-actions button { padding: 0.5rem 1rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>elvec1o CMS</h1>
+    <div class="git-status">
+      <span class="indicator" id="gitIndicator"></span>
+      <span id="gitStatusText">Checking...</span>
+      <button class="success" onclick="pushChanges()">Push to GitHub</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" data-tab="breaks">Breaks</button>
+      <button class="tab" data-tab="books">Books</button>
+      <button class="tab" data-tab="files">Files</button>
+      <button class="tab" data-tab="config">Config</button>
+    </div>
+
+    <!-- BREAKS PANEL -->
+    <div class="panel active" id="panel-breaks">
+      <div class="toolbar">
+        <button onclick="addEntry('breaks')">+ New Break</button>
+        <button class="secondary" onclick="saveData('breaks')">Save</button>
+        <button class="secondary" onclick="saveData('breaks', true)">Save & Push</button>
+      </div>
+      <div class="entry-list" id="list-breaks"></div>
+      <div class="editor" id="editor-breaks" style="display:none;">
+        <h3>Edit Break</h3>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>ID</label>
+            <input type="text" id="breaks-id" placeholder="unique-id-slug">
+          </div>
+          <div class="form-row">
+            <label>Type</label>
+            <select id="breaks-type">
+              <option value="">Break (default)</option>
+              <option value="xpost">X Post</option>
+              <option value="featured">Featured</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" id="breaks-xpost-fields" style="display:none;">
+          <label>Tweet URL</label>
+          <input type="text" id="breaks-tweetUrl" placeholder="https://twitter.com/...">
+          <div class="form-row">
+            <label>Note</label>
+            <input type="text" id="breaks-note" placeholder="Brief note about this post">
+          </div>
+        </div>
+        <div id="breaks-standard-fields">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Name</label>
+              <input type="text" id="breaks-name" placeholder="Attack Name">
+            </div>
+            <div class="form-row">
+              <label>Technique</label>
+              <input type="text" id="breaks-technique" placeholder="e.g. Visual Prompt Injection">
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Category</label>
+              <input type="text" id="breaks-category" placeholder="e.g. 🖼️ Visual">
+            </div>
+            <div class="form-row">
+              <label>Date</label>
+              <input type="date" id="breaks-date">
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Challenge</label>
+            <input type="text" id="breaks-challenge" placeholder="What was the goal?">
+          </div>
+          <div class="form-row">
+            <label>Insight</label>
+            <textarea id="breaks-insight" placeholder="Why did this work?"></textarea>
+          </div>
+          <div class="form-row">
+            <label>Prompt</label>
+            <textarea id="breaks-prompt" placeholder="The prompt used"></textarea>
+          </div>
+          <div class="form-row">
+            <label>Result</label>
+            <textarea id="breaks-result" placeholder="What happened"></textarea>
+          </div>
+          <div class="form-row">
+            <label>URL</label>
+            <input type="text" id="breaks-url" placeholder="https://app.grayswan.ai/...">
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <button onclick="updateEntry('breaks')">Save Entry</button>
+          <button class="danger" onclick="deleteEntry('breaks')">Delete</button>
+          <button class="secondary" onclick="cancelEdit('breaks')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOOKS PANEL -->
+    <div class="panel" id="panel-books">
+      <div class="toolbar">
+        <button onclick="addEntry('books')">+ New Book</button>
+        <button class="secondary" onclick="saveData('books')">Save</button>
+        <button class="secondary" onclick="saveData('books', true)">Save & Push</button>
+      </div>
+      <div class="entry-list" id="list-books"></div>
+      <div class="editor" id="editor-books" style="display:none;">
+        <h3>Edit Book</h3>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>ID</label>
+            <input type="text" id="books-id" placeholder="unique-id">
+          </div>
+          <div class="form-row">
+            <label>Title</label>
+            <input type="text" id="books-title" placeholder="Book Title">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Author</label>
+            <input type="text" id="books-author" placeholder="Author name">
+          </div>
+          <div class="form-row">
+            <label>Date</label>
+            <input type="date" id="books-date">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Description</label>
+          <textarea id="books-description" placeholder="Brief description"></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Filename</label>
+            <input type="text" id="books-filename" placeholder="file.docx">
+          </div>
+          <div class="form-row">
+            <label>Size</label>
+            <input type="text" id="books-size" placeholder="e.g. 30 KB">
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <button onclick="updateEntry('books')">Save Entry</button>
+          <button class="danger" onclick="deleteEntry('books')">Delete</button>
+          <button class="secondary" onclick="cancelEdit('books')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILES PANEL -->
+    <div class="panel" id="panel-files">
+      <div class="toolbar">
+        <button onclick="addEntry('files')">+ New File</button>
+        <button class="secondary" onclick="saveData('files')">Save</button>
+        <button class="secondary" onclick="saveData('files', true)">Save & Push</button>
+      </div>
+      <div class="entry-list" id="list-files"></div>
+      <div class="editor" id="editor-files" style="display:none;">
+        <h3>Edit File</h3>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>ID</label>
+            <input type="text" id="files-id" placeholder="unique-id">
+          </div>
+          <div class="form-row">
+            <label>Name</label>
+            <input type="text" id="files-name" placeholder="Display name">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Type</label>
+            <input type="text" id="files-type" placeholder="e.g. app, experiment">
+          </div>
+          <div class="form-row">
+            <label>Date</label>
+            <input type="date" id="files-date">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Description</label>
+          <textarea id="files-description" placeholder="Brief description"></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Filename</label>
+            <input type="text" id="files-filename" placeholder="folder/ or file.zip">
+          </div>
+          <div class="form-row">
+            <label>Size</label>
+            <input type="text" id="files-size" placeholder="e.g. ~1 MB">
+          </div>
+        </div>
+        <div class="form-row">
+          <label><input type="checkbox" id="files-isFolder"> Is Folder</label>
+        </div>
+        <div style="margin-top:1rem;">
+          <button onclick="updateEntry('files')">Save Entry</button>
+          <button class="danger" onclick="deleteEntry('files')">Delete</button>
+          <button class="secondary" onclick="cancelEdit('files')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG PANEL -->
+    <div class="panel" id="panel-config">
+      <div class="toolbar">
+        <button class="secondary" onclick="saveData('config')">Save</button>
+        <button class="secondary" onclick="saveData('config', true)">Save & Push</button>
+      </div>
+      <div class="editor" style="display:block;">
+        <h3>Site Configuration</h3>
+        <div class="form-row">
+          <label>Title</label>
+          <input type="text" id="config-title" placeholder="Site title">
+        </div>
+        <div class="form-row">
+          <label>Tagline</label>
+          <textarea id="config-tagline" placeholder="Your tagline"></textarea>
+        </div>
+        <div class="form-row">
+          <label>About (Paragraph 1)</label>
+          <textarea id="config-about1" placeholder="First about paragraph"></textarea>
+        </div>
+        <div class="form-row">
+          <label>About (Paragraph 2)</label>
+          <textarea id="config-about2" placeholder="Second about paragraph"></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>X Handle</label>
+            <input type="text" id="config-xHandle" placeholder="username (no @)">
+          </div>
+          <div class="form-row">
+            <label>Gray Swan Username</label>
+            <input type="text" id="config-grayswanUser" placeholder="username">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Debug Panel -->
+  <div class="debug-panel" id="debugPanel">
+    <div class="debug-header">
+      <span>🐛 Debug Log (<span id="debugCount">0</span>)</span>
+      <div class="debug-controls">
+        <button onclick="copyDebugLog()">📋 Copy All</button>
+        <button onclick="clearDebugLog()">🗑️ Clear</button>
+        <button onclick="toggleDebugPanel()">▲ Expand</button>
+      </div>
+    </div>
+    <div class="debug-log" id="debugLog"></div>
+  </div>
+
+  <div class="modal" id="pushModal">
+    <div class="modal-content">
+      <h3>Push to GitHub</h3>
+      <div class="form-row">
+        <label>Commit message</label>
+        <input type="text" id="commitMessage" value="Update via CMS">
+      </div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="closePushModal()">Cancel</button>
+        <button class="success" onclick="confirmPush()">Push</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const API = '';
+let data = { breaks: [], books: [], files: [], config: {} };
+let selectedIndex = { breaks: -1, books: -1, files: -1 };
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Breaks type toggle
+document.getElementById('breaks-type').addEventListener('change', (e) => {
+  const isXpost = e.target.value === 'xpost';
+  document.getElementById('breaks-xpost-fields').style.display = isXpost ? 'block' : 'none';
+  document.getElementById('breaks-standard-fields').style.display = isXpost ? 'none' : 'block';
+});
+
+// Load all data
+async function loadAll() {
+  try {
+    const [breaks, books, files, config] = await Promise.all([
+      fetch(API + '/api/breaks').then(r => r.json()),
+      fetch(API + '/api/books').then(r => r.json()),
+      fetch(API + '/api/files').then(r => r.json()),
+      fetch(API + '/api/config').then(r => r.json())
+    ]);
+    data = { breaks, books, files, config };
+    renderList('breaks');
+    renderList('books');
+    renderList('files');
+    renderConfig();
+    checkGitStatus();
+  } catch (err) {
+    showToast('Failed to load data: ' + err.message, 'error');
+  }
+}
+
+// Check git status
+async function checkGitStatus() {
+  try {
+    const status = await fetch(API + '/api/git-status').then(r => r.json());
+    const indicator = document.getElementById('gitIndicator');
+    const text = document.getElementById('gitStatusText');
+    if (status.clean) {
+      indicator.className = 'indicator clean';
+      text.textContent = 'Clean';
+    } else {
+      indicator.className = 'indicator dirty';
+      const changes = [...status.modified, ...status.created].length;
+      text.textContent = `${changes} changed`;
+    }
+  } catch (err) {
+    document.getElementById('gitStatusText').textContent = 'Error';
+  }
+}
+
+// Render list
+function renderList(type) {
+  const list = document.getElementById('list-' + type);
+  const items = data[type];
+
+  list.innerHTML = items.map((item, i) => {
+    let title, meta;
+    if (type === 'breaks') {
+      title = item.type === 'xpost' ? (item.note || 'X Post') : item.name;
+      meta = item.type === 'xpost' ? item.date : `${item.technique} · ${item.date}`;
+    } else if (type === 'books') {
+      title = item.title;
+      meta = `${item.author} · ${item.size}`;
+    } else {
+      title = item.name;
+      meta = `${item.type} · ${item.size}`;
+    }
+    const typeLabel = type === 'breaks' && item.type ? `<span class="entry-item-type">${item.type}</span>` : '';
+    return `
+      <div class="entry-item ${selectedIndex[type] === i ? 'selected' : ''}" onclick="selectEntry('${type}', ${i})">
+        <div class="entry-item-info">
+          <div class="entry-item-title">${title}${typeLabel}</div>
+          <div class="entry-item-meta">${meta}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Render config
+function renderConfig() {
+  const c = data.config;
+  document.getElementById('config-title').value = c.title || '';
+  document.getElementById('config-tagline').value = c.tagline || '';
+  document.getElementById('config-about1').value = c.about1 || '';
+  document.getElementById('config-about2').value = c.about2 || '';
+  document.getElementById('config-xHandle').value = c.xHandle || '';
+  document.getElementById('config-grayswanUser').value = c.grayswanUser || '';
+}
+
+// Select entry
+function selectEntry(type, index) {
+  selectedIndex[type] = index;
+  renderList(type);
+  showEditor(type, data[type][index]);
+}
+
+// Show editor
+function showEditor(type, item) {
+  document.getElementById('editor-' + type).style.display = 'block';
+
+  if (type === 'breaks') {
+    document.getElementById('breaks-id').value = item.id || '';
+    document.getElementById('breaks-type').value = item.type || '';
+    document.getElementById('breaks-type').dispatchEvent(new Event('change'));
+
+    if (item.type === 'xpost') {
+      document.getElementById('breaks-tweetUrl').value = item.tweetUrl || '';
+      document.getElementById('breaks-note').value = item.note || '';
+      document.getElementById('breaks-date').value = item.date || '';
+    } else {
+      document.getElementById('breaks-name').value = item.name || '';
+      document.getElementById('breaks-technique').value = item.technique || '';
+      document.getElementById('breaks-category').value = item.category || '';
+      document.getElementById('breaks-date').value = item.date || '';
+      document.getElementById('breaks-challenge').value = item.challenge || '';
+      document.getElementById('breaks-insight').value = item.insight || '';
+      document.getElementById('breaks-prompt').value = item.prompt || '';
+      document.getElementById('breaks-result').value = item.result || '';
+      document.getElementById('breaks-url').value = item.url || '';
+    }
+  } else if (type === 'books') {
+    document.getElementById('books-id').value = item.id || '';
+    document.getElementById('books-title').value = item.title || '';
+    document.getElementById('books-author').value = item.author || '';
+    document.getElementById('books-description').value = item.description || '';
+    document.getElementById('books-filename').value = item.filename || '';
+    document.getElementById('books-size').value = item.size || '';
+    document.getElementById('books-date').value = item.date || '';
+  } else if (type === 'files') {
+    document.getElementById('files-id').value = item.id || '';
+    document.getElementById('files-name').value = item.name || '';
+    document.getElementById('files-type').value = item.type || '';
+    document.getElementById('files-description').value = item.description || '';
+    document.getElementById('files-filename').value = item.filename || '';
+    document.getElementById('files-size').value = item.size || '';
+    document.getElementById('files-date').value = item.date || '';
+    document.getElementById('files-isFolder').checked = item.isFolder || false;
+  }
+}
+
+// Add entry
+function addEntry(type) {
+  const newItem = type === 'breaks'
+    ? { id: 'new-' + Date.now(), name: 'New Break', technique: '', category: '', date: new Date().toISOString().split('T')[0] }
+    : type === 'books'
+    ? { id: 'new-' + Date.now(), title: 'New Book', author: 'elvec1o', date: new Date().toISOString().split('T')[0] }
+    : { id: 'new-' + Date.now(), name: 'New File', type: 'app', date: new Date().toISOString().split('T')[0] };
+
+  data[type].unshift(newItem);
+  selectedIndex[type] = 0;
+  renderList(type);
+  showEditor(type, newItem);
+}
+
+// Update entry
+function updateEntry(type) {
+  const index = selectedIndex[type];
+  if (index < 0) return;
+
+  if (type === 'breaks') {
+    const itemType = document.getElementById('breaks-type').value;
+    if (itemType === 'xpost') {
+      data.breaks[index] = {
+        id: document.getElementById('breaks-id').value,
+        type: 'xpost',
+        tweetUrl: document.getElementById('breaks-tweetUrl').value,
+        date: document.getElementById('breaks-date').value,
+        note: document.getElementById('breaks-note').value
+      };
+    } else {
+      data.breaks[index] = {
+        id: document.getElementById('breaks-id').value,
+        type: itemType || undefined,
+        name: document.getElementById('breaks-name').value,
+        technique: document.getElementById('breaks-technique').value,
+        category: document.getElementById('breaks-category').value,
+        date: document.getElementById('breaks-date').value,
+        challenge: document.getElementById('breaks-challenge').value,
+        insight: document.getElementById('breaks-insight').value,
+        prompt: document.getElementById('breaks-prompt').value,
+        result: document.getElementById('breaks-result').value,
+        url: document.getElementById('breaks-url').value
+      };
+      // Clean undefined type
+      if (!data.breaks[index].type) delete data.breaks[index].type;
+    }
+  } else if (type === 'books') {
+    data.books[index] = {
+      id: document.getElementById('books-id').value,
+      title: document.getElementById('books-title').value,
+      author: document.getElementById('books-author').value,
+      description: document.getElementById('books-description').value,
+      filename: document.getElementById('books-filename').value,
+      size: document.getElementById('books-size').value,
+      date: document.getElementById('books-date').value
+    };
+  } else if (type === 'files') {
+    data.files[index] = {
+      id: document.getElementById('files-id').value,
+      name: document.getElementById('files-name').value,
+      type: document.getElementById('files-type').value,
+      description: document.getElementById('files-description').value,
+      filename: document.getElementById('files-filename').value,
+      size: document.getElementById('files-size').value,
+      date: document.getElementById('files-date').value,
+      isFolder: document.getElementById('files-isFolder').checked
+    };
+    if (!data.files[index].isFolder) delete data.files[index].isFolder;
+  }
+
+  renderList(type);
+  showToast('Entry updated (not saved yet)', 'success');
+}
+
+// Delete entry
+function deleteEntry(type) {
+  const index = selectedIndex[type];
+  if (index < 0) return;
+  if (!confirm('Delete this entry?')) return;
+
+  data[type].splice(index, 1);
+  selectedIndex[type] = -1;
+  document.getElementById('editor-' + type).style.display = 'none';
+  renderList(type);
+  showToast('Entry deleted (not saved yet)', 'success');
+}
+
+// Cancel edit
+function cancelEdit(type) {
+  selectedIndex[type] = -1;
+  document.getElementById('editor-' + type).style.display = 'none';
+  renderList(type);
+}
+
+// Save data
+async function saveData(type, push = false) {
+  try {
+    let payload, endpoint;
+    if (type === 'config') {
+      payload = {
+        title: document.getElementById('config-title').value,
+        tagline: document.getElementById('config-tagline').value,
+        about1: document.getElementById('config-about1').value,
+        about2: document.getElementById('config-about2').value,
+        xHandle: document.getElementById('config-xHandle').value,
+        grayswanUser: document.getElementById('config-grayswanUser').value
+      };
+      endpoint = '/api/config';
+    } else {
+      payload = data[type];
+      endpoint = '/api/' + type;
+    }
+
+    const res = await fetch(API + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: payload, push })
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      showToast(result.message, 'success');
+      checkGitStatus();
+    } else {
+      showToast(result.error || 'Save failed', 'error');
+    }
+  } catch (err) {
+    showToast('Save failed: ' + err.message, 'error');
+  }
+}
+
+// Push modal
+function pushChanges() {
+  document.getElementById('pushModal').classList.add('active');
+}
+
+function closePushModal() {
+  document.getElementById('pushModal').classList.remove('active');
+}
+
+async function confirmPush() {
+  const message = document.getElementById('commitMessage').value || 'Update via CMS';
+  closePushModal();
+
+  try {
+    const res = await fetch(API + '/api/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      showToast(result.message, 'success');
+      checkGitStatus();
+    } else {
+      showToast(result.message || 'Push failed', 'error');
+    }
+  } catch (err) {
+    showToast('Push failed: ' + err.message, 'error');
+  }
+}
+
+// Toast
+function showToast(message, type = '') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = 'toast show ' + type;
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ============ DEBUG PANEL ============
+let debugLogs = [];
+
+function debugLog(message, type = 'info', data = null) {
+  const time = new Date().toLocaleTimeString();
+  const entry = { time, message, type, data };
+  debugLogs.push(entry);
+
+  const logEl = document.getElementById('debugLog');
+  const countEl = document.getElementById('debugCount');
+
+  let dataStr = '';
+  if (data) {
+    try {
+      dataStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    } catch (e) {
+      dataStr = String(data);
+    }
+  }
+
+  const entryHtml = `<div class="debug-entry ${type}">
+    <span class="debug-time">[${time}]</span>
+    <span>${message}</span>
+    ${dataStr ? `<pre style="margin:0.2rem 0 0 1rem;font-size:11px;color:#aaa;white-space:pre-wrap;">${dataStr}</pre>` : ''}
+  </div>`;
+
+  logEl.innerHTML += entryHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+  countEl.textContent = debugLogs.length;
+}
+
+function toggleDebugPanel() {
+  const panel = document.getElementById('debugPanel');
+  const btn = panel.querySelector('.debug-controls button:last-child');
+  panel.classList.toggle('expanded');
+  btn.textContent = panel.classList.contains('expanded') ? '▼ Collapse' : '▲ Expand';
+}
+
+function clearDebugLog() {
+  debugLogs = [];
+  document.getElementById('debugLog').innerHTML = '';
+  document.getElementById('debugCount').textContent = '0';
+  debugLog('Log cleared', 'info');
+}
+
+function copyDebugLog() {
+  const text = debugLogs.map(e => {
+    let line = `[${e.time}] [${e.type.toUpperCase()}] ${e.message}`;
+    if (e.data) {
+      try {
+        line += '\n  ' + (typeof e.data === 'string' ? e.data : JSON.stringify(e.data));
+      } catch (err) {
+        line += '\n  ' + String(e.data);
+      }
+    }
+    return line;
+  }).join('\n');
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Debug log copied!', 'success');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Debug log copied!', 'success');
+  });
+}
+
+// Override fetch to log all API calls
+const originalFetch = window.fetch;
+window.fetch = async function(...args) {
+  const url = args[0];
+  const options = args[1] || {};
+
+  debugLog(`→ ${options.method || 'GET'} ${url}`, 'info');
+
+  try {
+    const response = await originalFetch.apply(this, args);
+    const clone = response.clone();
+
+    try {
+      const data = await clone.json();
+      if (response.ok) {
+        debugLog(`← ${response.status} ${url}`, 'success', data);
+      } else {
+        debugLog(`← ${response.status} ${url} FAILED`, 'error', data);
+      }
+    } catch (e) {
+      debugLog(`← ${response.status} ${url} (non-JSON response)`, response.ok ? 'success' : 'error');
+    }
+
+    return response;
+  } catch (err) {
+    debugLog(`✗ ${url} - ${err.message}`, 'error');
+    throw err;
+  }
+};
+
+// Init
+debugLog('CMS initialized', 'info');
+loadAll();
+</script>
+</body>
+</html>
