@@ -11,6 +11,9 @@ const posts = breaks.filter(b => b.type === 'post');
 const xposts = breaks.filter(b => b.type === 'xpost');
 const legacy = breaks.filter(b => !b.type && !b.tldr);
 
+// Get last 5 X posts for featured section
+const featuredXposts = xposts.slice(0, 5);
+
 // Convert [[SPOILER]]text[[/SPOILER]] to HTML blur spans
 function renderSpoiler(text: string): string {
   if (!text) return '';
@@ -21,8 +24,6 @@ function renderSpoiler(text: string): string {
 }
 
 // Convert [[LOCKED:hash]]text[[/LOCKED]] to password-protected content
-// hash is a simple hash of the password for client-side check
-// Uses INLINE span for short text, block div for longer content
 function renderLocked(text: string, id: string): string {
   if (!text) return '';
   let counter = 0;
@@ -32,10 +33,8 @@ function renderLocked(text: string, id: string): string {
       const lockId = `${id}-lock-${counter++}`;
       const isShort = content.length < 200 && !content.includes('\n');
       if (isShort) {
-        // Inline lock for short content (sentences)
         return `<span class="locked-inline" id="${lockId}" data-hash="${hash}"><span class="locked-inline-trigger" onclick="promptUnlock('${lockId}')">🔐 [locked]</span><span class="locked-inline-content">${content}</span></span>`;
       } else {
-        // Block lock for longer content
         return `<div class="locked" id="${lockId}" data-hash="${hash}">
           <div class="locked-overlay">
             <span class="locked-icon">🔐</span>
@@ -53,7 +52,6 @@ function renderLocked(text: string, id: string): string {
   );
 }
 
-// Render both spoiler and locked content
 function renderProtected(text: string, id: string): string {
   if (!text) return '';
   let result = renderSpoiler(text);
@@ -65,8 +63,24 @@ function renderProtected(text: string, id: string): string {
   <h1>Posts</h1>
   <p>{breaks.length} entries</p>
 
+  <!-- Featured X Posts Section -->
+  <div id="featured-tweets" class="featured-section">
+    <h2>Latest from X</h2>
+    <div class="tweet-grid">
+      {featuredXposts.map(xp => (
+        <div class="tweet-card">
+          <blockquote class="twitter-tweet" data-conversation="none" data-dnt="true">
+            <a href={xp.tweetUrl}></a>
+          </blockquote>
+          {xp.note && <p class="tweet-note">{xp.note}</p>}
+        </div>
+      ))}
+    </div>
+    <p class="featured-link"><a href="https://x.com/elvec10" target="_blank">→ Follow @elvec10 on X</a></p>
+  </div>
+
   <div class="tabs">
-    <button class="tab active" data-filter="all">All</button>
+    <button class="tab" data-filter="all">All</button>
     <button class="tab" data-filter="writeup">Writeups</button>
     <button class="tab" data-filter="post">Posts</button>
     <button class="tab" data-filter="xpost">X</button>
@@ -170,6 +184,48 @@ function renderProtected(text: string, id: string): string {
 </Base>
 
 <style>
+  /* Featured tweets section */
+  .featured-section {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .featured-section h2 {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+  }
+  .tweet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .tweet-card {
+    background: #fff;
+    border: 1px solid #e1e8ed;
+    padding: 0.5rem;
+    min-height: 150px;
+  }
+  .tweet-card blockquote {
+    margin: 0 !important;
+  }
+  .tweet-note {
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+    margin: 0.5rem 0 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid #eee;
+  }
+  .featured-link {
+    margin: 1rem 0 0;
+    text-align: right;
+    font-size: 0.85rem;
+  }
+
   .tabs {
     margin: 2rem 0;
     display: flex;
@@ -261,28 +317,60 @@ function renderProtected(text: string, id: string): string {
   window.unlockContent = unlockContent;
   window.promptUnlock = promptUnlock;
 
-  // Tab filtering
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+  // Tab filtering with localStorage persistence
+  const STORAGE_KEY = 'elvec1o_posts_tab';
 
-      const filter = tab.dataset.filter;
-      document.querySelectorAll('.break-entry').forEach(entry => {
-        if (filter === 'all') {
+  function applyFilter(filter) {
+    // Update tabs
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const activeTab = document.querySelector(`.tab[data-filter="${filter}"]`);
+    if (activeTab) activeTab.classList.add('active');
+
+    // Show/hide featured section (only on 'all' or 'xpost')
+    const featured = document.getElementById('featured-tweets');
+    if (featured) {
+      featured.style.display = (filter === 'all' || filter === 'xpost') ? 'block' : 'none';
+    }
+
+    // Filter entries
+    document.querySelectorAll('.break-entry').forEach(entry => {
+      if (filter === 'all') {
+        entry.classList.remove('hidden');
+      } else {
+        const type = entry.dataset.type;
+        if (filter === 'writeup' && (type === 'writeup' || type === 'legacy')) {
+          entry.classList.remove('hidden');
+        } else if (type === filter) {
           entry.classList.remove('hidden');
         } else {
-          const type = entry.dataset.type;
-          // writeup filter also shows legacy
-          if (filter === 'writeup' && (type === 'writeup' || type === 'legacy')) {
-            entry.classList.remove('hidden');
-          } else if (type === filter) {
-            entry.classList.remove('hidden');
-          } else {
-            entry.classList.add('hidden');
-          }
+          entry.classList.add('hidden');
         }
-      });
+      }
+    });
+
+    // Save to localStorage
+    try {
+      localStorage.setItem(STORAGE_KEY, filter);
+    } catch (e) {}
+  }
+
+  // Initialize from localStorage or default to 'all'
+  function initTabs() {
+    let savedFilter = 'all';
+    try {
+      savedFilter = localStorage.getItem(STORAGE_KEY) || 'all';
+    } catch (e) {}
+    applyFilter(savedFilter);
+  }
+
+  // Tab click handlers
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const filter = tab.dataset.filter;
+      applyFilter(filter);
     });
   });
+
+  // Initialize on load
+  initTabs();
 </script>
