@@ -4,8 +4,11 @@ import breaksData from '../data/breaks.json';
 import siteConfig from '../data/site-config.json';
 
 const totalBreaks = breaksData.length;
-const categories = [...new Set(breaksData.map(b => b.category.split(' ')[1]))];
+const categories = [...new Set(breaksData.filter(b => b.category).map(b => b.category.split(' ')[1]))];
 const base = import.meta.env.BASE_URL;
+
+// Filter to only entries with name/technique for Recent Work display
+const recentWork = breaksData.filter(b => b.name && b.technique).slice(0, 3);
 ---
 <Base title={siteConfig.title}>
   <h1>{siteConfig.title}</h1>
@@ -22,7 +25,7 @@ const base = import.meta.env.BASE_URL;
   </p>
 
   <h2>Recent Work</h2>
-  {breaksData.slice(0, 3).map(b => (
+  {recentWork.map(b => (
     <p>
       <strong>{b.name}</strong> — {b.technique}<br>
       <span class="meta">{b.challenge}</span>
