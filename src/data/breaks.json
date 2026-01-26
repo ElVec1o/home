@@ -1,5 +1,12 @@
 [
   {
+    "id": "xpost-ernie-system-prompt",
+    "type": "xpost",
+    "tweetUrl": "https://twitter.com/Elvec10/status/2014533764291215401",
+    "date": "2026-01-23",
+    "note": "Ernie 5.0 system prompt extraction"
+  },
+  {
     "id": "chocolate-trap",
     "name": "Chocolate Trap",
     "technique": "Emotional Manipulation",
