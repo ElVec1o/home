@@ -1,0 +1,192 @@
+---
+import Base from '../layouts/Base.astro';
+import breaksData from '../data/breaks.json';
+
+const breaks = breaksData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+// Count by type
+const writeups = breaks.filter(b => b.type === 'writeup' || b.tldr);
+const posts = breaks.filter(b => b.type === 'post');
+const xposts = breaks.filter(b => b.type === 'xpost');
+const legacy = breaks.filter(b => !b.type && !b.tldr);
+---
+<Base title="Archive — elvec1o">
+  <h1>Archive</h1>
+  <p>{breaks.length} entries</p>
+
+  <div class="tabs">
+    <button class="tab active" data-filter="all">All</button>
+    <button class="tab" data-filter="writeup">Writeups</button>
+    <button class="tab" data-filter="post">Posts</button>
+    <button class="tab" data-filter="xpost">X</button>
+  </div>
+
+  {breaks.map((brk, i) => {
+    const entryType = brk.type || (brk.tldr ? 'writeup' : 'legacy');
+    return (
+      <div class={`break-entry entry-${entryType}`} data-type={entryType}>
+
+        {/* X POST TYPE */}
+        {entryType === 'xpost' && (
+          <>
+            <p class="meta">{brk.date}</p>
+            <div class="xpost-embed" set:html={brk.embedHtml || `<blockquote class="twitter-tweet"><a href="${brk.tweetUrl}"></a></blockquote>`} />
+            {brk.note && <p class="xpost-note">{brk.note}</p>}
+          </>
+        )}
+
+        {/* SHORT POST TYPE */}
+        {entryType === 'post' && (
+          <>
+            <h3>{brk.name}</h3>
+            <p class="meta">{brk.category} · {brk.date}</p>
+            {brk.images && brk.images.map((img: string) => (
+              <div class="screenshot">
+                <img src={`/img/${img}`} alt={brk.name} />
+              </div>
+            ))}
+            <p>{brk.content}</p>
+            {brk.url && <p><a href={brk.url} target="_blank">→ Link</a></p>}
+          </>
+        )}
+
+        {/* WRITEUP TYPE (new format) */}
+        {entryType === 'writeup' && (
+          <>
+            <h3>#{i + 1} — {brk.name}</h3>
+            <p class="meta">{brk.category} · {brk.technique} · {brk.date}</p>
+
+            {brk.tldr && (
+              <div class="tldr">
+                <strong>TL;DR:</strong> {brk.tldr}
+              </div>
+            )}
+
+            {brk.images && brk.images.map((img: string, idx: number) => (
+              <div class="screenshot">
+                <img src={`/img/${img}`} alt={`${brk.name} screenshot ${idx + 1}`} />
+              </div>
+            ))}
+
+            {brk.summary && (
+              <>
+                <h4>High Level Summary</h4>
+                <p>{brk.summary}</p>
+              </>
+            )}
+
+            {brk.userPrompt && (
+              <div class="quote-user">{brk.userPrompt}</div>
+            )}
+
+            {brk.modelResponse && (
+              <div class="quote-model">{brk.modelResponse}</div>
+            )}
+
+            {brk.modelThinking && (
+              <div class="quote-thinking">{brk.modelThinking}</div>
+            )}
+
+            {brk.considerations && (
+              <div class="considerations">
+                <strong>Considerations:</strong> {brk.considerations}
+              </div>
+            )}
+
+            {brk.url && <p><a href={brk.url} target="_blank">→ View on Gray Swan</a></p>}
+          </>
+        )}
+
+        {/* LEGACY TYPE (old format) */}
+        {entryType === 'legacy' && (
+          <>
+            <h3>#{i + 1} — {brk.name}</h3>
+            <p class="meta">{brk.category} · {brk.technique} · {brk.date}</p>
+            <p><strong>Challenge:</strong> {brk.challenge}</p>
+            <div class="insight">{brk.insight}</div>
+            <p><strong>Prompt:</strong></p>
+            <pre>{brk.prompt}</pre>
+            <p><strong>Result:</strong> {brk.result}</p>
+            {brk.url && <p><a href={brk.url} target="_blank">→ View on Gray Swan</a></p>}
+          </>
+        )}
+
+      </div>
+    );
+  })}
+
+  <p><a href="/">← Back home</a></p>
+</Base>
+
+<style>
+  .tabs {
+    margin: 2rem 0;
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+  }
+  .tab {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 0.4rem 0.8rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: #111;
+  }
+  .tab:hover { background: #f5f5f5; }
+  .tab.active { background: #111; color: #fff; border-color: #111; }
+
+  .xpost-embed {
+    margin: 1rem 0;
+  }
+  .xpost-note {
+    font-style: italic;
+    color: #666;
+  }
+
+  .entry-xpost {
+    padding: 1rem 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .entry-post {
+    padding: 1.5rem 0;
+  }
+
+  .hidden { display: none; }
+</style>
+
+<script>
+  // Twitter embed script
+  const script = document.createElement('script');
+  script.src = 'https://platform.twitter.com/widgets.js';
+  script.async = true;
+  document.body.appendChild(script);
+
+  // Tab filtering
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const filter = tab.dataset.filter;
+      document.querySelectorAll('.break-entry').forEach(entry => {
+        if (filter === 'all') {
+          entry.classList.remove('hidden');
+        } else {
+          const type = entry.dataset.type;
+          // writeup filter also shows legacy
+          if (filter === 'writeup' && (type === 'writeup' || type === 'legacy')) {
+            entry.classList.remove('hidden');
+          } else if (type === filter) {
+            entry.classList.remove('hidden');
+          } else {
+            entry.classList.add('hidden');
+          }
+        }
+      });
+    });
+  });
+</script>

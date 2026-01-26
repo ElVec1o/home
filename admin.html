@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — elvec1o</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.6; padding: 2rem; max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    h2 { font-size: 1rem; margin: 2rem 0 1rem; border-bottom: 1px solid #111; padding-bottom: 0.3rem; }
+
+    .tabs { display: flex; gap: 0.5rem; margin: 1.5rem 0; }
+    .tab { background: #fff; border: 1px solid #ddd; padding: 0.5rem 1rem; cursor: pointer; font-family: inherit; }
+    .tab:hover { background: #f5f5f5; }
+    .tab.active { background: #111; color: #fff; border-color: #111; }
+
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+
+    label { display: block; margin: 1rem 0 0.3rem; font-weight: bold; }
+    input, textarea, select { width: 100%; padding: 0.5rem; border: 1px solid #ddd; font-family: inherit; font-size: inherit; }
+    textarea { min-height: 100px; resize: vertical; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    button { background: #111; color: #fff; border: none; padding: 0.5rem 1rem; cursor: pointer; font-family: inherit; margin-top: 1rem; margin-right: 0.5rem; }
+    button:hover { background: #333; }
+    button.secondary { background: #fff; color: #111; border: 1px solid #ddd; }
+
+    pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; font-size: 0.85rem; max-height: 400px; overflow-y: auto; margin-top: 1rem; }
+
+    .help { font-size: 0.85rem; color: #666; margin-top: 0.3rem; }
+
+    .entry-list { margin-top: 1rem; }
+    .entry-item { padding: 0.75rem; border: 1px solid #ddd; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .entry-item-info { flex: 1; }
+    .entry-item-type { font-size: 0.75rem; background: #f0f0f0; padding: 0.2rem 0.5rem; margin-right: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>elvec1o Admin</h1>
+  <p>Manage content for your site</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('writeup')">+ Writeup</button>
+    <button class="tab" onclick="showTab('post')">+ Post</button>
+    <button class="tab" onclick="showTab('xpost')">+ X Post</button>
+    <button class="tab" onclick="showTab('manage')">Manage</button>
+    <button class="tab" onclick="showTab('export')">Export</button>
+  </div>
+
+  <!-- WRITEUP FORM -->
+  <div id="tab-writeup" class="form-section active">
+    <h2>New Writeup</h2>
+    <p class="help">Full break analysis with TL;DR, summary, quotes, and considerations.</p>
+
+    <div class="row">
+      <div>
+        <label>Name *</label>
+        <input type="text" id="w-name" placeholder="e.g., Water Supply Injection">
+      </div>
+      <div>
+        <label>Technique *</label>
+        <input type="text" id="w-technique" placeholder="e.g., Visual Prompt Injection">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Category</label>
+        <select id="w-category">
+          <option value="🖼️ Visual">🖼️ Visual</option>
+          <option value="🎭 Emotional">🎭 Emotional</option>
+          <option value="🔤 Obfuscation">🔤 Obfuscation</option>
+          <option value="🎯 Reframing">🎯 Reframing</option>
+          <option value="🎬 Roleplay">🎬 Roleplay</option>
+          <option value="🚨 Urgency">🚨 Urgency</option>
+          <option value="🏠 Domestic">🏠 Domestic</option>
+          <option value="🤔 Innocence">🤔 Innocence</option>
+          <option value="🔬 Academic">🔬 Academic</option>
+          <option value="🍳 Culinary">🍳 Culinary</option>
+        </select>
+      </div>
+      <div>
+        <label>Date</label>
+        <input type="date" id="w-date">
+      </div>
+    </div>
+
+    <label>TL;DR *</label>
+    <textarea id="w-tldr" placeholder="One paragraph summary of the attack and result"></textarea>
+
+    <label>High Level Summary</label>
+    <textarea id="w-summary" placeholder="Detailed explanation of the attack vector"></textarea>
+
+    <label>User Prompt</label>
+    <textarea id="w-userprompt" placeholder="What was sent to the model (describe image if visual)"></textarea>
+
+    <label>Model Response</label>
+    <textarea id="w-modelresponse" placeholder="What the model replied"></textarea>
+
+    <label>Model Thinking (if available)</label>
+    <textarea id="w-modelthinking" placeholder="Chain of thought if visible"></textarea>
+
+    <label>Considerations</label>
+    <textarea id="w-considerations" placeholder="Analysis of why this worked and implications"></textarea>
+
+    <label>Images (comma-separated filenames)</label>
+    <input type="text" id="w-images" placeholder="e.g., water-supply-break.png, response.png">
+    <p class="help">Put images in public/img/ folder</p>
+
+    <label>Gray Swan URL</label>
+    <input type="url" id="w-url" placeholder="https://app.grayswan.ai/...">
+
+    <button onclick="addWriteup()">Add Writeup</button>
+    <button class="secondary" onclick="clearWriteup()">Clear</button>
+  </div>
+
+  <!-- POST FORM -->
+  <div id="tab-post" class="form-section">
+    <h2>New Post</h2>
+    <p class="help">Short form content - quick notes, observations, links.</p>
+
+    <label>Title *</label>
+    <input type="text" id="p-name" placeholder="e.g., Interesting finding on Claude">
+
+    <div class="row">
+      <div>
+        <label>Category</label>
+        <input type="text" id="p-category" placeholder="e.g., 🔬 Research">
+      </div>
+      <div>
+        <label>Date</label>
+        <input type="date" id="p-date">
+      </div>
+    </div>
+
+    <label>Content *</label>
+    <textarea id="p-content" placeholder="Your post content..."></textarea>
+
+    <label>Images (comma-separated)</label>
+    <input type="text" id="p-images" placeholder="e.g., screenshot.png">
+
+    <label>Link URL</label>
+    <input type="url" id="p-url" placeholder="https://...">
+
+    <button onclick="addPost()">Add Post</button>
+    <button class="secondary" onclick="clearPost()">Clear</button>
+  </div>
+
+  <!-- X POST FORM -->
+  <div id="tab-xpost" class="form-section">
+    <h2>New X Post</h2>
+    <p class="help">Embed a tweet/X post. Just paste the URL.</p>
+
+    <label>Tweet URL *</label>
+    <input type="url" id="x-url" placeholder="https://x.com/elvec10/status/...">
+    <p class="help">The native X embed will be generated automatically</p>
+
+    <div class="row">
+      <div>
+        <label>Date</label>
+        <input type="date" id="x-date">
+      </div>
+      <div>
+        <label>Your Note (optional)</label>
+        <input type="text" id="x-note" placeholder="Additional context...">
+      </div>
+    </div>
+
+    <button onclick="addXpost()">Add X Post</button>
+    <button class="secondary" onclick="clearXpost()">Clear</button>
+  </div>
+
+  <!-- MANAGE TAB -->
+  <div id="tab-manage" class="form-section">
+    <h2>Manage Entries</h2>
+    <button class="secondary" onclick="loadFile()">Load breaks.json</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFile(event)">
+
+    <div id="entryList" class="entry-list">
+      <p style="color:#666">Load your breaks.json to see entries</p>
+    </div>
+  </div>
+
+  <!-- EXPORT TAB -->
+  <div id="tab-export" class="form-section">
+    <h2>Export JSON</h2>
+    <p class="help">Copy this to src/data/breaks.json, then run npm run build</p>
+    <button onclick="copyJSON()">Copy to Clipboard</button>
+    <button class="secondary" onclick="downloadJSON()">Download</button>
+    <pre id="output">[]</pre>
+  </div>
+
+  <script>
+    let entries = [];
+    let editingIndex = -1;
+
+    function showTab(name) {
+      document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      event.target.classList.add('active');
+      if (name === 'export') updateOutput();
+      if (name === 'manage') renderEntries();
+    }
+
+    function genId(name) {
+      return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    function addWriteup() {
+      const name = document.getElementById('w-name').value.trim();
+      const technique = document.getElementById('w-technique').value.trim();
+      if (!name || !technique) return alert('Name and technique required');
+
+      const entry = {
+        id: genId(name),
+        type: 'writeup',
+        name,
+        technique,
+        category: document.getElementById('w-category').value,
+        date: document.getElementById('w-date').value || new Date().toISOString().split('T')[0],
+        tldr: document.getElementById('w-tldr').value.trim(),
+        summary: document.getElementById('w-summary').value.trim() || undefined,
+        userPrompt: document.getElementById('w-userprompt').value.trim() || undefined,
+        modelResponse: document.getElementById('w-modelresponse').value.trim() || undefined,
+        modelThinking: document.getElementById('w-modelthinking').value.trim() || undefined,
+        considerations: document.getElementById('w-considerations').value.trim() || undefined,
+        images: document.getElementById('w-images').value.trim() ? document.getElementById('w-images').value.split(',').map(s => s.trim()) : undefined,
+        url: document.getElementById('w-url').value.trim() || undefined
+      };
+
+      // Remove undefined fields
+      Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
+
+      entries.push(entry);
+      alert('Writeup added!');
+      clearWriteup();
+      updateOutput();
+    }
+
+    function addPost() {
+      const name = document.getElementById('p-name').value.trim();
+      const content = document.getElementById('p-content').value.trim();
+      if (!name || !content) return alert('Title and content required');
+
+      const entry = {
+        id: genId(name),
+        type: 'post',
+        name,
+        category: document.getElementById('p-category').value.trim() || undefined,
+        date: document.getElementById('p-date').value || new Date().toISOString().split('T')[0],
+        content,
+        images: document.getElementById('p-images').value.trim() ? document.getElementById('p-images').value.split(',').map(s => s.trim()) : undefined,
+        url: document.getElementById('p-url').value.trim() || undefined
+      };
+
+      Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
+      entries.push(entry);
+      alert('Post added!');
+      clearPost();
+      updateOutput();
+    }
+
+    function addXpost() {
+      const tweetUrl = document.getElementById('x-url').value.trim();
+      if (!tweetUrl) return alert('Tweet URL required');
+
+      const entry = {
+        id: 'xpost-' + Date.now(),
+        type: 'xpost',
+        tweetUrl,
+        date: document.getElementById('x-date').value || new Date().toISOString().split('T')[0],
+        note: document.getElementById('x-note').value.trim() || undefined
+      };
+
+      Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
+      entries.push(entry);
+      alert('X post added!');
+      clearXpost();
+      updateOutput();
+    }
+
+    function clearWriteup() {
+      ['w-name','w-technique','w-tldr','w-summary','w-userprompt','w-modelresponse','w-modelthinking','w-considerations','w-images','w-url'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('w-date').value = new Date().toISOString().split('T')[0];
+    }
+    function clearPost() {
+      ['p-name','p-category','p-content','p-images','p-url'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('p-date').value = new Date().toISOString().split('T')[0];
+    }
+    function clearXpost() {
+      ['x-url','x-note'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('x-date').value = new Date().toISOString().split('T')[0];
+    }
+
+    function updateOutput() {
+      document.getElementById('output').textContent = JSON.stringify(entries, null, 2);
+    }
+
+    function copyJSON() {
+      navigator.clipboard.writeText(JSON.stringify(entries, null, 2));
+      alert('Copied!');
+    }
+
+    function downloadJSON() {
+      const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'breaks.json';
+      a.click();
+    }
+
+    function loadFile() { document.getElementById('fileInput').click(); }
+    function handleFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          entries = JSON.parse(ev.target.result);
+          alert('Loaded ' + entries.length + ' entries');
+          renderEntries();
+          updateOutput();
+        } catch(err) { alert('Error: ' + err.message); }
+      };
+      reader.readAsText(file);
+    }
+
+    function renderEntries() {
+      const list = document.getElementById('entryList');
+      if (!entries.length) {
+        list.innerHTML = '<p style="color:#666">No entries</p>';
+        return;
+      }
+      list.innerHTML = entries.map((e, i) => `
+        <div class="entry-item">
+          <div class="entry-item-info">
+            <span class="entry-item-type">${e.type || 'legacy'}</span>
+            <strong>${e.name || e.tweetUrl || 'Untitled'}</strong>
+            <span style="color:#666;font-size:0.85rem;margin-left:0.5rem">${e.date}</span>
+          </div>
+          <button class="secondary" onclick="deleteEntry(${i})">Delete</button>
+        </div>
+      `).join('');
+    }
+
+    function deleteEntry(i) {
+      if (confirm('Delete "' + (entries[i].name || entries[i].tweetUrl) + '"?')) {
+        entries.splice(i, 1);
+        renderEntries();
+        updateOutput();
+      }
+    }
+
+    // Init dates
+    document.getElementById('w-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('p-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('x-date').value = new Date().toISOString().split('T')[0];
+  </script>
+</body>
+</html>

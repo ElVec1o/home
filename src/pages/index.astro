@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import breaksData from '../data/breaks.json';
+
+const totalBreaks = breaksData.length;
+const categories = [...new Set(breaksData.map(b => b.category.split(' ')[1]))];
+---
+<Base title="elvec1o">
+  <h1>elvec1o</h1>
+  <p>AI red teamer. European on an Asian island. Breaking models to make them safer.</p>
+
+  <h2>About</h2>
+  <p>
+    I find vulnerabilities in large language models through adversarial prompting.
+    This site documents my research and techniques used to bypass AI safety systems.
+  </p>
+  <p>
+    Current focus: multimodal attacks, visual prompt injection, emotional manipulation.
+  </p>
+
+  <h2>Stats</h2>
+  <p>
+    {totalBreaks} documented breaks<br>
+    {categories.length} technique categories
+  </p>
+
+  <h2>Recent Work</h2>
+  {breaksData.slice(0, 3).map(b => (
+    <p>
+      <strong>{b.name}</strong> — {b.technique}<br>
+      <span class="meta">{b.challenge}</span>
+    </p>
+  ))}
+  <p><a href="/breaks/">→ View all breaks</a></p>
+
+  <h2>Links</h2>
+  <p>
+    <a href="https://x.com/elvec10">X/Twitter</a>
+  </p>
+  <p class="grayswan-profile">
+    <img src="/img/pq_marz.png" alt="PQ_Marz" class="avatar">
+    <a href="https://app.grayswan.ai/arena/leaderboard/global">Gray Swan Arena Global Leaderboard</a> — competing as <strong>PQ_Marz</strong>
+  </p>
+</Base>
+
+<style>
+  .grayswan-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 2px;
+  }
+</style>

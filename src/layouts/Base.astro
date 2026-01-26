@@ -1,0 +1,24 @@
+---
+import '../styles/global.css';
+const { title } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+</head>
+<body>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/breaks/">Archive</a>
+    <a href="https://x.com/elvec10" target="_blank">X</a>
+    <a href="https://app.grayswan.ai/arena/leaderboard/global" target="_blank">Gray Swan</a>
+  </nav>
+  <slot />
+  <footer>
+    elvec1o — 2025
+  </footer>
+</body>
+</html>
