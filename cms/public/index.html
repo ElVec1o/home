@@ -10,8 +10,10 @@
 
     .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
 
-    header { background: #111; color: #fff; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
-    header h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.1em; }
+    header { background: #111; color: #fff; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    header h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.1em; flex: 1; }
+    .live-site-btn { background: #2e7d32; color: #fff; padding: 0.6rem 1.2rem; text-decoration: none; font-weight: bold; font-size: 0.95rem; border-radius: 4px; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s; }
+    .live-site-btn:hover { background: #1b5e20; }
 
     .git-status { font-size: 0.85rem; display: flex; gap: 1rem; align-items: center; }
     .git-status .indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
@@ -101,10 +103,26 @@
     .error-modal-content .fix-command button:hover { background: #555; }
     .error-modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
     .error-modal-actions button { padding: 0.5rem 1rem; }
+
+    /* Activity Log */
+    .activity-log { border: 1px solid #ddd; max-height: 500px; overflow-y: auto; }
+    .activity-item { padding: 0.75rem 1rem; border-bottom: 1px solid #eee; display: flex; gap: 1rem; align-items: flex-start; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { font-size: 1.2rem; width: 30px; text-align: center; }
+    .activity-content { flex: 1; }
+    .activity-title { font-weight: bold; margin-bottom: 0.2rem; }
+    .activity-detail { font-size: 0.85rem; color: #666; }
+    .activity-time { font-size: 0.75rem; color: #999; white-space: nowrap; }
+    .activity-item.success { background: #f0fff0; border-left: 3px solid #2e7d32; }
+    .activity-item.error { background: #fff0f0; border-left: 3px solid #c00; }
+    .activity-item.info { background: #f0f8ff; border-left: 3px solid #1976d2; }
+    .activity-item.warning { background: #fffaf0; border-left: 3px solid #ff9800; }
+    .activity-empty { padding: 2rem; text-align: center; color: #999; }
   </style>
 </head>
 <body>
   <header>
+    <a href="https://elvec1o.github.io/home/" target="_blank" class="live-site-btn">🌐 View Live Site</a>
     <h1>elvec1o CMS</h1>
     <div class="git-status">
       <span class="indicator" id="gitIndicator"></span>
@@ -119,6 +137,7 @@
       <button class="tab" data-tab="books">Books</button>
       <button class="tab" data-tab="files">Files</button>
       <button class="tab" data-tab="config">Config</button>
+      <button class="tab" data-tab="activity">📋 Activity</button>
     </div>
 
     <!-- BREAKS PANEL -->
@@ -346,6 +365,17 @@
         </div>
       </div>
     </div>
+
+    <!-- ACTIVITY PANEL -->
+    <div class="panel" id="panel-activity">
+      <div class="toolbar">
+        <button class="secondary" onclick="clearActivity()">🗑️ Clear History</button>
+        <button class="secondary" onclick="copyActivity()">📋 Copy All</button>
+      </div>
+      <div class="activity-log" id="activityLog">
+        <div class="activity-empty">No activity yet. Start editing to see your history here.</div>
+      </div>
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -361,6 +391,30 @@
       </div>
     </div>
     <div class="debug-log" id="debugLog"></div>
+  </div>
+
+  <!-- Error Modal with Fix -->
+  <div class="error-modal" id="errorModal">
+    <div class="error-modal-content">
+      <h3>⚠️ <span id="errorTitle">Error</span></h3>
+      <div class="error-message" id="errorMessage"></div>
+      <div class="fix-section" id="fixSection" style="display:none;">
+        <h4>🔧 Quick Fix</h4>
+        <p id="fixDescription" style="margin-bottom:0.5rem;font-size:13px;color:#aaa;"></p>
+        <div class="fix-command">
+          <code id="fixCommand"></code>
+          <button onclick="copyFixCommand()">📋 Copy</button>
+        </div>
+        <p style="margin-top:0.75rem;font-size:12px;color:#888;">
+          Run this in Terminal, then click "Retry"
+        </p>
+      </div>
+      <div class="error-modal-actions">
+        <button class="secondary" onclick="closeErrorModal()">Close</button>
+        <button onclick="openTerminal()" id="terminalBtn" style="display:none;">🖥️ Open Terminal</button>
+        <button class="success" onclick="retryLastAction()" id="retryBtn" style="display:none;">🔄 Retry</button>
+      </div>
+    </div>
   </div>
 
   <div class="modal" id="pushModal">
@@ -601,6 +655,7 @@ function updateEntry(type) {
 
   renderList(type);
   showToast('Entry updated (not saved yet)', 'success');
+  logActivity('✏️', 'Entry Updated', `${type}: ${data[type][index].name || data[type][index].title || data[type][index].id}`, 'info');
 }
 
 // Delete entry
@@ -609,11 +664,13 @@ function deleteEntry(type) {
   if (index < 0) return;
   if (!confirm('Delete this entry?')) return;
 
+  const deletedName = data[type][index].name || data[type][index].title || data[type][index].id;
   data[type].splice(index, 1);
   selectedIndex[type] = -1;
   document.getElementById('editor-' + type).style.display = 'none';
   renderList(type);
   showToast('Entry deleted (not saved yet)', 'success');
+  logActivity('🗑️', 'Entry Deleted', `${type}: ${deletedName}`, 'warning');
 }
 
 // Cancel edit
@@ -649,14 +706,23 @@ async function saveData(type, push = false) {
     });
     const result = await res.json();
 
-    if (result.success) {
+    if (result.success === true) {
       showToast(result.message, 'success');
       checkGitStatus();
+      if (push) {
+        logActivity('🚀', 'Saved & Pushed', `${type} saved and pushed to GitHub`, 'success');
+      } else {
+        logActivity('💾', 'Saved Locally', `${type} saved to local files`, 'success');
+      }
     } else {
-      showToast(result.error || 'Save failed', 'error');
+      // Show error modal with fix suggestions
+      const errorMsg = result.message || result.error || 'Unknown error';
+      showErrorModal(errorMsg, { type: 'save', dataType: type, push });
+      logActivity('❌', 'Save Failed', `${type}: ${errorMsg.substring(0, 50)}...`, 'error');
     }
   } catch (err) {
-    showToast('Save failed: ' + err.message, 'error');
+    showErrorModal('Network error: ' + err.message, { type: 'save', dataType: type, push });
+    logActivity('❌', 'Network Error', err.message, 'error');
   }
 }
 
@@ -681,14 +747,18 @@ async function confirmPush() {
     });
     const result = await res.json();
 
-    if (result.success) {
+    if (result.success === true) {
       showToast(result.message, 'success');
       checkGitStatus();
+      logActivity('🚀', 'Pushed to GitHub', `Commit: "${message}"`, 'success');
     } else {
-      showToast(result.message || 'Push failed', 'error');
+      const errorMsg = result.message || 'Push failed';
+      showErrorModal(errorMsg, { type: 'push' });
+      logActivity('❌', 'Push Failed', errorMsg.substring(0, 50) + '...', 'error');
     }
   } catch (err) {
-    showToast('Push failed: ' + err.message, 'error');
+    showErrorModal('Network error: ' + err.message, { type: 'push' });
+    logActivity('❌', 'Network Error', err.message, 'error');
   }
 }
 
@@ -698,6 +768,178 @@ function showToast(message, type = '') {
   toast.textContent = message;
   toast.className = 'toast show ' + type;
   setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ============ ACTIVITY LOG ============
+let activityItems = JSON.parse(localStorage.getItem('cms-activity') || '[]');
+
+function logActivity(icon, title, detail, type = 'info') {
+  const now = new Date();
+  const item = {
+    icon,
+    title,
+    detail,
+    type,
+    time: now.toLocaleTimeString(),
+    date: now.toLocaleDateString(),
+    timestamp: now.getTime()
+  };
+
+  activityItems.unshift(item);
+  // Keep last 100 items
+  if (activityItems.length > 100) activityItems.pop();
+
+  localStorage.setItem('cms-activity', JSON.stringify(activityItems));
+  renderActivity();
+}
+
+function renderActivity() {
+  const log = document.getElementById('activityLog');
+  if (activityItems.length === 0) {
+    log.innerHTML = '<div class="activity-empty">No activity yet. Start editing to see your history here.</div>';
+    return;
+  }
+
+  log.innerHTML = activityItems.map(item => `
+    <div class="activity-item ${item.type}">
+      <div class="activity-icon">${item.icon}</div>
+      <div class="activity-content">
+        <div class="activity-title">${item.title}</div>
+        <div class="activity-detail">${item.detail}</div>
+      </div>
+      <div class="activity-time">${item.date === new Date().toLocaleDateString() ? item.time : item.date + ' ' + item.time}</div>
+    </div>
+  `).join('');
+}
+
+function clearActivity() {
+  if (!confirm('Clear all activity history?')) return;
+  activityItems = [];
+  localStorage.removeItem('cms-activity');
+  renderActivity();
+  logActivity('🗑️', 'History Cleared', 'Activity log was cleared', 'info');
+}
+
+function copyActivity() {
+  const text = activityItems.map(item =>
+    `[${item.date} ${item.time}] ${item.icon} ${item.title}: ${item.detail}`
+  ).join('\n');
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Activity log copied!', 'success');
+  });
+}
+
+// ============ ERROR HANDLING WITH FIXES ============
+let lastAction = null;
+const ERROR_FIXES = {
+  'index.lock': {
+    title: 'Git Lock File Exists',
+    description: 'Another git process left a lock file. Remove it to continue:',
+    command: 'rm -f /Users/vico/Documents/elvec1o/sito_master/.git/index.lock',
+    canRetry: true
+  },
+  'Permission denied': {
+    title: 'Permission Denied',
+    description: 'Git doesn\'t have permission. Try:',
+    command: 'sudo chown -R $(whoami) /Users/vico/Documents/elvec1o/sito_master/.git',
+    canRetry: true
+  },
+  'Authentication failed': {
+    title: 'GitHub Authentication Failed',
+    description: 'Set up a personal access token or SSH key:',
+    command: 'gh auth login',
+    canRetry: true
+  },
+  'Could not resolve host': {
+    title: 'Network Error',
+    description: 'Check your internet connection and try again.',
+    command: null,
+    canRetry: true
+  },
+  'rejected': {
+    title: 'Push Rejected',
+    description: 'Remote has changes. Pull first:',
+    command: 'cd /Users/vico/Documents/elvec1o/sito_master && git pull --rebase origin main',
+    canRetry: true
+  }
+};
+
+function showErrorModal(message, context = {}) {
+  const modal = document.getElementById('errorModal');
+  const titleEl = document.getElementById('errorTitle');
+  const messageEl = document.getElementById('errorMessage');
+  const fixSection = document.getElementById('fixSection');
+  const fixDesc = document.getElementById('fixDescription');
+  const fixCmd = document.getElementById('fixCommand');
+  const retryBtn = document.getElementById('retryBtn');
+  const terminalBtn = document.getElementById('terminalBtn');
+
+  // Find matching fix
+  let fix = null;
+  for (const [key, value] of Object.entries(ERROR_FIXES)) {
+    if (message.includes(key)) {
+      fix = value;
+      break;
+    }
+  }
+
+  if (fix) {
+    titleEl.textContent = fix.title;
+    messageEl.textContent = message;
+    fixSection.style.display = 'block';
+    fixDesc.textContent = fix.description;
+
+    if (fix.command) {
+      fixCmd.textContent = fix.command;
+      fixCmd.parentElement.style.display = 'flex';
+      terminalBtn.style.display = 'inline-block';
+    } else {
+      fixCmd.parentElement.style.display = 'none';
+      terminalBtn.style.display = 'none';
+    }
+
+    retryBtn.style.display = fix.canRetry ? 'inline-block' : 'none';
+  } else {
+    titleEl.textContent = 'Error';
+    messageEl.textContent = message;
+    fixSection.style.display = 'none';
+    retryBtn.style.display = 'inline-block';
+    terminalBtn.style.display = 'none';
+  }
+
+  lastAction = context;
+  modal.classList.add('active');
+}
+
+function closeErrorModal() {
+  document.getElementById('errorModal').classList.remove('active');
+}
+
+function copyFixCommand() {
+  const cmd = document.getElementById('fixCommand').textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    showToast('Command copied!', 'success');
+    logActivity('📋', 'Fix Command Copied', cmd, 'info');
+  });
+}
+
+function openTerminal() {
+  // macOS: open Terminal with the command
+  const cmd = document.getElementById('fixCommand').textContent;
+  // This won't actually open terminal from browser, but we can try
+  window.open(`terminal://run?cmd=${encodeURIComponent(cmd)}`, '_blank');
+  showToast('Copy the command and paste in Terminal', 'info');
+}
+
+async function retryLastAction() {
+  closeErrorModal();
+  logActivity('🔄', 'Retrying Action', lastAction ? lastAction.type : 'unknown', 'info');
+  if (lastAction && lastAction.type === 'save') {
+    await saveData(lastAction.dataType, lastAction.push);
+  } else if (lastAction && lastAction.type === 'push') {
+    await confirmPush();
+  }
 }
 
 // ============ DEBUG PANEL ============
@@ -804,6 +1046,8 @@ window.fetch = async function(...args) {
 
 // Init
 debugLog('CMS initialized', 'info');
+renderActivity();
+logActivity('🟢', 'CMS Started', 'Session initialized', 'info');
 loadAll();
 </script>
 </body>
