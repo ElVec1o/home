@@ -45,6 +45,52 @@
 
     input[type="file"] { border: 1px dashed #ddd; padding: 1rem; background: #fafafa; cursor: pointer; }
     input[type="file"]:hover { background: #f0f0f0; }
+
+    .spoiler-btn {
+      background: #666;
+      color: #fff;
+      border: none;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      font-family: inherit;
+      vertical-align: middle;
+    }
+    .spoiler-btn:hover { background: #444; }
+
+    .lock-btn {
+      background: #8b0000;
+      color: #fff;
+      border: none;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 0.3rem;
+      font-family: inherit;
+      vertical-align: middle;
+    }
+    .lock-btn:hover { background: #a00; }
+
+    .password-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .password-modal.active { display: flex; }
+    .password-modal-content {
+      background: #fff;
+      padding: 2rem;
+      max-width: 400px;
+      width: 90%;
+    }
+    .password-modal input {
+      margin: 1rem 0;
+    }
   </style>
 </head>
 <body>
@@ -55,6 +101,7 @@
     <button class="tab active" onclick="showTab('writeup')">+ Writeup</button>
     <button class="tab" onclick="showTab('post')">+ Post</button>
     <button class="tab" onclick="showTab('xpost')">+ X Post</button>
+    <button class="tab" onclick="showTab('site')">Site Config</button>
     <button class="tab" onclick="showTab('manage')">Manage</button>
     <button class="tab" onclick="showTab('export')">Export</button>
   </div>
@@ -103,11 +150,17 @@
     <label>High Level Summary</label>
     <textarea id="w-summary" placeholder="Detailed explanation of the attack vector"></textarea>
 
-    <label>User Prompt</label>
-    <textarea id="w-userprompt" placeholder="What was sent to the model (describe image if visual)"></textarea>
+    <label>User Prompt
+      <button type="button" class="spoiler-btn" onclick="wrapSpoiler('w-userprompt')">👁️ Blur</button>
+      <button type="button" class="lock-btn" onclick="openLockModal('w-userprompt')">🔐 Lock</button>
+    </label>
+    <textarea id="w-userprompt" placeholder="Select text → Blur (hover reveal) or Lock (password required)"></textarea>
 
-    <label>Model Response</label>
-    <textarea id="w-modelresponse" placeholder="What the model replied"></textarea>
+    <label>Model Response
+      <button type="button" class="spoiler-btn" onclick="wrapSpoiler('w-modelresponse')">👁️ Blur</button>
+      <button type="button" class="lock-btn" onclick="openLockModal('w-modelresponse')">🔐 Lock</button>
+    </label>
+    <textarea id="w-modelresponse" placeholder="Select text → Blur (hover reveal) or Lock (password required)"></textarea>
 
     <label>Model Thinking (if available)</label>
     <textarea id="w-modelthinking" placeholder="Chain of thought if visible"></textarea>
@@ -186,6 +239,37 @@
     <button class="secondary" onclick="clearXpost()">Clear</button>
   </div>
 
+  <!-- SITE CONFIG TAB -->
+  <div id="tab-site" class="form-section">
+    <h2>Site Configuration</h2>
+    <p class="help">Edit homepage content. Export generates site-config.json — copy to src/data/</p>
+
+    <label>Site Title</label>
+    <input type="text" id="site-title" value="elvec1o">
+
+    <label>Tagline</label>
+    <input type="text" id="site-tagline" value="AI red teamer. European on an Asian island. Breaking models to make them safer.">
+
+    <h3 style="margin-top:2rem">About Section</h3>
+    <label>About Paragraph 1</label>
+    <textarea id="site-about1">I find vulnerabilities in large language models through adversarial prompting. This site documents my research and techniques used to bypass AI safety systems.</textarea>
+
+    <label>About Paragraph 2</label>
+    <textarea id="site-about2">Current focus: multimodal attacks, visual prompt injection, emotional manipulation.</textarea>
+
+    <h3 style="margin-top:2rem">Links</h3>
+    <label>X/Twitter Handle</label>
+    <input type="text" id="site-x" value="elvec10">
+
+    <label>Gray Swan Username</label>
+    <input type="text" id="site-grayswan" value="PQ_Marz">
+
+    <button onclick="saveSiteConfig()">Save Site Config</button>
+    <button class="secondary" onclick="loadSiteConfig()">Load site-config.json</button>
+    <input type="file" id="siteConfigInput" accept=".json" style="display:none" onchange="handleSiteConfigFile(event)">
+    <button class="secondary" onclick="downloadSiteConfig()">Download site-config.json</button>
+  </div>
+
   <!-- MANAGE TAB -->
   <div id="tab-manage" class="form-section">
     <h2>Manage Entries</h2>
@@ -205,6 +289,18 @@
     <button class="secondary" onclick="downloadJSON()">Download JSON</button>
     <button class="secondary" onclick="downloadAllImages()">Download All Images</button>
     <pre id="output">[]</pre>
+  </div>
+
+  <!-- Password Modal -->
+  <div id="password-modal" class="password-modal">
+    <div class="password-modal-content">
+      <h3>Set Lock Password</h3>
+      <p class="help">This password will be required to view the locked content.</p>
+      <input type="password" id="lock-password" placeholder="Enter password">
+      <input type="hidden" id="lock-target-textarea">
+      <button onclick="applyLock()">Lock Selection</button>
+      <button class="secondary" onclick="closeModal()">Cancel</button>
+    </div>
   </div>
 
   <script>
@@ -436,6 +532,131 @@
         }, i * 200);
       });
       alert('Downloaded ' + all.length + ' image(s) — move them to public/img/');
+    }
+
+    // Spoiler wrap function
+    function wrapSpoiler(textareaId) {
+      const textarea = document.getElementById(textareaId);
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      if (start === end) {
+        alert('Select some text first, then click Blur');
+        return;
+      }
+
+      const selected = text.substring(start, end);
+      const before = text.substring(0, start);
+      const after = text.substring(end);
+
+      textarea.value = before + '[[SPOILER]]' + selected + '[[/SPOILER]]' + after;
+      textarea.focus();
+      textarea.setSelectionRange(start, end + 24);
+    }
+
+    // Simple hash function for password
+    function simpleHash(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      return Math.abs(hash).toString(16);
+    }
+
+    // Lock modal functions
+    let lockSelection = { start: 0, end: 0 };
+
+    function openLockModal(textareaId) {
+      const textarea = document.getElementById(textareaId);
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+
+      if (start === end) {
+        alert('Select some text first, then click Lock');
+        return;
+      }
+
+      lockSelection = { start, end };
+      document.getElementById('lock-target-textarea').value = textareaId;
+      document.getElementById('lock-password').value = '';
+      document.getElementById('password-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('password-modal').classList.remove('active');
+    }
+
+    function applyLock() {
+      const password = document.getElementById('lock-password').value;
+      if (!password) {
+        alert('Enter a password');
+        return;
+      }
+
+      const textareaId = document.getElementById('lock-target-textarea').value;
+      const textarea = document.getElementById(textareaId);
+      const text = textarea.value;
+      const { start, end } = lockSelection;
+
+      const selected = text.substring(start, end);
+      const before = text.substring(0, start);
+      const after = text.substring(end);
+      const hash = simpleHash(password);
+
+      textarea.value = before + '[[LOCKED:' + hash + ']]' + selected + '[[/LOCKED]]' + after;
+      textarea.focus();
+      closeModal();
+      alert('Content locked with password. Remember: ' + password);
+    }
+
+    // Site config functions
+    let siteConfig = {};
+
+    function saveSiteConfig() {
+      siteConfig = {
+        title: document.getElementById('site-title').value,
+        tagline: document.getElementById('site-tagline').value,
+        about1: document.getElementById('site-about1').value,
+        about2: document.getElementById('site-about2').value,
+        xHandle: document.getElementById('site-x').value,
+        grayswanUser: document.getElementById('site-grayswan').value
+      };
+      alert('Site config saved! Go to Export to download.');
+    }
+
+    function loadSiteConfig() {
+      document.getElementById('siteConfigInput').click();
+    }
+
+    function handleSiteConfigFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          siteConfig = JSON.parse(ev.target.result);
+          document.getElementById('site-title').value = siteConfig.title || '';
+          document.getElementById('site-tagline').value = siteConfig.tagline || '';
+          document.getElementById('site-about1').value = siteConfig.about1 || '';
+          document.getElementById('site-about2').value = siteConfig.about2 || '';
+          document.getElementById('site-x').value = siteConfig.xHandle || '';
+          document.getElementById('site-grayswan').value = siteConfig.grayswanUser || '';
+          alert('Site config loaded!');
+        } catch(err) { alert('Error: ' + err.message); }
+      };
+      reader.readAsText(file);
+    }
+
+    function downloadSiteConfig() {
+      saveSiteConfig();
+      const blob = new Blob([JSON.stringify(siteConfig, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'site-config.json';
+      a.click();
     }
 
     // Init dates

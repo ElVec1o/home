@@ -10,6 +10,48 @@ const writeups = breaks.filter(b => b.type === 'writeup' || b.tldr);
 const posts = breaks.filter(b => b.type === 'post');
 const xposts = breaks.filter(b => b.type === 'xpost');
 const legacy = breaks.filter(b => !b.type && !b.tldr);
+
+// Convert [[SPOILER]]text[[/SPOILER]] to HTML blur spans
+function renderSpoiler(text: string): string {
+  if (!text) return '';
+  return text.replace(
+    /\[\[SPOILER\]\]([\s\S]*?)\[\[\/SPOILER\]\]/g,
+    '<span class="spoiler"><span class="spoiler-content">$1</span><span class="spoiler-label">hover to reveal</span></span>'
+  );
+}
+
+// Convert [[LOCKED:hash]]text[[/LOCKED]] to password-protected content
+// hash is a simple hash of the password for client-side check
+function renderLocked(text: string, id: string): string {
+  if (!text) return '';
+  let counter = 0;
+  return text.replace(
+    /\[\[LOCKED:([a-f0-9]+)\]\]([\s\S]*?)\[\[\/LOCKED\]\]/g,
+    (match, hash, content) => {
+      const lockId = `${id}-lock-${counter++}`;
+      return `<div class="locked" id="${lockId}" data-hash="${hash}">
+        <div class="locked-overlay">
+          <span class="locked-icon">🔐</span>
+          <span class="locked-text">Password Protected</span>
+          <div class="locked-input">
+            <input type="password" placeholder="Password" onkeypress="if(event.key==='Enter')unlockContent('${lockId}')">
+            <button onclick="unlockContent('${lockId}')">Unlock</button>
+          </div>
+          <div class="locked-error"></div>
+        </div>
+        <div class="locked-content">${content}</div>
+      </div>`;
+    }
+  );
+}
+
+// Render both spoiler and locked content
+function renderProtected(text: string, id: string): string {
+  if (!text) return '';
+  let result = renderSpoiler(text);
+  result = renderLocked(result, id);
+  return result;
+}
 ---
 <Base title="Archive — elvec1o">
   <h1>Archive</h1>
@@ -77,11 +119,11 @@ const legacy = breaks.filter(b => !b.type && !b.tldr);
             )}
 
             {brk.userPrompt && (
-              <div class="quote-user">{brk.userPrompt}</div>
+              <div class="quote-user" set:html={renderProtected(brk.userPrompt, brk.id + '-user')} />
             )}
 
             {brk.modelResponse && (
-              <div class="quote-model">{brk.modelResponse}</div>
+              <div class="quote-model" set:html={renderProtected(brk.modelResponse, brk.id + '-model')} />
             )}
 
             {brk.modelThinking && (
@@ -165,6 +207,37 @@ const legacy = breaks.filter(b => !b.type && !b.tldr);
   script.src = 'https://platform.twitter.com/widgets.js';
   script.async = true;
   document.body.appendChild(script);
+
+  // Simple hash function for password verification
+  function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16);
+  }
+
+  // Unlock password-protected content
+  function unlockContent(lockId) {
+    const container = document.getElementById(lockId);
+    const input = container.querySelector('input');
+    const errorDiv = container.querySelector('.locked-error');
+    const password = input.value;
+    const expectedHash = container.dataset.hash;
+
+    if (simpleHash(password) === expectedHash) {
+      container.classList.add('unlocked');
+      errorDiv.textContent = '';
+    } else {
+      errorDiv.textContent = 'Wrong password';
+      input.value = '';
+    }
+  }
+
+  // Make unlockContent available globally
+  window.unlockContent = unlockContent;
 
   // Tab filtering
   document.querySelectorAll('.tab').forEach(tab => {

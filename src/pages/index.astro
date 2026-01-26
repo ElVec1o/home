@@ -1,23 +1,19 @@
 ---
 import Base from '../layouts/Base.astro';
 import breaksData from '../data/breaks.json';
+import siteConfig from '../data/site-config.json';
 
 const totalBreaks = breaksData.length;
 const categories = [...new Set(breaksData.map(b => b.category.split(' ')[1]))];
 const base = import.meta.env.BASE_URL;
 ---
-<Base title="elvec1o">
-  <h1>elvec1o</h1>
-  <p>AI red teamer. European on an Asian island. Breaking models to make them safer.</p>
+<Base title={siteConfig.title}>
+  <h1>{siteConfig.title}</h1>
+  <p>{siteConfig.tagline}</p>
 
   <h2>About</h2>
-  <p>
-    I find vulnerabilities in large language models through adversarial prompting.
-    This site documents my research and techniques used to bypass AI safety systems.
-  </p>
-  <p>
-    Current focus: multimodal attacks, visual prompt injection, emotional manipulation.
-  </p>
+  <p>{siteConfig.about1}</p>
+  <p>{siteConfig.about2}</p>
 
   <h2>Stats</h2>
   <p>
@@ -36,10 +32,10 @@ const base = import.meta.env.BASE_URL;
 
   <h2>Links</h2>
   <p>
-    <a href="https://x.com/elvec10" target="_blank">X/Twitter</a>
+    <a href={`https://x.com/${siteConfig.xHandle}`} target="_blank">X/Twitter</a>
   </p>
   <p>
-    <a href="https://app.grayswan.ai/arena/leaderboard/global" target="_blank">Gray Swan Arena Global Leaderboard</a> — competing as <strong>PQ_Marz</strong>
+    <a href="https://app.grayswan.ai/arena/leaderboard/global" target="_blank">Gray Swan Arena Global Leaderboard</a> — competing as <strong>{siteConfig.grayswanUser}</strong>
   </p>
   <p class="admin-link">
     <a href={`${base}/admin.html`}>Admin</a>
