@@ -29,7 +29,11 @@ const types = [...new Set(files.map(f => f.type))];
           <p class="meta">{file.date} · {file.size}</p>
           <p>{file.description}</p>
         </div>
-        <a href={`${base}/files/${file.filename}`} class="download-btn" download>↓ Download</a>
+        {file.isFolder ? (
+          <a href={`${base}/files/${file.filename}`} class="download-btn">→ Browse</a>
+        ) : (
+          <a href={`${base}/files/${file.filename}`} class="download-btn" download>↓ Download</a>
+        )}
       </div>
     ))}
   </div>

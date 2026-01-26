@@ -1,11 +1,22 @@
 [
   {
-    "id": "example-app",
-    "name": "Example App",
+    "id": "quizrest",
+    "name": "QuizRest",
     "type": "app",
-    "description": "Description of your app/utility",
-    "filename": "example.zip",
-    "size": "1.2 MB",
-    "date": "2026-01-26"
+    "description": "Quiz REST API application (.NET solution)",
+    "filename": "QuizRest/",
+    "isFolder": true,
+    "size": "~1 MB",
+    "date": "2023-03-11"
+  },
+  {
+    "id": "dos-golf-88",
+    "name": "DOS Golf 88",
+    "type": "experiment",
+    "description": "Python golf game experiment",
+    "filename": "dos_golf_88/",
+    "isFolder": true,
+    "size": "~114 KB",
+    "date": "2024-10-01"
   }
 ]
