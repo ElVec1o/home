@@ -1,14 +1,25 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html {
+  font-size: 16px;
+}
+
 body {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.7;
   background: #fff;
   color: #111;
   max-width: 700px;
   margin: 0 auto;
   padding: 2rem;
+  width: 100%;
+}
+
+@media (max-width: 740px) {
+  body {
+    padding: 1rem;
+  }
 }
 
 a { color: #111; }

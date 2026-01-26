@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 const { title } = Astro.props;
+const base = import.meta.env.BASE_URL;
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -11,8 +12,8 @@ const { title } = Astro.props;
 </head>
 <body>
   <nav>
-    <a href="/">Home</a>
-    <a href="/breaks/">Archive</a>
+    <a href={`${base}`}>Home</a>
+    <a href={`${base}breaks/`}>Archive</a>
     <a href="https://x.com/elvec10" target="_blank">X</a>
     <a href="https://app.grayswan.ai/arena/leaderboard/global" target="_blank">Gray Swan</a>
   </nav>

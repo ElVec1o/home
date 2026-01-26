@@ -4,6 +4,7 @@ import breaksData from '../data/breaks.json';
 
 const totalBreaks = breaksData.length;
 const categories = [...new Set(breaksData.map(b => b.category.split(' ')[1]))];
+const base = import.meta.env.BASE_URL;
 ---
 <Base title="elvec1o">
   <h1>elvec1o</h1>
@@ -31,7 +32,7 @@ const categories = [...new Set(breaksData.map(b => b.category.split(' ')[1]))];
       <span class="meta">{b.challenge}</span>
     </p>
   ))}
-  <p><a href="/breaks/">→ View all breaks</a></p>
+  <p><a href={`${base}breaks/`}>→ View all breaks</a></p>
 
   <h2>Links</h2>
   <p>
