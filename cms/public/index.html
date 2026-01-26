@@ -138,6 +138,7 @@
       <button class="tab" data-tab="files">Files</button>
       <button class="tab" data-tab="config">Config</button>
       <button class="tab" data-tab="activity">📋 Activity</button>
+      <button class="tab" data-tab="settings">⚙️ Settings</button>
     </div>
 
     <!-- BREAKS PANEL -->
@@ -362,6 +363,59 @@
             <label>Gray Swan Username</label>
             <input type="text" id="config-grayswanUser" placeholder="username">
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div class="panel" id="panel-settings">
+      <div class="editor" style="display:block;">
+        <h3>🔐 GitHub Authentication</h3>
+        <p style="margin-bottom:1rem;color:#666;">Configure SSH or token authentication to push to GitHub.</p>
+
+        <div style="background:#f5f5f5;padding:1rem;border-radius:4px;margin-bottom:1.5rem;">
+          <h4 style="margin-bottom:0.5rem;">Current Remote</h4>
+          <code id="currentRemote" style="background:#fff;padding:0.5rem;display:block;border:1px solid #ddd;">Loading...</code>
+        </div>
+
+        <div style="background:#e3f2fd;padding:1rem;border-radius:4px;margin-bottom:1.5rem;">
+          <h4 style="margin-bottom:0.5rem;">Option 1: SSH Key (Recommended)</h4>
+          <p style="font-size:0.9rem;color:#666;margin-bottom:1rem;">Generate an SSH key and add it to your GitHub account.</p>
+
+          <div style="margin-bottom:1rem;">
+            <button onclick="generateSSHKey()">🔑 Generate SSH Key</button>
+            <button class="secondary" onclick="checkSSHKey()">🔍 Check Existing Key</button>
+          </div>
+
+          <div id="sshKeyDisplay" style="display:none;margin-top:1rem;">
+            <label style="font-weight:bold;">Your Public Key (copy this to GitHub):</label>
+            <textarea id="sshPublicKey" readonly style="width:100%;height:80px;font-family:monospace;font-size:11px;margin-top:0.5rem;"></textarea>
+            <div style="margin-top:0.5rem;">
+              <button class="secondary" onclick="copySSHKey()">📋 Copy Key</button>
+              <a href="https://github.com/settings/ssh/new" target="_blank" style="margin-left:1rem;">
+                <button type="button">🔗 Add to GitHub</button>
+              </a>
+            </div>
+          </div>
+
+          <div style="margin-top:1rem;">
+            <button class="secondary" onclick="testSSHConnection()">🧪 Test SSH Connection</button>
+            <button class="success" onclick="switchToSSH()">✅ Use SSH Remote</button>
+          </div>
+        </div>
+
+        <div style="background:#fff3e0;padding:1rem;border-radius:4px;">
+          <h4 style="margin-bottom:0.5rem;">Option 2: GitHub Token</h4>
+          <p style="font-size:0.9rem;color:#666;margin-bottom:1rem;">Use a Personal Access Token for HTTPS authentication.</p>
+
+          <div class="form-row">
+            <label>GitHub Token</label>
+            <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+            <p style="font-size:0.8rem;color:#888;margin-top:0.3rem;">
+              <a href="https://github.com/settings/tokens/new?scopes=repo" target="_blank">Generate a token</a> with 'repo' scope
+            </p>
+          </div>
+          <button onclick="saveGitHubToken()">💾 Save Token & Configure</button>
         </div>
       </div>
     </div>
@@ -1079,11 +1133,141 @@ window.fetch = async function(...args) {
   }
 };
 
+// ============ SETTINGS / AUTH ============
+async function loadSettings() {
+  try {
+    const res = await fetch(API + '/api/git-remote');
+    const data = await res.json();
+    document.getElementById('currentRemote').textContent = data.remote || 'Not configured';
+  } catch (err) {
+    document.getElementById('currentRemote').textContent = 'Error loading';
+  }
+}
+
+async function generateSSHKey() {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating...';
+
+  try {
+    const res = await fetch(API + '/api/ssh/generate', { method: 'POST' });
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('sshPublicKey').value = data.publicKey;
+      document.getElementById('sshKeyDisplay').style.display = 'block';
+      showToast('SSH key generated!', 'success');
+      logActivity('🔑', 'SSH Key Generated', 'New SSH key pair created', 'success');
+    } else {
+      showToast('Error: ' + data.message, 'error');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🔑 Generate SSH Key';
+}
+
+async function checkSSHKey() {
+  try {
+    const res = await fetch(API + '/api/ssh/check');
+    const data = await res.json();
+
+    if (data.exists) {
+      document.getElementById('sshPublicKey').value = data.publicKey;
+      document.getElementById('sshKeyDisplay').style.display = 'block';
+      showToast('SSH key found!', 'success');
+    } else {
+      showToast('No SSH key found. Generate one first.', 'error');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+function copySSHKey() {
+  const key = document.getElementById('sshPublicKey').value;
+  navigator.clipboard.writeText(key).then(() => {
+    showToast('SSH key copied!', 'success');
+  });
+}
+
+async function testSSHConnection() {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Testing...';
+
+  try {
+    const res = await fetch(API + '/api/ssh/test');
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('✅ SSH connection works!', 'success');
+      logActivity('✅', 'SSH Test Passed', 'Connection to GitHub successful', 'success');
+    } else {
+      showToast('❌ ' + data.message, 'error');
+      logActivity('❌', 'SSH Test Failed', data.message, 'error');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🧪 Test SSH Connection';
+}
+
+async function switchToSSH() {
+  try {
+    const res = await fetch(API + '/api/use-ssh', { method: 'POST' });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('✅ Switched to SSH!', 'success');
+      logActivity('✅', 'Switched to SSH', 'Remote URL updated to use SSH', 'success');
+      loadSettings();
+    } else {
+      showToast('Error: ' + data.message, 'error');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+async function saveGitHubToken() {
+  const token = document.getElementById('ghToken').value.trim();
+  if (!token) {
+    showToast('Please enter a token', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(API + '/api/auth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('✅ Token configured!', 'success');
+      logActivity('✅', 'GitHub Token Set', 'HTTPS authentication configured', 'success');
+      document.getElementById('ghToken').value = '';
+      loadSettings();
+    } else {
+      showToast('Error: ' + data.message, 'error');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
 // Init
 debugLog('CMS initialized', 'info');
 renderActivity();
 logActivity('🟢', 'CMS Started', 'Session initialized', 'info');
 loadAll();
+loadSettings();
 </script>
 </body>
 </html>

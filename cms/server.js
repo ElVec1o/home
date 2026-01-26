@@ -204,6 +204,75 @@ app.post('/api/use-ssh', async (req, res) => {
   });
 });
 
+// Get current git remote
+app.get('/api/git-remote', async (req, res) => {
+  exec('git remote get-url origin', { cwd: REPO_DIR }, (error, stdout, stderr) => {
+    if (error) {
+      return res.json({ remote: null, error: stderr || error.message });
+    }
+    res.json({ remote: stdout.trim() });
+  });
+});
+
+// SSH Key management
+const os = require('os');
+const SSH_DIR = path.join(os.homedir(), '.ssh');
+const SSH_KEY_PATH = path.join(SSH_DIR, 'id_ed25519');
+const SSH_PUB_PATH = path.join(SSH_DIR, 'id_ed25519.pub');
+
+app.post('/api/ssh/generate', async (req, res) => {
+  // Create .ssh directory if it doesn't exist
+  exec(`mkdir -p ${SSH_DIR} && ssh-keygen -t ed25519 -f ${SSH_KEY_PATH} -N "" -C "cms@elvec1o"`, (error, stdout, stderr) => {
+    if (error && !stderr.includes('already exists')) {
+      return res.json({ success: false, message: stderr || error.message });
+    }
+    // Read the public key
+    require('fs').readFile(SSH_PUB_PATH, 'utf8', (err, data) => {
+      if (err) {
+        return res.json({ success: false, message: 'Key generated but could not read public key' });
+      }
+      res.json({ success: true, publicKey: data.trim() });
+    });
+  });
+});
+
+app.get('/api/ssh/check', async (req, res) => {
+  require('fs').readFile(SSH_PUB_PATH, 'utf8', (err, data) => {
+    if (err) {
+      return res.json({ exists: false });
+    }
+    res.json({ exists: true, publicKey: data.trim() });
+  });
+});
+
+app.get('/api/ssh/test', async (req, res) => {
+  exec('ssh -T git@github.com -o StrictHostKeyChecking=no 2>&1', (error, stdout, stderr) => {
+    const output = stdout + stderr;
+    // GitHub returns exit code 1 but with success message
+    if (output.includes('successfully authenticated')) {
+      return res.json({ success: true, message: 'SSH connection to GitHub works!' });
+    }
+    res.json({ success: false, message: output || 'Connection failed' });
+  });
+});
+
+// GitHub token authentication
+app.post('/api/auth/token', async (req, res) => {
+  const { token } = req.body;
+  if (!token) {
+    return res.json({ success: false, message: 'No token provided' });
+  }
+
+  // Update remote URL with token
+  const newUrl = `https://${token}@github.com/ElVec1o/home.git`;
+  exec(`git remote set-url origin "${newUrl}"`, { cwd: REPO_DIR }, (error, stdout, stderr) => {
+    if (error) {
+      return res.json({ success: false, message: stderr || error.message });
+    }
+    res.json({ success: true, message: 'Token configured successfully' });
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`\n🚀 CMS running at http://localhost:${PORT}`);
   console.log(`   Data directory: ${DATA_DIR}`);
