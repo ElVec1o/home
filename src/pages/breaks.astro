@@ -43,7 +43,7 @@ const legacy = breaks.filter(b => !b.type && !b.tldr);
             <p class="meta">{brk.category} · {brk.date}</p>
             {brk.images && brk.images.map((img: string) => (
               <div class="screenshot">
-                <img src={`${base}img/${img}`} alt={brk.name} />
+                <img src={`${base}/img/${img}`} alt={brk.name} />
               </div>
             ))}
             <p>{brk.content}</p>
@@ -65,7 +65,7 @@ const legacy = breaks.filter(b => !b.type && !b.tldr);
 
             {brk.images && brk.images.map((img: string, idx: number) => (
               <div class="screenshot">
-                <img src={`${base}img/${img}`} alt={`${brk.name} screenshot ${idx + 1}`} />
+                <img src={`${base}/img/${img}`} alt={`${brk.name} screenshot ${idx + 1}`} />
               </div>
             ))}
 
@@ -116,7 +116,7 @@ const legacy = breaks.filter(b => !b.type && !b.tldr);
     );
   })}
 
-  <p><a href={`${base}`}>← Back home</a></p>
+  <p><a href={`${base}/`}>← Back home</a></p>
 </Base>
 
 <style>
