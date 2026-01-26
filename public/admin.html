@@ -91,6 +91,39 @@
     .password-modal input {
       margin: 1rem 0;
     }
+
+    /* Tutorial styles */
+    .tutorial-box {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    .tutorial-box h3 {
+      color: #856404;
+      margin-bottom: 0.5rem;
+    }
+    .tutorial-box ol {
+      margin-left: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .tutorial-box li {
+      margin: 0.3rem 0;
+    }
+    #tab-tutorial h3 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.3rem;
+    }
+    #tab-tutorial code {
+      background: #f0f0f0;
+      padding: 0.1rem 0.3rem;
+      font-size: 0.9em;
+    }
+    #tab-tutorial pre {
+      font-size: 0.85rem;
+    }
   </style>
 </head>
 <body>
@@ -98,12 +131,58 @@
   <p>Manage content for your site</p>
 
   <div class="tabs">
+    <button class="tab" onclick="showTab('tutorial')">📖 Tutorial</button>
     <button class="tab active" onclick="showTab('writeup')">+ Writeup</button>
     <button class="tab" onclick="showTab('post')">+ Post</button>
     <button class="tab" onclick="showTab('xpost')">+ X Post</button>
     <button class="tab" onclick="showTab('site')">Site Config</button>
     <button class="tab" onclick="showTab('manage')">Manage</button>
     <button class="tab" onclick="showTab('export')">Export</button>
+  </div>
+
+  <!-- TUTORIAL TAB -->
+  <div id="tab-tutorial" class="form-section">
+    <h2>📖 How to Use This Admin</h2>
+
+    <div class="tutorial-box">
+      <h3>⚠️ IMPORTANT: Changes Are Local Only!</h3>
+      <p>This admin tool creates JSON data locally. <strong>Your changes won't appear on the live site until you:</strong></p>
+      <ol>
+        <li>Export the JSON (Export tab → Download JSON)</li>
+        <li>Replace <code>src/data/breaks.json</code> in your repo</li>
+        <li>Commit and push to GitHub</li>
+        <li>Wait for GitHub Actions to rebuild (~2 min)</li>
+      </ol>
+    </div>
+
+    <h3>Content Types</h3>
+    <p><strong>Writeup:</strong> Full break analysis with TL;DR, prompts, model response, and considerations. Use for detailed documentation.</p>
+    <p><strong>Post:</strong> Short notes, quick observations, links. Less formal than writeups.</p>
+    <p><strong>X Post:</strong> Embed your tweets. Just paste the URL.</p>
+
+    <h3>Content Protection</h3>
+    <p><strong>👁️ Blur (Spoiler):</strong> Content is blurred but visible on hover. Good for sensitive prompts that aren't dangerous.</p>
+    <p><strong>🔐 Lock:</strong> Content is completely hidden until correct password entered. For actually dangerous content.</p>
+    <p>Both work on <strong>individual sentences</strong> - just select the text and click the button.</p>
+
+    <h3>Workflow</h3>
+    <pre>
+1. Open admin.html locally in browser
+2. Create content (Writeup/Post/X Post tabs)
+3. Go to Export tab
+4. Click "Download JSON"
+5. Replace src/data/breaks.json
+6. Git commit & push
+7. Site rebuilds automatically
+    </pre>
+
+    <h3>Quick Commands</h3>
+    <pre>
+cd sito_master
+npm run dev          # Preview locally at localhost:4321
+npm run build        # Test build
+git add -A && git commit -m "Add new post" && git push
+    </pre>
   </div>
 
   <!-- WRITEUP FORM -->
@@ -347,7 +426,7 @@
       Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
 
       entries.push(entry);
-      alert('Writeup added!');
+      alert('Writeup added locally!\\n\\nTo publish: Export tab → Download JSON → Replace src/data/breaks.json → git commit & push');
       clearWriteup();
       updateOutput();
     }
@@ -370,7 +449,7 @@
 
       Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
       entries.push(entry);
-      alert('Post added!');
+      alert('Post added locally!\\n\\nTo publish: Export tab → Download JSON → Replace src/data/breaks.json → git commit & push');
       clearPost();
       updateOutput();
     }
@@ -389,7 +468,7 @@
 
       Object.keys(entry).forEach(k => entry[k] === undefined && delete entry[k]);
       entries.push(entry);
-      alert('X post added!');
+      alert('X post added locally!\\n\\nTo publish: Export tab → Download JSON → Replace src/data/breaks.json → git commit & push');
       clearXpost();
       updateOutput();
     }

@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import booksData from '../data/books.json';
+
+const books = booksData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+const base = import.meta.env.BASE_URL;
+---
+<Base title="Books — elvec1o">
+  <h1>Books</h1>
+  <p>{books.length} books available</p>
+
+  <div class="book-list">
+    {books.map(book => (
+      <div class="book-entry">
+        <div class="book-info">
+          <h3>{book.title}</h3>
+          <p class="meta">by {book.author} · {book.size}</p>
+          <p>{book.description}</p>
+        </div>
+        <a href={`${base}/books/${book.filename}`} class="download-btn" download>↓ Download</a>
+      </div>
+    ))}
+  </div>
+
+  {books.length === 0 && (
+    <p class="empty">No books yet. Add PDFs to public/books/ and update src/data/books.json</p>
+  )}
+
+  <p><a href={`${base}/`}>← Back home</a></p>
+</Base>
+
+<style>
+  .book-list {
+    margin: 2rem 0;
+  }
+  .book-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #eee;
+    gap: 1rem;
+  }
+  .book-info {
+    flex: 1;
+  }
+  .book-entry h3 {
+    margin: 0 0 0.3rem;
+  }
+  .download-btn {
+    background: #111;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  .download-btn:hover {
+    background: #333;
+    color: #fff;
+  }
+  .empty {
+    color: #666;
+    font-style: italic;
+  }
+</style>

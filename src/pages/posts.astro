@@ -22,6 +22,7 @@ function renderSpoiler(text: string): string {
 
 // Convert [[LOCKED:hash]]text[[/LOCKED]] to password-protected content
 // hash is a simple hash of the password for client-side check
+// Uses INLINE span for short text, block div for longer content
 function renderLocked(text: string, id: string): string {
   if (!text) return '';
   let counter = 0;
@@ -29,18 +30,25 @@ function renderLocked(text: string, id: string): string {
     /\[\[LOCKED:([a-f0-9]+)\]\]([\s\S]*?)\[\[\/LOCKED\]\]/g,
     (match, hash, content) => {
       const lockId = `${id}-lock-${counter++}`;
-      return `<div class="locked" id="${lockId}" data-hash="${hash}">
-        <div class="locked-overlay">
-          <span class="locked-icon">🔐</span>
-          <span class="locked-text">Password Protected</span>
-          <div class="locked-input">
-            <input type="password" placeholder="Password" onkeypress="if(event.key==='Enter')unlockContent('${lockId}')">
-            <button onclick="unlockContent('${lockId}')">Unlock</button>
+      const isShort = content.length < 200 && !content.includes('\n');
+      if (isShort) {
+        // Inline lock for short content (sentences)
+        return `<span class="locked-inline" id="${lockId}" data-hash="${hash}"><span class="locked-inline-trigger" onclick="promptUnlock('${lockId}')">🔐 [locked]</span><span class="locked-inline-content">${content}</span></span>`;
+      } else {
+        // Block lock for longer content
+        return `<div class="locked" id="${lockId}" data-hash="${hash}">
+          <div class="locked-overlay">
+            <span class="locked-icon">🔐</span>
+            <span class="locked-text">Password Protected</span>
+            <div class="locked-input">
+              <input type="password" placeholder="Password" onkeypress="if(event.key==='Enter')unlockContent('${lockId}')">
+              <button onclick="unlockContent('${lockId}')">Unlock</button>
+            </div>
+            <div class="locked-error"></div>
           </div>
-          <div class="locked-error"></div>
-        </div>
-        <div class="locked-content">${content}</div>
-      </div>`;
+          <div class="locked-content">${content}</div>
+        </div>`;
+      }
     }
   );
 }
@@ -219,7 +227,7 @@ function renderProtected(text: string, id: string): string {
     return Math.abs(hash).toString(16);
   }
 
-  // Unlock password-protected content
+  // Unlock password-protected content (block version)
   function unlockContent(lockId) {
     const container = document.getElementById(lockId);
     const input = container.querySelector('input');
@@ -236,8 +244,22 @@ function renderProtected(text: string, id: string): string {
     }
   }
 
-  // Make unlockContent available globally
+  // Prompt-based unlock for inline locked content
+  function promptUnlock(lockId) {
+    const container = document.getElementById(lockId);
+    const expectedHash = container.dataset.hash;
+    const password = prompt('Enter password to unlock:');
+
+    if (password && simpleHash(password) === expectedHash) {
+      container.classList.add('unlocked');
+    } else if (password) {
+      alert('Wrong password');
+    }
+  }
+
+  // Make functions available globally
   window.unlockContent = unlockContent;
+  window.promptUnlock = promptUnlock;
 
   // Tab filtering
   document.querySelectorAll('.tab').forEach(tab => {

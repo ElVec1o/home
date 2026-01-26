@@ -282,3 +282,29 @@ pre {
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
+
+/* Inline locked content - for sentences */
+.locked-inline {
+  display: inline;
+}
+.locked-inline-trigger {
+  background: #2a2a2a;
+  color: #888;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.locked-inline-trigger:hover {
+  background: #444;
+  color: #fff;
+}
+.locked-inline-content {
+  display: none;
+}
+.locked-inline.unlocked .locked-inline-trigger {
+  display: none;
+}
+.locked-inline.unlocked .locked-inline-content {
+  display: inline;
+}

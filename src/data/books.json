@@ -1,0 +1,11 @@
+[
+  {
+    "id": "example-book",
+    "title": "Example Book Title",
+    "author": "Author Name",
+    "description": "Short description",
+    "filename": "example.pdf",
+    "size": "5 MB",
+    "date": "2026-01-26"
+  }
+]

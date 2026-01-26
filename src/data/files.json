@@ -1,0 +1,11 @@
+[
+  {
+    "id": "example-app",
+    "name": "Example App",
+    "type": "app",
+    "description": "Description of your app/utility",
+    "filename": "example.zip",
+    "size": "1.2 MB",
+    "date": "2026-01-26"
+  }
+]
