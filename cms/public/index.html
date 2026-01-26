@@ -405,13 +405,10 @@
           <code id="fixCommand"></code>
           <button onclick="copyFixCommand()">📋 Copy</button>
         </div>
-        <p style="margin-top:0.75rem;font-size:12px;color:#888;">
-          Run this in Terminal, then click "Retry"
-        </p>
       </div>
       <div class="error-modal-actions">
         <button class="secondary" onclick="closeErrorModal()">Close</button>
-        <button onclick="openTerminal()" id="terminalBtn" style="display:none;">🖥️ Open Terminal</button>
+        <button onclick="runFixCommand()" id="runFixBtn" style="display:none;">⚡ Run Fix</button>
         <button class="success" onclick="retryLastAction()" id="retryBtn" style="display:none;">🔄 Retry</button>
       </div>
     </div>
@@ -836,18 +833,24 @@ const ERROR_FIXES = {
   'index.lock': {
     title: 'Git Lock File Exists',
     description: 'Another git process left a lock file. Remove it to continue:',
-    command: 'rm -f /Users/vico/Documents/elvec1o/sito_master/.git/index.lock',
+    command: 'rm -f .git/index.lock',
     canRetry: true
   },
-  'Permission denied': {
-    title: 'Permission Denied',
-    description: 'Git doesn\'t have permission. Try:',
-    command: 'sudo chown -R $(whoami) /Users/vico/Documents/elvec1o/sito_master/.git',
+  'could not read Username': {
+    title: 'GitHub Authentication Required',
+    description: 'Switch to SSH authentication (requires SSH key setup on GitHub):',
+    command: 'git remote set-url origin git@github.com:ElVec1o/home.git',
     canRetry: true
+  },
+  'Permission denied (publickey)': {
+    title: 'SSH Key Not Found',
+    description: 'Your SSH key is not set up with GitHub. Run this to generate one:',
+    command: 'ssh-keygen -t ed25519 -C "your_email@example.com"',
+    canRetry: false
   },
   'Authentication failed': {
     title: 'GitHub Authentication Failed',
-    description: 'Set up a personal access token or SSH key:',
+    description: 'Set up GitHub CLI authentication:',
     command: 'gh auth login',
     canRetry: true
   },
@@ -860,7 +863,13 @@ const ERROR_FIXES = {
   'rejected': {
     title: 'Push Rejected',
     description: 'Remote has changes. Pull first:',
-    command: 'cd /Users/vico/Documents/elvec1o/sito_master && git pull --rebase origin main',
+    command: 'git pull --rebase origin main',
+    canRetry: true
+  },
+  'non-fast-forward': {
+    title: 'Push Rejected - Need to Pull First',
+    description: 'Remote has new commits. Pull and merge first:',
+    command: 'git pull --rebase origin main',
     canRetry: true
   }
 };
@@ -893,10 +902,10 @@ function showErrorModal(message, context = {}) {
     if (fix.command) {
       fixCmd.textContent = fix.command;
       fixCmd.parentElement.style.display = 'flex';
-      terminalBtn.style.display = 'inline-block';
+      document.getElementById('runFixBtn').style.display = 'inline-block';
     } else {
       fixCmd.parentElement.style.display = 'none';
-      terminalBtn.style.display = 'none';
+      document.getElementById('runFixBtn').style.display = 'none';
     }
 
     retryBtn.style.display = fix.canRetry ? 'inline-block' : 'none';
@@ -924,12 +933,38 @@ function copyFixCommand() {
   });
 }
 
-function openTerminal() {
-  // macOS: open Terminal with the command
+async function runFixCommand() {
   const cmd = document.getElementById('fixCommand').textContent;
-  // This won't actually open terminal from browser, but we can try
-  window.open(`terminal://run?cmd=${encodeURIComponent(cmd)}`, '_blank');
-  showToast('Copy the command and paste in Terminal', 'info');
+  const btn = document.getElementById('runFixBtn');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Running...';
+
+  try {
+    const res = await fetch(API + '/api/exec', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: cmd })
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      showToast('✅ Fix executed successfully!', 'success');
+      logActivity('✅', 'Fix Executed', cmd, 'success');
+      btn.textContent = '✅ Done!';
+      // Auto-retry after successful fix
+      setTimeout(() => retryLastAction(), 1000);
+    } else {
+      showToast('Fix failed: ' + result.message, 'error');
+      logActivity('❌', 'Fix Failed', result.message, 'error');
+      btn.textContent = '⚡ Run Fix';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+    btn.textContent = '⚡ Run Fix';
+    btn.disabled = false;
+  }
 }
 
 async function retryLastAction() {

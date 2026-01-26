@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs').promises;
 const path = require('path');
 const simpleGit = require('simple-git');
+const { exec } = require('child_process');
 
 const app = express();
 const PORT = 3333;
@@ -164,6 +165,43 @@ app.get('/api/git-status', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Execute shell command (for fixes)
+app.post('/api/exec', async (req, res) => {
+  const { command } = req.body;
+
+  // Whitelist of allowed commands for safety
+  const allowedCommands = [
+    'rm -f',
+    'git pull',
+    'git push',
+    'git status',
+    'git remote set-url',
+    'gh auth'
+  ];
+
+  const isAllowed = allowedCommands.some(cmd => command.startsWith(cmd) || command.includes(cmd));
+  if (!isAllowed) {
+    return res.status(403).json({ success: false, message: 'Command not allowed for safety reasons' });
+  }
+
+  exec(command, { cwd: REPO_DIR }, (error, stdout, stderr) => {
+    if (error) {
+      return res.json({ success: false, message: stderr || error.message, stdout, stderr });
+    }
+    res.json({ success: true, message: stdout || 'Command executed successfully', stdout, stderr });
+  });
+});
+
+// Switch to SSH remote
+app.post('/api/use-ssh', async (req, res) => {
+  exec('git remote set-url origin git@github.com:ElVec1o/home.git', { cwd: REPO_DIR }, (error, stdout, stderr) => {
+    if (error) {
+      return res.json({ success: false, message: stderr || error.message });
+    }
+    res.json({ success: true, message: 'Switched to SSH. Now try pushing again.' });
+  });
 });
 
 app.listen(PORT, () => {
