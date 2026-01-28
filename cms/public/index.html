@@ -237,9 +237,9 @@
       <div class="form-row">
         <label>Import Type</label>
         <select id="import-type" style="width:200px;">
+          <option value="auto">Auto-detect</option>
           <option value="writeups">Writeups</option>
           <option value="breaks">Breaks</option>
-          <option value="auto">Auto-detect</option>
         </select>
       </div>
 
@@ -260,6 +260,7 @@
         <button onclick="parseImport()">🔍 Parse & Preview</button>
         <button class="secondary" onclick="clearImport()">🗑️ Clear</button>
         <button class="secondary" onclick="loadSampleXML()">📄 Load Sample</button>
+        <button class="success" onclick="loadWriteupsXML()">📥 Load 9 Writeups</button>
       </div>
 
       <div id="import-preview" style="display:none;margin-top:1.5rem;">
@@ -622,6 +623,18 @@
       </div>
     </div>
     <div class="debug-log" id="debugLog"></div>
+  </div>
+
+  <!-- Progress Dialog -->
+  <div class="error-modal" id="progressModal">
+    <div class="error-modal-content" style="border-color:#2196f3;">
+      <h3 style="color:#2196f3;">⏳ <span id="progressTitle">Loading...</span></h3>
+      <div id="progressSteps" style="margin:1rem 0;"></div>
+      <div id="progressResult" style="display:none;margin-top:1rem;padding:1rem;border-radius:4px;"></div>
+      <div class="error-modal-actions" id="progressActions" style="display:none;">
+        <button class="secondary" onclick="closeProgressModal()">Close</button>
+      </div>
+    </div>
   </div>
 
   <!-- Error Modal with Fix -->
@@ -1905,6 +1918,126 @@ function clearImport() {
   document.getElementById('import-preview').style.display = 'none';
   document.getElementById('import-result').style.display = 'none';
   parsedImportItems = [];
+}
+
+// ============ PROGRESS DIALOG ============
+let progressSteps = [];
+
+function showProgress(title) {
+  progressSteps = [];
+  document.getElementById('progressTitle').textContent = title;
+  document.getElementById('progressSteps').innerHTML = '';
+  document.getElementById('progressResult').style.display = 'none';
+  document.getElementById('progressActions').style.display = 'none';
+  document.getElementById('progressModal').classList.add('active');
+}
+
+function addProgressStep(text, status = 'pending') {
+  const icons = { pending: '⏳', success: '✅', error: '❌', info: 'ℹ️' };
+  const colors = { pending: '#666', success: '#2e7d32', error: '#c00', info: '#1976d2' };
+
+  progressSteps.push({ text, status });
+
+  const stepsEl = document.getElementById('progressSteps');
+  stepsEl.innerHTML = progressSteps.map((s, i) => `
+    <div style="padding:0.5rem 0;border-bottom:1px solid #333;color:${colors[s.status]};">
+      ${icons[s.status]} ${s.text}
+    </div>
+  `).join('');
+
+  // Scroll to bottom
+  stepsEl.scrollTop = stepsEl.scrollHeight;
+}
+
+function updateProgressStep(index, status) {
+  if (progressSteps[index]) {
+    progressSteps[index].status = status;
+    const stepsEl = document.getElementById('progressSteps');
+    const icons = { pending: '⏳', success: '✅', error: '❌', info: 'ℹ️' };
+    const colors = { pending: '#666', success: '#2e7d32', error: '#c00', info: '#1976d2' };
+    stepsEl.innerHTML = progressSteps.map((s, i) => `
+      <div style="padding:0.5rem 0;border-bottom:1px solid #333;color:${colors[s.status]};">
+        ${icons[s.status]} ${s.text}
+      </div>
+    `).join('');
+  }
+}
+
+function showProgressResult(message, isError = false) {
+  const resultEl = document.getElementById('progressResult');
+  resultEl.style.display = 'block';
+  resultEl.style.background = isError ? '#ffebee' : '#e8f5e9';
+  resultEl.style.color = isError ? '#c00' : '#2e7d32';
+  resultEl.innerHTML = `<strong>${isError ? '❌' : '✅'}</strong> ${message}`;
+  document.getElementById('progressActions').style.display = 'flex';
+}
+
+function closeProgressModal() {
+  document.getElementById('progressModal').classList.remove('active');
+}
+
+async function loadWriteupsXML() {
+  showProgress('Loading 9 Writeups');
+
+  try {
+    // Step 1: Fetch XML
+    addProgressStep('Fetching XML file from server...');
+    const res = await fetch('/sample-writeups-import.xml');
+
+    if (!res.ok) {
+      updateProgressStep(0, 'error');
+      showProgressResult(`HTTP Error: ${res.status} ${res.statusText}`, true);
+      return;
+    }
+    updateProgressStep(0, 'success');
+
+    // Step 2: Parse response
+    addProgressStep('Reading file content...');
+    const xml = await res.text();
+    if (!xml || xml.length < 100) {
+      updateProgressStep(1, 'error');
+      showProgressResult('File is empty or too small', true);
+      return;
+    }
+    updateProgressStep(1, 'success');
+    addProgressStep(`Received ${xml.length} characters`);
+    updateProgressStep(2, 'info');
+
+    // Step 3: Load into textarea
+    addProgressStep('Loading into editor...');
+    document.getElementById('import-xml').value = xml;
+    document.getElementById('import-type').value = 'writeups';
+    updateProgressStep(3, 'success');
+
+    // Step 4: Parse
+    addProgressStep('Parsing XML structure...');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'text/xml');
+    const parseError = doc.querySelector('parsererror');
+
+    if (parseError) {
+      updateProgressStep(4, 'error');
+      showProgressResult('XML Parse Error: ' + parseError.textContent.substring(0, 100), true);
+      return;
+    }
+
+    const articles = doc.querySelectorAll('article');
+    updateProgressStep(4, 'success');
+    addProgressStep(`Found ${articles.length} articles`);
+    updateProgressStep(5, 'info');
+
+    // Step 5: Run parseImport
+    addProgressStep('Building preview...');
+    parseImport();
+    updateProgressStep(6, 'success');
+
+    showProgressResult(`Successfully loaded ${articles.length} writeups! Review and click "Import All" to save.`);
+
+  } catch (err) {
+    addProgressStep('Error: ' + err.message);
+    updateProgressStep(progressSteps.length - 1, 'error');
+    showProgressResult(err.message, true);
+  }
 }
 
 function loadSampleXML() {

@@ -1,0 +1,330 @@
+---
+import Base from '../layouts/Base.astro';
+import writeupsData from '../data/writeups.json';
+
+const writeups = writeupsData.sort((a, b) => a.priority - b.priority);
+const base = import.meta.env.BASE_URL;
+
+// Map targets to their online URLs
+const tryLinks = {
+  'Claude (Anthropic)': 'https://claude.ai/new',
+  'Claude': 'https://claude.ai/new',
+  'Claude Artifacts (Anthropic)': 'https://claude.ai/new',
+  'ChatGPT (OpenAI)': 'https://chat.openai.com/',
+  'ChatGPT': 'https://chat.openai.com/',
+  'ChatGPT Voice (OpenAI)': 'https://chat.openai.com/',
+  'GPT-4': 'https://chat.openai.com/',
+  'Gemini (Google)': 'https://gemini.google.com/',
+  'Gemini': 'https://gemini.google.com/',
+  'Grok (xAI)': 'https://grok.x.ai/',
+  'Grok': 'https://grok.x.ai/',
+  'Multiple': null, // No single link
+};
+
+function getTryLink(target: string): string | null {
+  return tryLinks[target] || null;
+}
+
+function renderMarkdown(text: string): string {
+  if (!text) return '';
+  // Basic markdown: headers, bold, code blocks, lists
+  return text
+    .replace(/^### (.*$)/gim, '<h4>$1</h4>')
+    .replace(/^## (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^# (.*$)/gim, '<h2>$1</h2>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^- (.*$)/gim, '<li>$1</li>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+}
+---
+<Base title="Writeups — elvec1o">
+  <h1>AI Security Writeups</h1>
+  <p class="subtitle">{writeups.length} documented vulnerabilities and techniques</p>
+
+  <div class="writeups-nav">
+    <strong>Jump to:</strong>
+    {writeups.map((w, i) => (
+      <a href={`#${w.id}`} class="nav-link">#{w.priority} {w.title.substring(0, 25)}...</a>
+    ))}
+  </div>
+
+  {writeups.map((writeup, i) => {
+    const tryLink = getTryLink(writeup.target);
+    return (
+      <article class="writeup" id={writeup.id}>
+        <header class="writeup-header">
+          <div class="writeup-meta">
+            <span class="priority">#{writeup.priority}</span>
+            <span class="target">{writeup.target}</span>
+            <span class="technique">{writeup.technique}</span>
+            <span class="date">{writeup.date}</span>
+          </div>
+          <h2>{writeup.title}</h2>
+          <div class="pub-value">{writeup.pubValue}</div>
+        </header>
+
+        <div class="tldr">
+          <strong>TL;DR:</strong> {writeup.tldr}
+        </div>
+
+        <div class="writeup-actions">
+          {tryLink && (
+            <a href={tryLink} target="_blank" class="btn btn-try">
+              🧪 Try on {writeup.target.split(' ')[0]}
+            </a>
+          )}
+          <button class="btn btn-copy" data-content={writeup.content} onclick="copyWriteup(this)">
+            📋 Copy Writeup
+          </button>
+          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this AI security writeup: ${writeup.title} by @elvec10`)}&url=${encodeURIComponent(`https://elvec1o.github.io/home/writeups/#${writeup.id}`)}`} target="_blank" class="btn btn-share">
+            🐦 Share
+          </a>
+        </div>
+
+        <div class="writeup-content" set:html={renderMarkdown(writeup.content)} />
+
+        {writeup.images && writeup.images.length > 0 && (
+          <div class="writeup-images">
+            {writeup.images.map((img: string) => (
+              <img src={`${base}${img}`} alt={writeup.title} class="screenshot" />
+            ))}
+          </div>
+        )}
+
+        <footer class="writeup-footer">
+          <a href="#top" class="back-top">↑ Back to top</a>
+        </footer>
+      </article>
+    );
+  })}
+
+  <p class="back-home"><a href={`${base}/`}>← Back home</a></p>
+</Base>
+
+<style>
+  .subtitle {
+    color: #666;
+    margin-top: -0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .writeups-nav {
+    background: #f5f5f5;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid #ddd;
+    font-size: 0.85rem;
+  }
+  .writeups-nav strong {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .nav-link {
+    display: inline-block;
+    margin: 0.2rem 0.5rem 0.2rem 0;
+    color: #111;
+    text-decoration: none;
+    padding: 0.2rem 0.5rem;
+    background: #fff;
+    border: 1px solid #ddd;
+  }
+  .nav-link:hover {
+    background: #111;
+    color: #fff;
+  }
+
+  .writeup {
+    border: 1px solid #ddd;
+    margin-bottom: 2rem;
+    background: #fff;
+  }
+
+  .writeup-header {
+    background: #111;
+    color: #fff;
+    padding: 1.5rem;
+  }
+  .writeup-header h2 {
+    color: #fff;
+    margin: 0.5rem 0;
+    border: none;
+  }
+  .writeup-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .writeup-meta span {
+    background: rgba(255,255,255,0.1);
+    padding: 0.2rem 0.5rem;
+  }
+  .priority {
+    background: #ff5722 !important;
+    font-weight: bold;
+  }
+  .target {
+    background: #2196f3 !important;
+  }
+  .pub-value {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .tldr {
+    background: #fff3e0;
+    padding: 1rem 1.5rem;
+    border-left: 4px solid #ff9800;
+    font-size: 0.95rem;
+  }
+
+  .writeup-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: #f9f9f9;
+    border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #111;
+    cursor: pointer;
+  }
+  .btn:hover {
+    background: #f5f5f5;
+  }
+  .btn-try {
+    background: #4caf50;
+    color: #fff;
+    border-color: #4caf50;
+    font-weight: bold;
+  }
+  .btn-try:hover {
+    background: #388e3c;
+  }
+  .btn-copy {
+    background: #2196f3;
+    color: #fff;
+    border-color: #2196f3;
+  }
+  .btn-copy:hover {
+    background: #1976d2;
+  }
+  .btn-share {
+    background: #1da1f2;
+    color: #fff;
+    border-color: #1da1f2;
+  }
+  .btn-share:hover {
+    background: #0d8de8;
+  }
+
+  .writeup-content {
+    padding: 1.5rem;
+    line-height: 1.8;
+  }
+  .writeup-content h2, .writeup-content h3, .writeup-content h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .writeup-content h3 {
+    font-size: 1.1rem;
+    color: #333;
+  }
+  .writeup-content h4 {
+    font-size: 1rem;
+    color: #555;
+  }
+  .writeup-content pre {
+    background: #1a1a1a;
+    color: #0f0;
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+  .writeup-content code {
+    background: #f0f0f0;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.9em;
+  }
+  .writeup-content pre code {
+    background: transparent;
+    padding: 0;
+  }
+  .writeup-content li {
+    margin-left: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .writeup-images {
+    padding: 0 1.5rem 1.5rem;
+  }
+  .screenshot {
+    max-width: 100%;
+    border: 1px solid #ddd;
+    margin-top: 1rem;
+  }
+
+  .writeup-footer {
+    padding: 1rem 1.5rem;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+    text-align: right;
+  }
+  .back-top {
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  .back-home {
+    margin-top: 2rem;
+  }
+
+  /* Copied toast */
+  .copy-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #4caf50;
+    color: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    animation: slideIn 0.3s ease;
+    z-index: 1000;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+</style>
+
+<script>
+  function copyWriteup(btn) {
+    const content = btn.dataset.content;
+    navigator.clipboard.writeText(content).then(() => {
+      // Show toast
+      const toast = document.createElement('div');
+      toast.className = 'copy-toast';
+      toast.textContent = '✅ Writeup copied to clipboard!';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }).catch(() => {
+      alert('Failed to copy. Please try again.');
+    });
+  }
+
+  // Make global
+  window.copyWriteup = copyWriteup;
+</script>

@@ -41,6 +41,11 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve sample XML file
+app.get('/sample-writeups-import.xml', (req, res) => {
+  res.sendFile(path.join(__dirname, 'sample-writeups-import.xml'));
+});
+
 // Helper: Read JSON file
 async function readData(filename) {
   const filepath = path.join(DATA_DIR, filename);
