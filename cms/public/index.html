@@ -118,6 +118,19 @@
     .activity-item.info { background: #f0f8ff; border-left: 3px solid #1976d2; }
     .activity-item.warning { background: #fffaf0; border-left: 3px solid #ff9800; }
     .activity-empty { padding: 2rem; text-align: center; color: #999; }
+
+    /* File list */
+    .file-item { padding: 0.5rem 1rem; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+    .file-item:hover { background: #f5f5f5; }
+    .file-item.selected { background: #e3f2fd; }
+    .file-item .file-icon { font-size: 1.3rem; }
+    .file-item .file-name { flex: 1; }
+    .file-item .file-size { color: #888; font-size: 0.85rem; }
+    .file-item.folder .file-name { font-weight: bold; }
+
+    /* Upload dropzone */
+    .dropzone { border: 2px dashed #ccc; padding: 2rem; text-align: center; margin-bottom: 1rem; border-radius: 4px; }
+    .dropzone.dragover { border-color: #2e7d32; background: #f0fff0; }
   </style>
 </head>
 <body>
@@ -134,11 +147,136 @@
   <div class="container">
     <div class="tabs">
       <button class="tab active" data-tab="breaks">Breaks</button>
+      <button class="tab" data-tab="writeups">Writeups</button>
+      <button class="tab" data-tab="import">📥 Import</button>
       <button class="tab" data-tab="books">Books</button>
       <button class="tab" data-tab="files">Files</button>
+      <button class="tab" data-tab="uploads">📁 Uploads</button>
       <button class="tab" data-tab="config">Config</button>
       <button class="tab" data-tab="activity">📋 Activity</button>
       <button class="tab" data-tab="settings">⚙️ Settings</button>
+    </div>
+
+    <!-- WRITEUPS PANEL -->
+    <div class="panel" id="panel-writeups">
+      <div class="toolbar">
+        <button onclick="addEntry('writeups')">+ New Writeup</button>
+        <button class="secondary" onclick="saveData('writeups')">Save</button>
+        <button class="secondary" onclick="saveData('writeups', true)">Save & Push</button>
+      </div>
+      <div class="entry-list" id="list-writeups"></div>
+      <div class="editor" id="editor-writeups" style="display:none;">
+        <h3>Edit Writeup</h3>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>ID (slug)</label>
+            <input type="text" id="writeups-id" placeholder="unique-slug">
+          </div>
+          <div class="form-row">
+            <label>Priority (1-9)</label>
+            <input type="number" id="writeups-priority" min="1" max="9" value="5">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Target</label>
+            <input type="text" id="writeups-target" placeholder="e.g. Claude, Qwen3-Max">
+          </div>
+          <div class="form-row">
+            <label>Title</label>
+            <input type="text" id="writeups-title" placeholder="Writeup title">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Technique</label>
+            <input type="text" id="writeups-technique" placeholder="e.g. Framing, Persistence">
+          </div>
+          <div class="form-row">
+            <label>Date</label>
+            <input type="date" id="writeups-date">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Publication Value</label>
+          <select id="writeups-pubValue">
+            <option value="🔥🔥🔥🔥🔥 CRITICAL">🔥🔥🔥🔥🔥 CRITICAL</option>
+            <option value="🔥🔥🔥🔥 HIGH">🔥🔥🔥🔥 HIGH</option>
+            <option value="🔥🔥🔥 MEDIUM">🔥🔥🔥 MEDIUM</option>
+            <option value="🔥🔥 LOW">🔥🔥 LOW</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>TL;DR</label>
+          <textarea id="writeups-tldr" placeholder="One-sentence summary" style="min-height:60px;"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Content (Markdown)</label>
+          <textarea id="writeups-content" placeholder="Full writeup content in Markdown..." style="min-height:300px;"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Images (comma-separated paths)</label>
+          <input type="text" id="writeups-images" placeholder="/img/writeups/screenshot1.png, /img/writeups/screenshot2.png">
+          <p style="font-size:0.8rem;color:#888;margin-top:0.3rem;">Upload images in the Uploads tab first, then paste paths here</p>
+        </div>
+        <div style="margin-top:1rem;">
+          <button onclick="updateEntry('writeups')">Save Entry</button>
+          <button class="danger" onclick="deleteEntry('writeups')">Delete</button>
+          <button class="secondary" onclick="cancelEdit('writeups')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORT PANEL -->
+    <div class="panel" id="panel-import">
+      <div style="background:#e8f5e9;padding:1rem;border-radius:8px;margin-bottom:1.5rem;border:1px solid #4caf50;">
+        <h3 style="margin-bottom:0.5rem;color:#2e7d32;">📥 Bulk Import</h3>
+        <p style="font-size:0.9rem;color:#555;">Paste XML content below to automatically parse and import multiple items at once. The parser will detect writeups, breaks, or any structured content.</p>
+      </div>
+
+      <div class="form-row">
+        <label>Import Type</label>
+        <select id="import-type" style="width:200px;">
+          <option value="writeups">Writeups</option>
+          <option value="breaks">Breaks</option>
+          <option value="auto">Auto-detect</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label>Paste XML Content</label>
+        <textarea id="import-xml" placeholder="<articles>
+  <article>
+    <title>My Article Title</title>
+    <target>Claude</target>
+    <technique>Prompt Injection</technique>
+    <content>Full article content here...</content>
+  </article>
+  ...
+</articles>" style="min-height:400px;font-family:'Courier New',monospace;font-size:12px;"></textarea>
+      </div>
+
+      <div class="toolbar">
+        <button onclick="parseImport()">🔍 Parse & Preview</button>
+        <button class="secondary" onclick="clearImport()">🗑️ Clear</button>
+        <button class="secondary" onclick="loadSampleXML()">📄 Load Sample</button>
+      </div>
+
+      <div id="import-preview" style="display:none;margin-top:1.5rem;">
+        <h3 style="margin-bottom:1rem;border-bottom:2px solid #111;padding-bottom:0.5rem;">
+          📋 Preview (<span id="import-count">0</span> items detected)
+        </h3>
+        <div id="import-items" style="max-height:300px;overflow-y:auto;border:1px solid #ddd;"></div>
+        <div style="margin-top:1rem;padding:1rem;background:#fff3e0;border-radius:4px;">
+          <label><input type="checkbox" id="import-replace"> Replace existing data (unchecked = append)</label>
+        </div>
+        <div style="margin-top:1rem;">
+          <button class="success" onclick="executeImport()">✅ Import All</button>
+          <button class="success" onclick="executeImport(true)">✅ Import & Push</button>
+        </div>
+      </div>
+
+      <div id="import-result" style="display:none;margin-top:1.5rem;padding:1rem;border-radius:8px;"></div>
     </div>
 
     <!-- BREAKS PANEL -->
@@ -330,6 +468,45 @@
       </div>
     </div>
 
+    <!-- UPLOADS PANEL -->
+    <div class="panel" id="panel-uploads">
+      <div class="toolbar">
+        <button onclick="document.getElementById('fileInput').click()">📤 Upload Files</button>
+        <button class="secondary" onclick="createFolder()">📁 New Folder</button>
+        <button class="secondary" onclick="loadFilesList()">🔄 Refresh</button>
+        <button class="success" onclick="pushUploads()">🚀 Push Uploads</button>
+        <input type="file" id="fileInput" multiple style="display:none;" onchange="uploadFiles(this.files)">
+      </div>
+
+      <div style="margin-bottom:1rem;">
+        <label style="font-weight:bold;">Current folder: </label>
+        <span id="currentFolder">/img</span>
+        <button class="secondary" style="margin-left:0.5rem;padding:0.2rem 0.5rem;font-size:0.8rem;" onclick="navigateUp()">⬆️ Up</button>
+      </div>
+
+      <div style="background:#f5f5f5;padding:1rem;border-radius:4px;margin-bottom:1rem;">
+        <label style="font-weight:bold;">Quick upload to folder:</label>
+        <select id="uploadFolder" style="margin-left:0.5rem;padding:0.3rem;">
+          <option value="img">img (default)</option>
+          <option value="img/writeups">img/writeups</option>
+          <option value="img/breaks">img/breaks</option>
+        </select>
+      </div>
+
+      <div class="entry-list" id="filesList" style="min-height:200px;">
+        <div class="activity-empty">Loading files...</div>
+      </div>
+
+      <div id="filePreview" style="display:none;margin-top:1rem;padding:1rem;background:#f9f9f9;border:1px solid #ddd;border-radius:4px;">
+        <h4 style="margin-bottom:0.5rem;">Selected file:</h4>
+        <div id="previewContent"></div>
+        <div style="margin-top:0.5rem;">
+          <button class="secondary" onclick="copyFilePath()">📋 Copy Path</button>
+          <button class="danger" onclick="deleteSelectedFile()">🗑️ Delete</button>
+        </div>
+      </div>
+    </div>
+
     <!-- CONFIG PANEL -->
     <div class="panel" id="panel-config">
       <div class="toolbar">
@@ -484,8 +661,8 @@
 
 <script>
 const API = '';
-let data = { breaks: [], books: [], files: [], config: {} };
-let selectedIndex = { breaks: -1, books: -1, files: -1 };
+let data = { breaks: [], books: [], files: [], config: {}, writeups: [] };
+let selectedIndex = { breaks: -1, books: -1, files: -1, writeups: -1 };
 
 // Tab switching
 document.querySelectorAll('.tab').forEach(tab => {
@@ -507,16 +684,18 @@ document.getElementById('breaks-type').addEventListener('change', (e) => {
 // Load all data
 async function loadAll() {
   try {
-    const [breaks, books, files, config] = await Promise.all([
+    const [breaks, books, files, config, writeups] = await Promise.all([
       fetch(API + '/api/breaks').then(r => r.json()),
       fetch(API + '/api/books').then(r => r.json()),
       fetch(API + '/api/files').then(r => r.json()),
-      fetch(API + '/api/config').then(r => r.json())
+      fetch(API + '/api/config').then(r => r.json()),
+      fetch(API + '/api/writeups').then(r => r.json()).catch(() => [])
     ]);
-    data = { breaks, books, files, config };
+    data = { breaks, books, files, config, writeups: writeups || [] };
     renderList('breaks');
     renderList('books');
     renderList('files');
+    renderList('writeups');
     renderConfig();
     checkGitStatus();
   } catch (err) {
@@ -546,7 +725,8 @@ async function checkGitStatus() {
 // Render list
 function renderList(type) {
   const list = document.getElementById('list-' + type);
-  const items = data[type];
+  if (!list) return;
+  const items = data[type] || [];
 
   list.innerHTML = items.map((item, i) => {
     let title, meta;
@@ -556,15 +736,19 @@ function renderList(type) {
     } else if (type === 'books') {
       title = item.title;
       meta = `${item.author} · ${item.size}`;
+    } else if (type === 'writeups') {
+      title = item.title;
+      meta = `${item.target} · ${item.pubValue || ''} · ${item.date}`;
     } else {
       title = item.name;
       meta = `${item.type} · ${item.size}`;
     }
     const typeLabel = type === 'breaks' && item.type ? `<span class="entry-item-type">${item.type}</span>` : '';
+    const priorityLabel = type === 'writeups' && item.priority ? `<span class="entry-item-type">#${item.priority}</span>` : '';
     return `
       <div class="entry-item ${selectedIndex[type] === i ? 'selected' : ''}" onclick="selectEntry('${type}', ${i})">
         <div class="entry-item-info">
-          <div class="entry-item-title">${title}${typeLabel}</div>
+          <div class="entry-item-title">${title}${typeLabel}${priorityLabel}</div>
           <div class="entry-item-meta">${meta}</div>
         </div>
       </div>
@@ -631,16 +815,32 @@ function showEditor(type, item) {
     document.getElementById('files-size').value = item.size || '';
     document.getElementById('files-date').value = item.date || '';
     document.getElementById('files-isFolder').checked = item.isFolder || false;
+  } else if (type === 'writeups') {
+    document.getElementById('writeups-id').value = item.id || '';
+    document.getElementById('writeups-priority').value = item.priority || 5;
+    document.getElementById('writeups-target').value = item.target || '';
+    document.getElementById('writeups-title').value = item.title || '';
+    document.getElementById('writeups-technique').value = item.technique || '';
+    document.getElementById('writeups-date').value = item.date || '';
+    document.getElementById('writeups-pubValue').value = item.pubValue || '🔥🔥🔥 MEDIUM';
+    document.getElementById('writeups-tldr').value = item.tldr || '';
+    document.getElementById('writeups-content').value = item.content || '';
+    document.getElementById('writeups-images').value = (item.images || []).join(', ');
   }
 }
 
 // Add entry
 function addEntry(type) {
-  const newItem = type === 'breaks'
-    ? { id: 'new-' + Date.now(), name: 'New Break', technique: '', category: '', date: new Date().toISOString().split('T')[0] }
-    : type === 'books'
-    ? { id: 'new-' + Date.now(), title: 'New Book', author: 'elvec1o', date: new Date().toISOString().split('T')[0] }
-    : { id: 'new-' + Date.now(), name: 'New File', type: 'app', date: new Date().toISOString().split('T')[0] };
+  let newItem;
+  if (type === 'breaks') {
+    newItem = { id: 'new-' + Date.now(), name: 'New Break', technique: '', category: '', date: new Date().toISOString().split('T')[0] };
+  } else if (type === 'books') {
+    newItem = { id: 'new-' + Date.now(), title: 'New Book', author: 'elvec1o', date: new Date().toISOString().split('T')[0] };
+  } else if (type === 'writeups') {
+    newItem = { id: 'new-' + Date.now(), title: 'New Writeup', target: '', technique: '', priority: 5, pubValue: '🔥🔥🔥 MEDIUM', date: new Date().toISOString().split('T')[0] };
+  } else {
+    newItem = { id: 'new-' + Date.now(), name: 'New File', type: 'app', date: new Date().toISOString().split('T')[0] };
+  }
 
   data[type].unshift(newItem);
   selectedIndex[type] = 0;
@@ -702,6 +902,20 @@ function updateEntry(type) {
       isFolder: document.getElementById('files-isFolder').checked
     };
     if (!data.files[index].isFolder) delete data.files[index].isFolder;
+  } else if (type === 'writeups') {
+    const imagesStr = document.getElementById('writeups-images').value;
+    data.writeups[index] = {
+      id: document.getElementById('writeups-id').value,
+      priority: parseInt(document.getElementById('writeups-priority').value) || 5,
+      target: document.getElementById('writeups-target').value,
+      title: document.getElementById('writeups-title').value,
+      technique: document.getElementById('writeups-technique').value,
+      date: document.getElementById('writeups-date').value,
+      pubValue: document.getElementById('writeups-pubValue').value,
+      tldr: document.getElementById('writeups-tldr').value,
+      content: document.getElementById('writeups-content').value,
+      images: imagesStr ? imagesStr.split(',').map(s => s.trim()).filter(Boolean) : []
+    };
   }
 
   renderList(type);
@@ -1262,12 +1476,492 @@ async function saveGitHubToken() {
   }
 }
 
+// ============ FILE UPLOADS ============
+let currentFolder = 'img';
+let selectedFile = null;
+
+async function loadFilesList(folder = null) {
+  if (folder) currentFolder = folder;
+  document.getElementById('currentFolder').textContent = '/' + currentFolder;
+
+  try {
+    const res = await fetch(API + `/api/files-list/${currentFolder}`);
+    const data = await res.json();
+
+    const list = document.getElementById('filesList');
+    if (!data.files || data.files.length === 0) {
+      list.innerHTML = '<div class="activity-empty">No files in this folder</div>';
+      return;
+    }
+
+    list.innerHTML = data.files.map(f => `
+      <div class="file-item ${f.isDirectory ? 'folder' : ''}" onclick="selectFile('${f.path}', ${f.isDirectory}, '${f.name}')" ondblclick="${f.isDirectory ? `loadFilesList('${currentFolder}/${f.name}')` : ''}">
+        <span class="file-icon">${f.isDirectory ? '📁' : getFileIcon(f.name)}</span>
+        <span class="file-name">${f.name}</span>
+        <span class="file-size">${f.isDirectory ? '' : formatSize(f.size)}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    showToast('Error loading files: ' + err.message, 'error');
+  }
+}
+
+function getFileIcon(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  const icons = {
+    'png': '🖼️', 'jpg': '🖼️', 'jpeg': '🖼️', 'gif': '🖼️', 'webp': '🖼️', 'svg': '🖼️',
+    'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📝',
+    'zip': '📦', 'rar': '📦', '7z': '📦',
+    'mp4': '🎬', 'mov': '🎬', 'avi': '🎬',
+    'mp3': '🎵', 'wav': '🎵'
+  };
+  return icons[ext] || '📄';
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function selectFile(filepath, isDir, name) {
+  selectedFile = { path: filepath, isDir, name };
+
+  document.querySelectorAll('.file-item').forEach(el => el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  const preview = document.getElementById('filePreview');
+  const content = document.getElementById('previewContent');
+
+  if (isDir) {
+    preview.style.display = 'none';
+    return;
+  }
+
+  preview.style.display = 'block';
+  const ext = name.split('.').pop().toLowerCase();
+
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) {
+    content.innerHTML = `
+      <img src="http://localhost:3333${filepath}" style="max-width:100%;max-height:200px;border:1px solid #ddd;">
+      <p style="margin-top:0.5rem;font-family:monospace;font-size:0.85rem;">${filepath}</p>
+    `;
+  } else {
+    content.innerHTML = `<p style="font-family:monospace;">${filepath}</p>`;
+  }
+}
+
+function navigateUp() {
+  if (currentFolder === 'img' || currentFolder === '') return;
+  const parts = currentFolder.split('/');
+  parts.pop();
+  loadFilesList(parts.join('/') || 'img');
+}
+
+function copyFilePath() {
+  if (!selectedFile) return;
+  navigator.clipboard.writeText(selectedFile.path).then(() => {
+    showToast('Path copied: ' + selectedFile.path, 'success');
+  });
+}
+
+async function deleteSelectedFile() {
+  if (!selectedFile || selectedFile.isDir) return;
+  if (!confirm(`Delete ${selectedFile.name}?`)) return;
+
+  try {
+    const res = await fetch(API + '/api/files-delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filepath: selectedFile.path })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('File deleted', 'success');
+      logActivity('🗑️', 'File Deleted', selectedFile.path, 'warning');
+      loadFilesList();
+      document.getElementById('filePreview').style.display = 'none';
+      selectedFile = null;
+    } else {
+      showToast('Error: ' + data.message, 'error');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+async function uploadFiles(files) {
+  if (!files || files.length === 0) return;
+
+  const folder = document.getElementById('uploadFolder').value;
+  const formData = new FormData();
+
+  for (const file of files) {
+    formData.append('files', file);
+  }
+  formData.append('folder', folder);
+
+  try {
+    showToast(`Uploading ${files.length} file(s)...`, 'info');
+
+    const res = await fetch(API + '/api/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast(`✅ ${data.files.length} file(s) uploaded!`, 'success');
+      logActivity('📤', 'Files Uploaded', data.files.map(f => f.filename).join(', '), 'success');
+      loadFilesList(folder);
+    } else {
+      showToast('Error: ' + data.message, 'error');
+    }
+  } catch (err) {
+    showToast('Upload error: ' + err.message, 'error');
+  }
+
+  document.getElementById('fileInput').value = '';
+}
+
+async function createFolder() {
+  const name = prompt('Folder name:');
+  if (!name) return;
+
+  const folderPath = currentFolder + '/' + name;
+
+  try {
+    const res = await fetch(API + '/api/folders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folderPath })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('Folder created', 'success');
+      logActivity('📁', 'Folder Created', folderPath, 'success');
+      loadFilesList();
+    } else {
+      showToast('Error: ' + data.message, 'error');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+async function pushUploads() {
+  try {
+    const res = await fetch(API + '/api/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Upload files via CMS' })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('✅ Uploads pushed to GitHub!', 'success');
+      logActivity('🚀', 'Uploads Pushed', 'Files pushed to GitHub', 'success');
+      checkGitStatus();
+    } else {
+      showErrorModal(data.message, { type: 'push' });
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+// ============ WRITEUPS ============
+// Writeups are stored in data.writeups, loaded/saved like other content
+
+// ============ IMPORT FUNCTIONALITY ============
+let parsedImportItems = [];
+
+function parseImport() {
+  const xml = document.getElementById('import-xml').value.trim();
+  const importType = document.getElementById('import-type').value;
+
+  if (!xml) {
+    showToast('Please paste some XML content first', 'error');
+    return;
+  }
+
+  try {
+    // Parse XML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'text/xml');
+
+    // Check for parse errors
+    const parseError = doc.querySelector('parsererror');
+    if (parseError) {
+      showToast('XML Parse Error: ' + parseError.textContent.substring(0, 100), 'error');
+      return;
+    }
+
+    // Find all article/writeup/item elements
+    const itemTags = ['article', 'writeup', 'item', 'break', 'entry'];
+    let items = [];
+
+    for (const tag of itemTags) {
+      const found = doc.querySelectorAll(tag);
+      if (found.length > 0) {
+        items = Array.from(found);
+        break;
+      }
+    }
+
+    if (items.length === 0) {
+      showToast('No items found. Use <article>, <writeup>, <item>, or <break> tags.', 'error');
+      return;
+    }
+
+    // Parse each item
+    parsedImportItems = items.map((item, index) => {
+      const getField = (names) => {
+        for (const name of names) {
+          const el = item.querySelector(name);
+          if (el) return el.textContent.trim();
+        }
+        return '';
+      };
+
+      // Determine type automatically or use selected
+      let type = importType;
+      if (type === 'auto') {
+        type = item.tagName.toLowerCase() === 'break' ? 'breaks' : 'writeups';
+      }
+
+      if (type === 'writeups') {
+        return {
+          _type: 'writeups',
+          id: getField(['id', 'slug']) || 'writeup-' + (Date.now() + index),
+          priority: parseInt(getField(['priority', 'order'])) || (index + 1),
+          target: getField(['target', 'model', 'system']),
+          title: getField(['title', 'name', 'heading']),
+          technique: getField(['technique', 'method', 'category']),
+          date: getField(['date', 'published']) || new Date().toISOString().split('T')[0],
+          pubValue: getField(['pubValue', 'pubvalue', 'severity', 'value']) || '🔥🔥🔥 MEDIUM',
+          tldr: getField(['tldr', 'summary', 'excerpt', 'description']),
+          content: getField(['content', 'body', 'text', 'article']),
+          images: (getField(['images', 'screenshots']) || '').split(',').map(s => s.trim()).filter(Boolean)
+        };
+      } else {
+        return {
+          _type: 'breaks',
+          id: getField(['id', 'slug']) || 'break-' + (Date.now() + index),
+          name: getField(['name', 'title']),
+          technique: getField(['technique', 'method']),
+          category: getField(['category', 'type']),
+          date: getField(['date']) || new Date().toISOString().split('T')[0],
+          challenge: getField(['challenge', 'goal']),
+          insight: getField(['insight', 'explanation']),
+          prompt: getField(['prompt', 'attack']),
+          result: getField(['result', 'outcome']),
+          url: getField(['url', 'link'])
+        };
+      }
+    });
+
+    // Show preview
+    renderImportPreview();
+
+  } catch (err) {
+    showToast('Error parsing: ' + err.message, 'error');
+    debugLog('Import parse error', 'error', err.message);
+  }
+}
+
+function renderImportPreview() {
+  const preview = document.getElementById('import-preview');
+  const itemsEl = document.getElementById('import-items');
+  const countEl = document.getElementById('import-count');
+
+  preview.style.display = 'block';
+  countEl.textContent = parsedImportItems.length;
+
+  itemsEl.innerHTML = parsedImportItems.map((item, i) => `
+    <div class="entry-item" style="cursor:default;">
+      <div class="entry-item-info">
+        <div class="entry-item-title">
+          ${item.title || item.name || item.id}
+          <span class="entry-item-type">${item._type}</span>
+          <span class="entry-item-type">#${i + 1}</span>
+        </div>
+        <div class="entry-item-meta">
+          ${item.target || item.category || ''} · ${item.technique || ''} · ${item.date}
+        </div>
+      </div>
+      <button class="secondary" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="removeImportItem(${i})">✕</button>
+    </div>
+  `).join('');
+
+  logActivity('🔍', 'Import Parsed', `${parsedImportItems.length} items detected`, 'info');
+}
+
+function removeImportItem(index) {
+  parsedImportItems.splice(index, 1);
+  if (parsedImportItems.length === 0) {
+    document.getElementById('import-preview').style.display = 'none';
+  } else {
+    renderImportPreview();
+  }
+}
+
+async function executeImport(push = false) {
+  if (parsedImportItems.length === 0) {
+    showToast('No items to import', 'error');
+    return;
+  }
+
+  const replace = document.getElementById('import-replace').checked;
+  const resultEl = document.getElementById('import-result');
+
+  // Group items by type
+  const grouped = { writeups: [], breaks: [] };
+  parsedImportItems.forEach(item => {
+    const type = item._type;
+    delete item._type; // Remove internal marker
+    grouped[type].push(item);
+  });
+
+  let imported = { writeups: 0, breaks: 0 };
+  let errors = [];
+
+  for (const [type, items] of Object.entries(grouped)) {
+    if (items.length === 0) continue;
+
+    try {
+      // If replace, use items directly; otherwise append to existing
+      let finalData;
+      if (replace) {
+        finalData = items;
+      } else {
+        // Load existing and append
+        const existing = data[type] || [];
+        finalData = [...existing, ...items];
+      }
+
+      // Save
+      const res = await fetch(API + '/api/' + type, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: finalData, push: false })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        data[type] = finalData;
+        imported[type] = items.length;
+        renderList(type);
+      } else {
+        errors.push(`${type}: ${result.message || result.error}`);
+      }
+    } catch (err) {
+      errors.push(`${type}: ${err.message}`);
+    }
+  }
+
+  // Show result
+  const total = imported.writeups + imported.breaks;
+  if (errors.length === 0) {
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#e8f5e9';
+    resultEl.innerHTML = `<strong>✅ Success!</strong> Imported ${total} items (${imported.writeups} writeups, ${imported.breaks} breaks)`;
+    logActivity('✅', 'Import Complete', `${total} items imported`, 'success');
+
+    // Push if requested
+    if (push) {
+      const pushRes = await fetch(API + '/api/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `Import ${total} items via CMS` })
+      });
+      const pushResult = await pushRes.json();
+
+      if (pushResult.success) {
+        resultEl.innerHTML += '<br><strong>🚀 Pushed to GitHub!</strong>';
+        logActivity('🚀', 'Import Pushed', 'Changes pushed to GitHub', 'success');
+      } else {
+        resultEl.innerHTML += `<br><strong>⚠️ Push failed:</strong> ${pushResult.message}`;
+      }
+    }
+
+    // Clear form
+    document.getElementById('import-xml').value = '';
+    document.getElementById('import-preview').style.display = 'none';
+    parsedImportItems = [];
+    checkGitStatus();
+  } else {
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#ffebee';
+    resultEl.innerHTML = `<strong>⚠️ Partial import:</strong> ${total} imported, errors: ${errors.join('; ')}`;
+    logActivity('⚠️', 'Import Partial', errors.join('; '), 'warning');
+  }
+}
+
+function clearImport() {
+  document.getElementById('import-xml').value = '';
+  document.getElementById('import-preview').style.display = 'none';
+  document.getElementById('import-result').style.display = 'none';
+  parsedImportItems = [];
+}
+
+function loadSampleXML() {
+  const sample = `<articles>
+  <article>
+    <id>sample-writeup-1</id>
+    <priority>1</priority>
+    <target>Claude (Anthropic)</target>
+    <title>Sample Writeup Title</title>
+    <technique>Prompt Injection</technique>
+    <date>2025-01-15</date>
+    <pubValue>🔥🔥🔥🔥 HIGH</pubValue>
+    <tldr>This is a sample TL;DR describing the key finding.</tldr>
+    <content>## Background
+
+This is the full writeup content in markdown.
+
+## The Attack
+
+Detailed explanation of the vulnerability.
+
+## Impact
+
+What this means for security.
+
+## Status
+
+Reported and acknowledged.</content>
+    <images>/img/writeups/sample1.png</images>
+  </article>
+
+  <article>
+    <id>sample-writeup-2</id>
+    <priority>2</priority>
+    <target>GPT-4</target>
+    <title>Another Sample Finding</title>
+    <technique>Memory Manipulation</technique>
+    <date>2025-01-10</date>
+    <pubValue>🔥🔥🔥 MEDIUM</pubValue>
+    <tldr>Brief summary of the second finding.</tldr>
+    <content>## Overview
+
+Content for the second writeup...</content>
+  </article>
+</articles>`;
+
+  document.getElementById('import-xml').value = sample;
+  showToast('Sample XML loaded. Click "Parse & Preview" to test.', 'success');
+}
+
 // Init
 debugLog('CMS initialized', 'info');
 renderActivity();
 logActivity('🟢', 'CMS Started', 'Session initialized', 'info');
 loadAll();
 loadSettings();
+loadFilesList();
 </script>
 </body>
 </html>
