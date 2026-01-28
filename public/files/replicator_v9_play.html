@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REPLICATOR v9 — Play Now</title>
+  <style>
+    html, body, #root {
+      background: #04060a !important;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React & ReactDOM from CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Load and run the game -->
+  <script type="text/babel" data-type="module">
+    // Fetch and execute the JSX file
+    fetch('./replicator_v9.jsx')
+      .then(res => res.text())
+      .then(code => {
+        // Remove the import statement and export default
+        const cleanCode = code
+          .replace(/^import.*from.*['"]react['"];?/gm, '')
+          .replace(/^export default /, 'window.Game = ');
+
+        // Execute with Babel
+        const transformed = Babel.transform(cleanCode, { presets: ['react'] }).code;
+        eval(transformed);
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(window.Game));
+      })
+      .catch(err => {
+        document.getElementById('root').innerHTML = `
+          <div style="color: #f00; padding: 2rem; font-family: monospace;">
+            <h1>Error loading game</h1>
+            <pre>${err.message}</pre>
+          </div>
+        `;
+      });
+  </script>
+</body>
+</html>
