@@ -1,5 +1,15 @@
 [
   {
+    "id": "ebook-reader",
+    "name": "E-Reader",
+    "type": "utility",
+    "description": "Beautiful ebook reader for DOCX files - multiple themes, progress tracking, bookmarks",
+    "filename": "ebook-reader.html",
+    "playable": true,
+    "size": "~85 KB",
+    "date": "2026-01-29"
+  },
+  {
     "id": "stitchx-pro",
     "name": "StitchX Pro",
     "type": "app",

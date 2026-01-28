@@ -9,6 +9,15 @@ const base = import.meta.env.BASE_URL;
   <h1>Books</h1>
   <p>{books.length} books available</p>
 
+  <div class="reader-banner">
+    <span class="banner-icon">📖</span>
+    <div class="banner-text">
+      <strong>E-Reader Available</strong>
+      <p>Read books directly in your browser with our built-in reader</p>
+    </div>
+    <a href={`${base}/files/ebook-reader.html`} class="open-reader-btn" target="_blank">Open E-Reader</a>
+  </div>
+
   <div class="book-list">
     {books.map(book => (
       <div class="book-entry">
@@ -17,7 +26,10 @@ const base = import.meta.env.BASE_URL;
           <p class="meta">by {book.author} · {book.size}</p>
           <p>{book.description}</p>
         </div>
-        <a href={`${base}/books/${book.filename}`} class="download-btn" download>↓ Download</a>
+        <div class="book-actions">
+          <a href={`${base}/files/ebook-reader.html?book=${encodeURIComponent('../books/' + book.filename)}`} class="read-btn" target="_blank">📖 Read</a>
+          <a href={`${base}/books/${book.filename}`} class="download-btn" download>↓ Download</a>
+        </div>
       </div>
     ))}
   </div>
@@ -30,6 +42,45 @@ const base = import.meta.env.BASE_URL;
 </Base>
 
 <style>
+  .reader-banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: linear-gradient(135deg, #f5f0e6 0%, #e8dcc8 100%);
+    border: 1px solid #d4c4a8;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+  }
+  .banner-icon {
+    font-size: 2rem;
+  }
+  .banner-text {
+    flex: 1;
+  }
+  .banner-text strong {
+    display: block;
+    color: #5c4a32;
+  }
+  .banner-text p {
+    margin: 0.2rem 0 0;
+    font-size: 0.85rem;
+    color: #7a6a52;
+  }
+  .open-reader-btn {
+    background: #5c4a32;
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .open-reader-btn:hover {
+    background: #4a3a28;
+    color: #fff;
+  }
+
   .book-list {
     margin: 2rem 0;
   }
@@ -47,13 +98,27 @@ const base = import.meta.env.BASE_URL;
   .book-entry h3 {
     margin: 0 0 0.3rem;
   }
-  .download-btn {
-    background: #111;
-    color: #fff;
+  .book-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .read-btn, .download-btn {
     padding: 0.5rem 1rem;
     text-decoration: none;
     font-size: 0.9rem;
     white-space: nowrap;
+  }
+  .read-btn {
+    background: #8b5a2b;
+    color: #fff;
+  }
+  .read-btn:hover {
+    background: #6b4423;
+    color: #fff;
+  }
+  .download-btn {
+    background: #111;
+    color: #fff;
   }
   .download-btn:hover {
     background: #333;

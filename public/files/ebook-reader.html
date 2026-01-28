@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Library - E-Reader</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --bg-color: #faf8f5; --text-color: #2c2c2c; --accent-color: #8b5a2b;
+      --secondary-bg: #f0ebe3; --border-color: #d4c4b0; --shadow-color: rgba(139, 90, 43, 0.15);
+      --checkpoint-inactive: #e0d6c8; --checkpoint-active: #8b5a2b; --checkpoint-glow: rgba(139, 90, 43, 0.6);
+    }
+    .theme-sepia { --bg-color: #f4ecd8; --text-color: #5c4a32; --accent-color: #8b6914; --secondary-bg: #e8dcc4; --border-color: #c9b896; }
+    .theme-dark { --bg-color: #1e1e1e; --text-color: #d4d4d4; --accent-color: #d4a574; --secondary-bg: #2d2d2d; --border-color: #404040; --checkpoint-inactive: #404040; --checkpoint-glow: rgba(212, 165, 116, 0.6); }
+    .theme-night { --bg-color: #0a0a0a; --text-color: #b8b8b8; --accent-color: #a08060; --secondary-bg: #1a1a1a; --border-color: #333; --checkpoint-inactive: #333; }
+    body { font-family: 'Crimson Pro', Georgia, serif; background: var(--bg-color); color: var(--text-color); min-height: 100vh; transition: all 0.3s ease; }
+
+    /* SPLASH */
+    .splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #2c1810 0%, #4a2c17 50%, #1a0f0a 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; transition: opacity 0.8s ease, visibility 0.8s ease; }
+    .splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    .splash-logo { width: 140px; height: 140px; margin-bottom: 25px; animation: float 3s ease-in-out infinite; }
+    .splash-logo svg { width: 100%; height: 100%; filter: drop-shadow(0 10px 30px rgba(212, 165, 116, 0.4)); }
+    @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
+    .splash-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; color: #d4a574; letter-spacing: 4px; margin-bottom: 8px; }
+    .splash-subtitle { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: #a08060; font-style: italic; }
+    .splash-loader { margin-top: 40px; width: 180px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+    .splash-loader-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #d4a574, #e8c9a0); animation: load 2s ease-out forwards; }
+    @keyframes load { to { width: 100%; } }
+
+    /* LIBRARY */
+    .library-view { padding: 30px 20px; max-width: 900px; margin: 0 auto; }
+    .library-header { text-align: center; margin-bottom: 40px; padding-top: 20px; }
+    .library-header h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--accent-color); margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .library-header h1 svg { width: 36px; height: 36px; }
+    .library-header p { font-size: 1rem; opacity: 0.7; font-style: italic; }
+    .books-list { display: flex; flex-direction: column; gap: 20px; }
+    .book-card { background: var(--secondary-bg); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--border-color); }
+    .book-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px var(--shadow-color); }
+    .book-card-inner { display: flex; gap: 20px; padding: 20px; }
+    .book-cover-small { width: 80px; height: 120px; flex-shrink: 0; border-radius: 4px 8px 8px 4px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 2px 2px 8px rgba(0,0,0,0.15); }
+    .book-cover-small::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: linear-gradient(90deg, rgba(0,0,0,0.2), transparent); }
+    .book-cover-small .book-icon { font-size: 2rem; color: rgba(255,255,255,0.9); }
+    .book-info { flex: 1; display: flex; flex-direction: column; }
+    .book-info h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-color); margin-bottom: 4px; }
+    .book-info .author { font-size: 0.9rem; color: var(--accent-color); font-style: italic; margin-bottom: 8px; }
+    .book-stats { display: flex; gap: 15px; flex-wrap: wrap; font-size: 0.8rem; color: var(--text-color); opacity: 0.7; margin-bottom: 10px; }
+    .book-stats span { display: flex; align-items: center; gap: 4px; }
+    .book-summary { font-size: 0.9rem; line-height: 1.5; color: var(--text-color); opacity: 0.8; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .book-summary.expanded { max-height: 200px; }
+    .book-summary p { margin-top: 8px; }
+    .expand-btn { background: none; border: none; color: var(--accent-color); font-size: 0.85rem; cursor: pointer; padding: 4px 0; margin-top: 5px; }
+    .expand-btn:hover { text-decoration: underline; }
+    .book-progress-bar { height: 4px; background: var(--border-color); border-radius: 2px; margin-top: auto; }
+    .book-progress-fill { height: 100%; background: var(--accent-color); border-radius: 2px; transition: width 0.3s ease; }
+    .book-progress-text { font-size: 0.75rem; color: var(--accent-color); margin-top: 5px; font-weight: 600; }
+    .lang-badge { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); color: #333; font-size: 0.6rem; padding: 2px 5px; border-radius: 3px; font-weight: 600; text-transform: uppercase; }
+
+    /* READER */
+    .reader-view { display: none; min-height: 100vh; flex-direction: column; }
+    .reader-view.active { display: flex; }
+    .reader-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: var(--secondary-bg); border-bottom: 1px solid var(--border-color); transition: transform 0.3s ease; }
+    .reader-header.hidden { transform: translateY(-100%); }
+    .back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; color: var(--accent-color); font-size: 0.95rem; cursor: pointer; padding: 8px 12px; border-radius: 6px; }
+    .back-btn:hover { background: var(--bg-color); }
+    .book-title-header { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--text-color); text-align: center; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 15px; }
+    .header-controls { display: flex; gap: 6px; }
+    .icon-btn { background: none; border: none; color: var(--text-color); width: 38px; height: 38px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .icon-btn:hover { background: var(--bg-color); color: var(--accent-color); }
+    .icon-btn svg { width: 20px; height: 20px; }
+
+    /* CHECKPOINTS */
+    .checkpoints-bar { position: fixed; right: 15px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 90; padding: 12px 8px; background: var(--secondary-bg); border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px var(--shadow-color); }
+    .checkpoint-stats { font-size: 0.7rem; font-weight: 600; color: var(--accent-color); text-align: center; padding-bottom: 6px; border-bottom: 1px solid var(--border-color); margin-bottom: 2px; min-width: 36px; }
+    .checkpoint-stats .pct { font-size: 0.85rem; }
+    .checkpoint-stats .time { opacity: 0.8; font-size: 0.65rem; }
+    .checkpoints-dots { display: flex; flex-direction: column; gap: 6px; }
+    .checkpoint { width: 10px; height: 10px; border-radius: 50%; background: var(--checkpoint-inactive); cursor: pointer; transition: all 0.3s ease; position: relative; }
+    .checkpoint:hover { transform: scale(1.4); }
+    .checkpoint.active { background: var(--checkpoint-active); box-shadow: 0 0 8px var(--checkpoint-glow); }
+    .checkpoint.current { background: var(--accent-color); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 5px var(--checkpoint-glow); } 50% { box-shadow: 0 0 12px var(--checkpoint-glow); } }
+    .checkpoint-tooltip { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); background: var(--text-color); color: var(--bg-color); padding: 3px 7px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .checkpoint:hover .checkpoint-tooltip { opacity: 1; }
+
+    /* READING CONTENT */
+    .reading-container { max-width: 700px; margin: 0 auto; padding: 80px 25px 150px; }
+    .book-header-section { text-align: center; margin-bottom: 50px; padding-bottom: 30px; border-bottom: 2px solid var(--border-color); }
+    .book-header-section h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--accent-color); margin-bottom: 10px; }
+    .book-header-section .author { font-size: 1.1rem; font-style: italic; opacity: 0.8; }
+    .book-content { line-height: 1.95; text-align: justify; hyphens: auto; }
+    .book-content p { margin-bottom: 1.3em; text-indent: 1.5em; }
+    .book-content p:first-of-type { text-indent: 0; }
+    .book-content p:first-of-type::first-letter { font-size: 3.5em; float: left; line-height: 0.8; padding-right: 10px; font-family: 'Playfair Display', serif; color: var(--accent-color); }
+    .book-content h1, .book-content h2, .book-content h3 { font-family: 'Playfair Display', serif; color: var(--accent-color); margin: 2em 0 1em; text-align: center; }
+    .book-content h1 { font-size: 1.8rem; }
+    .book-content h2 { font-size: 1.5rem; }
+    .loading-indicator { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; color: var(--accent-color); }
+    .spinner { width: 40px; height: 40px; border: 3px solid var(--border-color); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* STATUS BAR */
+    .status-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--secondary-bg); border-top: 1px solid var(--border-color); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 100; transition: transform 0.3s ease; }
+    .status-bar.hidden { transform: translateY(100%); }
+    .progress-section { flex: 1; max-width: 300px; }
+    .progress-track { height: 6px; background: var(--border-color); border-radius: 3px; cursor: pointer; }
+    .progress-thumb { height: 100%; background: var(--accent-color); border-radius: 3px; transition: width 0.1s ease; }
+    .progress-text { display: flex; justify-content: space-between; font-size: 0.75rem; margin-top: 5px; opacity: 0.8; }
+    .time-estimate { text-align: center; padding: 0 20px; }
+    .time-estimate .remaining { font-size: 1.1rem; font-weight: 600; color: var(--accent-color); }
+    .time-estimate .label { font-size: 0.7rem; opacity: 0.7; text-transform: uppercase; }
+    .reading-indicator { display: flex; align-items: center; gap: 8px; }
+    .reading-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border-color); transition: all 0.3s; }
+    .reading-dot.active { background: #4ade80; box-shadow: 0 0 10px rgba(74, 222, 128, 0.5); }
+    .reading-status { font-size: 0.75rem; opacity: 0.7; }
+
+    /* TTS PLAYER */
+    .tts-player { display: none; position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 30px; padding: 10px 20px; box-shadow: 0 4px 20px var(--shadow-color); z-index: 100; }
+    .tts-player.active { display: flex; align-items: center; gap: 12px; }
+    .tts-btn { background: var(--bg-color); border: 1px solid var(--border-color); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-color); transition: all 0.2s; }
+    .tts-btn:hover { background: var(--accent-color); color: white; }
+    .tts-btn.play-btn { width: 48px; height: 48px; background: var(--accent-color); color: white; border: none; }
+    .tts-btn svg { width: 20px; height: 20px; }
+    .tts-speed select { background: var(--bg-color); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 15px; font-size: 0.85rem; color: var(--accent-color); cursor: pointer; }
+    .tts-lang { font-size: 1.2rem; }
+
+    /* SETTINGS PANEL */
+    .panel-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: all 0.3s; z-index: 1000; }
+    .panel-overlay.active { opacity: 1; visibility: visible; }
+    .panel { position: fixed; top: 0; right: 0; bottom: 0; width: 320px; background: var(--bg-color); transform: translateX(100%); transition: transform 0.3s ease; z-index: 1001; overflow-y: auto; border-left: 1px solid var(--border-color); }
+    .panel.active { transform: translateX(0); }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-color); }
+    .panel-header h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--accent-color); }
+    .panel-content { padding: 20px; }
+    .setting-group { margin-bottom: 25px; }
+    .setting-group label { display: block; font-weight: 600; margin-bottom: 10px; font-size: 0.85rem; color: var(--accent-color); }
+    .theme-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .theme-btn { aspect-ratio: 1; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: all 0.2s; }
+    .theme-btn:hover { transform: scale(1.1); }
+    .theme-btn.active { border-color: var(--accent-color); }
+    .theme-btn.light { background: #faf8f5; border-color: #d4c4b0; }
+    .theme-btn.sepia { background: #f4ecd8; }
+    .theme-btn.dark { background: #1e1e1e; }
+    .theme-btn.night { background: #0a0a0a; }
+    .font-options { display: flex; flex-direction: column; gap: 6px; }
+    .font-btn { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color); cursor: pointer; text-align: left; transition: all 0.2s; color: var(--text-color); }
+    .font-btn:hover { border-color: var(--accent-color); }
+    .font-btn.active { background: var(--secondary-bg); border-color: var(--accent-color); }
+    .size-control { display: flex; align-items: center; gap: 12px; }
+    .size-control button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--bg-color); cursor: pointer; font-size: 1.1rem; color: var(--text-color); }
+    .size-control button:hover { background: var(--accent-color); color: white; }
+    .size-control span { min-width: 45px; text-align: center; font-weight: 600; font-size: 0.9rem; }
+    .lang-select { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color); color: var(--text-color); font-size: 0.95rem; cursor: pointer; }
+    .lang-select:focus { outline: none; border-color: var(--accent-color); }
+    .credits { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center; }
+    .credits p { font-size: 0.8rem; opacity: 0.7; margin-bottom: 8px; }
+    .credits a { color: var(--accent-color); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .credits a:hover { text-decoration: underline; }
+    .credits svg { width: 16px; height: 16px; }
+
+    /* DICTIONARY */
+    .dict-popup { position: fixed; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 40px var(--shadow-color); padding: 18px; width: 300px; max-width: 90vw; z-index: 2000; display: none; }
+    .dict-popup.active { display: block; animation: popIn 0.2s ease; }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .dict-popup-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .dict-word { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 600; color: var(--accent-color); }
+    .dict-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-color); opacity: 0.5; }
+    .dict-close:hover { opacity: 1; }
+    .dict-section { margin-bottom: 12px; }
+    .dict-section-title { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-color); margin-bottom: 4px; }
+    .dict-content { font-size: 0.9rem; line-height: 1.4; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .library-header h1 { font-size: 1.7rem; }
+      .book-card-inner { padding: 15px; gap: 15px; }
+      .book-cover-small { width: 60px; height: 90px; }
+      .book-info h3 { font-size: 1.1rem; }
+      .reading-container { padding: 70px 18px 130px; }
+      .book-header-section h1 { font-size: 1.7rem; }
+      .checkpoints-bar { right: 8px; padding: 8px 6px; }
+      .checkpoint { width: 8px; height: 8px; }
+      .checkpoint-stats { font-size: 0.6rem; min-width: 30px; }
+      .checkpoint-stats .pct { font-size: 0.75rem; }
+      .book-title-header { display: none; }
+      .time-estimate { display: none; }
+      .status-bar { padding: 10px 15px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- SPLASH -->
+  <div class="splash-screen" id="splash">
+    <div class="splash-logo">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Book base with pages -->
+        <path d="M12 18C12 14 18 10 50 10C82 10 88 14 88 18V82C88 86 82 88 50 88C18 88 12 86 12 82V18Z" fill="#6B4423"/>
+        <!-- Left pages -->
+        <path d="M18 20V78C18 78 32 76 50 76V14C32 14 18 16 18 20Z" fill="#FDF8F0"/>
+        <!-- Right pages -->
+        <path d="M82 20V78C82 78 68 76 50 76V14C68 14 82 16 82 20Z" fill="#F5EEE6"/>
+        <!-- Spine -->
+        <path d="M48 14V76" stroke="#D4A574" stroke-width="2"/>
+        <path d="M52 14V76" stroke="#C49A6C" stroke-width="1"/>
+        <!-- Page lines left -->
+        <path d="M24 28L44 26M24 36L44 34M24 44L44 42M24 52L44 50M24 60L44 58" stroke="#E0D6C8" stroke-width="1" stroke-linecap="round"/>
+        <!-- Page lines right -->
+        <path d="M56 26L76 28M56 34L76 36M56 42L76 44M56 50L76 52M56 58L76 60" stroke="#D4C8B8" stroke-width="1" stroke-linecap="round"/>
+        <!-- Bookmark ribbon -->
+        <path d="M62 10V38L67 32L72 38V10" fill="#D4A574"/>
+        <!-- Reading glasses on book -->
+        <ellipse cx="32" cy="68" rx="8" ry="5" stroke="#8B7355" stroke-width="1.5" fill="none"/>
+        <ellipse cx="48" cy="68" rx="8" ry="5" stroke="#8B7355" stroke-width="1.5" fill="none"/>
+        <path d="M40 68H40" stroke="#8B7355" stroke-width="1.5"/>
+        <path d="M24 68L22 66" stroke="#8B7355" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Glow -->
+        <ellipse cx="50" cy="50" rx="30" ry="35" fill="url(#bookGlow)" opacity="0.2"/>
+        <defs>
+          <radialGradient id="bookGlow"><stop offset="0%" stop-color="#D4A574"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+        </defs>
+      </svg>
+    </div>
+    <h1 class="splash-title">LIBRARY</h1>
+    <p class="splash-subtitle" id="splashSubtitle">Your reading space</p>
+    <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+  </div>
+
+  <!-- LIBRARY -->
+  <div class="library-view" id="libraryView">
+    <header class="library-header">
+      <h1>
+        <svg viewBox="0 0 100 100" fill="none">
+          <path d="M12 18C12 14 18 10 50 10C82 10 88 14 88 18V82C88 86 82 88 50 88C18 88 12 86 12 82V18Z" fill="var(--accent-color)"/>
+          <path d="M18 20V78C18 78 32 76 50 76V14C32 14 18 16 18 20Z" fill="var(--bg-color)"/>
+          <path d="M82 20V78C82 78 68 76 50 76V14C68 14 82 16 82 20Z" fill="var(--secondary-bg)"/>
+          <path d="M48 14V76" stroke="var(--accent-color)" stroke-width="2"/>
+        </svg>
+        <span id="libraryTitle">My Library</span>
+      </h1>
+      <p id="librarySubtitle">Select a book to start reading</p>
+    </header>
+    <div class="books-list" id="booksList"></div>
+  </div>
+
+  <!-- READER -->
+  <div class="reader-view" id="readerView">
+    <header class="reader-header" id="readerHeader">
+      <button class="back-btn" onclick="closeBook()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span id="backBtnText">Library</span>
+      </button>
+      <span class="book-title-header" id="bookTitleHeader"></span>
+      <div class="header-controls">
+        <button class="icon-btn" onclick="toggleTTS()" title="Read aloud">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>
+        </button>
+        <button class="icon-btn" onclick="toggleSettings()" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="checkpoints-bar" id="checkpointsBar">
+      <div class="checkpoint-stats">
+        <div class="pct" id="checkpointPct">0%</div>
+        <div class="time" id="checkpointTime">--</div>
+      </div>
+      <div class="checkpoints-dots" id="checkpointsDots"></div>
+    </div>
+
+    <div class="reading-container" id="readingContainer">
+      <div class="book-header-section">
+        <h1 id="bookTitle"></h1>
+        <p class="author" id="bookAuthor"></p>
+      </div>
+      <div class="book-content" id="bookContent">
+        <div class="loading-indicator">
+          <div class="spinner"></div>
+          <p style="margin-top: 15px;" id="loadingText">Loading book...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tts-player" id="ttsPlayer">
+      <span class="tts-lang" id="ttsLang">🇮🇹</span>
+      <button class="tts-btn" onclick="ttsPrev()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+      <button class="tts-btn play-btn" onclick="ttsToggle()">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="ttsPlayIcon"><polygon points="5 3 19 12 5 21"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" id="ttsPauseIcon" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+      <button class="tts-btn" onclick="ttsNext()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+      <div class="tts-speed">
+        <select id="ttsSpeed" onchange="ttsChangeSpeed()">
+          <option value="0.75">0.75x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+      <div class="progress-section">
+        <div class="progress-track" onclick="seekProgress(event)">
+          <div class="progress-thumb" id="progressThumb"></div>
+        </div>
+        <div class="progress-text">
+          <span id="progressPercent">0%</span>
+          <span id="progressCheckpoint"></span>
+        </div>
+      </div>
+      <div class="time-estimate">
+        <div class="remaining" id="timeRemaining">--</div>
+        <div class="label" id="timeLabel">remaining</div>
+      </div>
+      <div class="reading-indicator">
+        <div class="reading-dot" id="readingDot"></div>
+        <span class="reading-status" id="readingStatus">Paused</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-overlay" id="panelOverlay" onclick="closeSettings()"></div>
+  <div class="panel" id="settingsPanel">
+    <div class="panel-header">
+      <h3 id="settingsTitle">Settings</h3>
+      <button class="icon-btn" onclick="closeSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="panel-content">
+      <div class="setting-group">
+        <label id="langLabel">Language</label>
+        <select class="lang-select" id="langSelect" onchange="changeLanguage()">
+          <option value="en">English</option>
+          <option value="it">Italiano</option>
+        </select>
+      </div>
+      <div class="setting-group">
+        <label id="themeLabel">Theme</label>
+        <div class="theme-options">
+          <button class="theme-btn light active" data-theme="" title="Light"></button>
+          <button class="theme-btn sepia" data-theme="theme-sepia" title="Sepia"></button>
+          <button class="theme-btn dark" data-theme="theme-dark" title="Dark"></button>
+          <button class="theme-btn night" data-theme="theme-night" title="Night"></button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label id="fontLabel">Font</label>
+        <div class="font-options">
+          <button class="font-btn active" data-font="'Crimson Pro', Georgia, serif">Crimson Pro</button>
+          <button class="font-btn" data-font="'Cormorant Garamond', serif" style="font-family:'Cormorant Garamond',serif">Cormorant Garamond</button>
+          <button class="font-btn" data-font="'EB Garamond', serif" style="font-family:'EB Garamond',serif">EB Garamond</button>
+          <button class="font-btn" data-font="'Libre Baskerville', serif" style="font-family:'Libre Baskerville',serif">Libre Baskerville</button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label id="sizeLabel">Text Size</label>
+        <div class="size-control">
+          <button onclick="changeFontSize(-1)">−</button>
+          <span id="fontSizeDisplay">18px</span>
+          <button onclick="changeFontSize(1)">+</button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label id="lineLabel">Line Height</label>
+        <div class="size-control">
+          <button onclick="changeLineHeight(-0.1)">−</button>
+          <span id="lineHeightDisplay">1.9</span>
+          <button onclick="changeLineHeight(0.1)">+</button>
+        </div>
+      </div>
+      <div class="credits">
+        <p id="creditsText">Made with ❤️ by</p>
+        <a href="https://x.com/Elvec10" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          ElVec1o
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="dict-popup" id="dictPopup">
+    <div class="dict-popup-header">
+      <span class="dict-word" id="dictWord"></span>
+      <button class="dict-close" onclick="closeDict()">×</button>
+    </div>
+    <div id="dictBody"></div>
+  </div>
+
+  <script>
+    const BASE_URL = 'https://elvec1o.github.io/home/books/';
+    const WORDS_PER_MINUTE = 200;
+    const CHECKPOINT_INTERVAL = 5;
+
+    const BOOKS = [
+      { id: 'book-of-views', title: 'Book of Views', author: 'elvec1o', language: 'en', coverColor: 'linear-gradient(135deg, #4A5568 0%, #718096 100%)', file: 'Book_of_Views_COMPLETE.docx', summary: 'A complete collection of philosophical views and perspectives on life, society, and human nature.' },
+      { id: 'la-critica', title: 'La Critica', author: 'elvec1o', language: 'it', coverColor: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)', file: 'BOOK ITA La Critica.docx', summary: 'Un\'analisi critica della società contemporanea italiana attraverso una lente filosofica e personale.' },
+      { id: 'via-dolci', title: 'Via Dolci Romanzo', author: 'elvec1o', language: 'it', coverColor: 'linear-gradient(135deg, #6B4423 0%, #A0522D 100%)', file: 'BOOK ITA Via_Dolci_Romanzo.docx', summary: 'Un romanzo ambientato nelle strade italiane, che racconta storie di vita quotidiana, amore e tradizioni.' },
+      { id: 'arte-antica', title: 'Arte Antica', author: 'elvec1o', language: 'it', coverColor: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', file: 'BOOK ITA arte antica.docx', summary: 'Un\'esplorazione dell\'arte antica e del suo significato nel mondo moderno.' }
+    ];
+
+    const TEXTS = {
+      en: { library: 'My Library', selectBook: 'Select a book to start reading', back: 'Library', loading: 'Loading book...', settings: 'Settings', language: 'Language', theme: 'Theme', font: 'Font', textSize: 'Text Size', lineHeight: 'Line Height', remaining: 'remaining', paused: 'Paused', reading: 'Reading...', start: 'Start', completed: 'completed', notStarted: 'Not started', showDesc: 'Show description ▼', hideDesc: 'Hide description ▲', words: 'words', chars: 'characters', min: 'min', statsNA: 'Stats not available', loadError: 'Loading error', checkConnection: 'Check that the file exists and connection is active.', credits: 'Made with ❤️ by', splashSub: 'Your reading space' },
+      it: { library: 'La Mia Libreria', selectBook: 'Seleziona un libro per iniziare a leggere', back: 'Libreria', loading: 'Caricamento libro...', settings: 'Impostazioni', language: 'Lingua', theme: 'Tema', font: 'Carattere', textSize: 'Dimensione testo', lineHeight: 'Interlinea', remaining: 'rimasto', paused: 'In pausa', reading: 'Lettura...', start: 'Inizio', completed: 'completato', notStarted: 'Non iniziato', showDesc: 'Mostra descrizione ▼', hideDesc: 'Nascondi descrizione ▲', words: 'parole', chars: 'caratteri', min: 'min', statsNA: 'Statistiche non disponibili', loadError: 'Errore nel caricamento', checkConnection: 'Verifica che il file sia presente e la connessione sia attiva.', credits: 'Creato con ❤️ da', splashSub: 'Il tuo spazio di lettura' }
+    };
+
+    let currentBook = null;
+    let bookStats = { chars: 0, words: 0, readingTime: 0 };
+    let scrollProgress = 0;
+    let lastScrollTime = 0;
+    let isReading = false;
+    let lastScrollY = 0;
+    let velocityCheckInterval = null;
+    let settings = { theme: '', font: "'Crimson Pro', Georgia, serif", fontSize: 18, lineHeight: 1.95, lang: 'en' };
+    let savedProgress = {};
+    let ttsActive = false, ttsPlaying = false, ttsSentences = [], ttsIndex = 0, ttsVoices = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSettings();
+      loadAllProgress();
+      applyLanguage();
+      renderLibrary();
+      setupEventListeners();
+      loadVoices();
+      setTimeout(() => document.getElementById('splash').classList.add('hidden'), 2000);
+    });
+
+    function applyLanguage() {
+      const t = TEXTS[settings.lang];
+      document.getElementById('libraryTitle').textContent = t.library;
+      document.getElementById('librarySubtitle').textContent = t.selectBook;
+      document.getElementById('backBtnText').textContent = t.back;
+      document.getElementById('settingsTitle').textContent = t.settings;
+      document.getElementById('langLabel').textContent = t.language;
+      document.getElementById('themeLabel').textContent = t.theme;
+      document.getElementById('fontLabel').textContent = t.font;
+      document.getElementById('sizeLabel').textContent = t.textSize;
+      document.getElementById('lineLabel').textContent = t.lineHeight;
+      document.getElementById('timeLabel').textContent = t.remaining;
+      document.getElementById('readingStatus').textContent = isReading ? t.reading : t.paused;
+      document.getElementById('creditsText').textContent = t.credits;
+      document.getElementById('splashSubtitle').textContent = t.splashSub;
+      document.getElementById('loadingText').textContent = t.loading;
+      document.getElementById('progressCheckpoint').textContent = t.start;
+      document.getElementById('langSelect').value = settings.lang;
+      document.title = settings.lang === 'en' ? 'Library - E-Reader' : 'Libreria - E-Reader';
+    }
+
+    function changeLanguage() {
+      settings.lang = document.getElementById('langSelect').value;
+      saveSettings();
+      applyLanguage();
+      renderLibrary();
+    }
+
+    function renderLibrary() {
+      const t = TEXTS[settings.lang];
+      const list = document.getElementById('booksList');
+      list.innerHTML = BOOKS.map(book => {
+        const progress = savedProgress[book.id] || 0;
+        const progressText = progress > 0 ? Math.round(progress) + '% ' + t.completed : t.notStarted;
+        return '<div class="book-card" onclick="openBook(\'' + book.id + '\')">' +
+          '<div class="book-card-inner">' +
+            '<div class="book-cover-small" style="background: ' + book.coverColor + '">' +
+              '<span class="book-icon">📖</span>' +
+              '<span class="lang-badge">' + book.language.toUpperCase() + '</span>' +
+            '</div>' +
+            '<div class="book-info">' +
+              '<h3>' + book.title + '</h3>' +
+              '<p class="author">' + book.author + '</p>' +
+              '<div class="book-stats" id="stats-' + book.id + '"><span>⏱️ ' + t.loading + '</span></div>' +
+              '<div class="book-summary" id="summary-' + book.id + '"><p>' + book.summary + '</p></div>' +
+              '<button class="expand-btn" onclick="event.stopPropagation(); toggleSummary(\'' + book.id + '\')">' + t.showDesc + '</button>' +
+              '<div class="book-progress-bar"><div class="book-progress-fill" style="width: ' + progress + '%"></div></div>' +
+              '<div class="book-progress-text">' + progressText + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      BOOKS.forEach(book => loadBookStats(book));
+    }
+
+    async function loadBookStats(book) {
+      const t = TEXTS[settings.lang];
+      try {
+        const url = BASE_URL + encodeURIComponent(book.file);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed');
+        const arrayBuffer = await response.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        const text = result.value;
+        const chars = text.length;
+        const words = text.split(/\s+/).filter(w => w.length > 0).length;
+        const readingTime = Math.ceil(words / WORDS_PER_MINUTE);
+        document.getElementById('stats-' + book.id).innerHTML = 
+          '<span>📝 ' + words.toLocaleString() + ' ' + t.words + '</span>' +
+          '<span>📄 ' + chars.toLocaleString() + ' ' + t.chars + '</span>' +
+          '<span>⏱️ ' + readingTime + ' ' + t.min + '</span>';
+      } catch (e) {
+        document.getElementById('stats-' + book.id).innerHTML = '<span>📊 ' + t.statsNA + '</span>';
+      }
+    }
+
+    function toggleSummary(bookId) {
+      const t = TEXTS[settings.lang];
+      const summary = document.getElementById('summary-' + bookId);
+      const btn = summary.nextElementSibling;
+      summary.classList.toggle('expanded');
+      btn.textContent = summary.classList.contains('expanded') ? t.hideDesc : t.showDesc;
+    }
+
+    async function openBook(bookId) {
+      const t = TEXTS[settings.lang];
+      currentBook = BOOKS.find(b => b.id === bookId);
+      if (!currentBook) return;
+      document.getElementById('libraryView').style.display = 'none';
+      document.getElementById('readerView').classList.add('active');
+      document.getElementById('bookTitleHeader').textContent = currentBook.title;
+      document.getElementById('bookTitle').textContent = currentBook.title;
+      document.getElementById('bookAuthor').textContent = currentBook.author;
+      document.getElementById('ttsLang').textContent = currentBook.language === 'it' ? '🇮🇹' : '🇬🇧';
+      document.getElementById('bookContent').innerHTML = '<div class="loading-indicator"><div class="spinner"></div><p style="margin-top: 15px;">' + t.loading + '</p></div>';
+      renderCheckpoints();
+      try {
+        const url = BASE_URL + encodeURIComponent(currentBook.file);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to load');
+        const arrayBuffer = await response.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        document.getElementById('bookContent').innerHTML = result.value;
+        const text = document.getElementById('bookContent').textContent;
+        bookStats.chars = text.length;
+        bookStats.words = text.split(/\s+/).filter(w => w.length > 0).length;
+        bookStats.readingTime = Math.ceil(bookStats.words / WORDS_PER_MINUTE);
+        ttsSentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+        ttsSentences = ttsSentences.map(s => s.trim()).filter(s => s.length > 0);
+        ttsIndex = 0;
+        applyReaderSettings();
+        const saved = savedProgress[currentBook.id] || 0;
+        if (saved > 0) setTimeout(() => scrollToPercent(saved), 100);
+        startReadingDetection();
+        updateProgress();
+      } catch (e) {
+        console.error(e);
+        document.getElementById('bookContent').innerHTML = '<div style="text-align:center; padding:40px; color:var(--accent-color);"><p style="font-size:1.2rem;">⚠️ ' + t.loadError + '</p><p style="opacity:0.7; margin-top:10px;">' + t.checkConnection + '</p></div>';
+      }
+    }
+
+    function closeBook() {
+      stopTTS();
+      stopReadingDetection();
+      saveCurrentProgress();
+      document.getElementById('readerView').classList.remove('active');
+      document.getElementById('libraryView').style.display = 'block';
+      currentBook = null;
+      renderLibrary();
+    }
+
+    function renderCheckpoints() {
+      const dots = document.getElementById('checkpointsDots');
+      let html = '';
+      for (let i = 0; i <= 100; i += CHECKPOINT_INTERVAL) {
+        html += '<div class="checkpoint" data-percent="' + i + '" onclick="jumpToCheckpoint(' + i + ')"><span class="checkpoint-tooltip">' + i + '%</span></div>';
+      }
+      dots.innerHTML = html;
+    }
+
+    function updateCheckpoints(percent) {
+      document.querySelectorAll('.checkpoint').forEach(cp => {
+        const cpPercent = parseInt(cp.dataset.percent);
+        cp.classList.toggle('active', cpPercent <= percent);
+        cp.classList.toggle('current', cpPercent === Math.floor(percent / CHECKPOINT_INTERVAL) * CHECKPOINT_INTERVAL);
+      });
+      document.getElementById('checkpointPct').textContent = Math.round(percent) + '%';
+      const wordsRead = Math.floor((percent / 100) * bookStats.words);
+      const wordsRemaining = bookStats.words - wordsRead;
+      const minutesRemaining = Math.ceil(wordsRemaining / WORDS_PER_MINUTE);
+      document.getElementById('checkpointTime').textContent = minutesRemaining > 0 ? minutesRemaining + 'm' : '✓';
+    }
+
+    function jumpToCheckpoint(percent) {
+      scrollToPercent(percent);
+      saveCurrentProgress();
+    }
+
+    function scrollToPercent(percent) {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo({ top: (percent / 100) * maxScroll, behavior: 'smooth' });
+    }
+
+    function updateProgress() {
+      const t = TEXTS[settings.lang];
+      const scrollTop = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      scrollProgress = maxScroll > 0 ? Math.min(100, (scrollTop / maxScroll) * 100) : 0;
+      document.getElementById('progressThumb').style.width = scrollProgress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(scrollProgress) + '%';
+      const checkpoint = Math.floor(scrollProgress / CHECKPOINT_INTERVAL) * CHECKPOINT_INTERVAL;
+      document.getElementById('progressCheckpoint').textContent = checkpoint === 0 ? t.start : checkpoint + '%';
+      updateCheckpoints(scrollProgress);
+      const wordsRead = Math.floor((scrollProgress / 100) * bookStats.words);
+      const wordsRemaining = bookStats.words - wordsRead;
+      const minutesRemaining = Math.ceil(wordsRemaining / WORDS_PER_MINUTE);
+      document.getElementById('timeRemaining').textContent = minutesRemaining > 0 ? minutesRemaining + ' ' + t.min : '✓';
+    }
+
+    function seekProgress(e) {
+      const rect = e.target.getBoundingClientRect();
+      const percent = ((e.clientX - rect.left) / rect.width) * 100;
+      scrollToPercent(Math.max(0, Math.min(100, percent)));
+    }
+
+    function startReadingDetection() {
+      lastScrollY = window.scrollY;
+      lastScrollTime = Date.now();
+      velocityCheckInterval = setInterval(() => {
+        const t = TEXTS[settings.lang];
+        const now = Date.now();
+        const dt = (now - lastScrollTime) / 1000;
+        const dy = Math.abs(window.scrollY - lastScrollY);
+        const scrollVelocity = dt > 0 ? dy / dt : 0;
+        lastScrollY = window.scrollY;
+        lastScrollTime = now;
+        const wasReading = isReading;
+        isReading = scrollVelocity > 5 && scrollVelocity < 500;
+        if (isReading !== wasReading) {
+          document.getElementById('readingDot').classList.toggle('active', isReading);
+          document.getElementById('readingStatus').textContent = isReading ? t.reading : t.paused;
+        }
+        if (isReading) saveCurrentProgress();
+      }, 500);
+      window.addEventListener('scroll', updateProgress);
+    }
+
+    function stopReadingDetection() {
+      if (velocityCheckInterval) clearInterval(velocityCheckInterval);
+      window.removeEventListener('scroll', updateProgress);
+    }
+
+    function saveCurrentProgress() {
+      if (!currentBook) return;
+      savedProgress[currentBook.id] = scrollProgress;
+      try { localStorage.setItem('ereader-progress', JSON.stringify(savedProgress)); } catch (e) {}
+    }
+
+    function loadAllProgress() {
+      try {
+        const saved = localStorage.getItem('ereader-progress');
+        if (saved) savedProgress = JSON.parse(saved);
+      } catch (e) {}
+    }
+
+    function toggleSettings() {
+      document.getElementById('settingsPanel').classList.add('active');
+      document.getElementById('panelOverlay').classList.add('active');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsPanel').classList.remove('active');
+      document.getElementById('panelOverlay').classList.remove('active');
+    }
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.body.className = btn.dataset.theme;
+        settings.theme = btn.dataset.theme;
+        saveSettings();
+      });
+    });
+
+    document.querySelectorAll('.font-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        settings.font = btn.dataset.font;
+        applyReaderSettings();
+        saveSettings();
+      });
+    });
+
+    function changeFontSize(delta) {
+      settings.fontSize = Math.max(14, Math.min(26, settings.fontSize + delta));
+      document.getElementById('fontSizeDisplay').textContent = settings.fontSize + 'px';
+      applyReaderSettings();
+      saveSettings();
+    }
+
+    function changeLineHeight(delta) {
+      settings.lineHeight = Math.max(1.4, Math.min(2.5, settings.lineHeight + delta));
+      document.getElementById('lineHeightDisplay').textContent = settings.lineHeight.toFixed(1);
+      applyReaderSettings();
+      saveSettings();
+    }
+
+    function applyReaderSettings() {
+      const content = document.getElementById('bookContent');
+      if (content) {
+        content.style.fontFamily = settings.font;
+        content.style.fontSize = settings.fontSize + 'px';
+        content.style.lineHeight = settings.lineHeight;
+      }
+    }
+
+    function loadSettings() {
+      try {
+        const saved = localStorage.getItem('ereader-settings');
+        if (saved) settings = Object.assign({}, settings, JSON.parse(saved));
+      } catch (e) {}
+      if (settings.theme) {
+        document.body.className = settings.theme;
+        const activeTheme = document.querySelector('.theme-btn[data-theme="' + settings.theme + '"]');
+        if (activeTheme) {
+          document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+          activeTheme.classList.add('active');
+        }
+      }
+      document.getElementById('fontSizeDisplay').textContent = settings.fontSize + 'px';
+      document.getElementById('lineHeightDisplay').textContent = settings.lineHeight.toFixed(1);
+    }
+
+    function saveSettings() {
+      try { localStorage.setItem('ereader-settings', JSON.stringify(settings)); } catch (e) {}
+    }
+
+    function loadVoices() {
+      ttsVoices = speechSynthesis.getVoices();
+      speechSynthesis.onvoiceschanged = () => { ttsVoices = speechSynthesis.getVoices(); };
+    }
+
+    function getVoice(lang) {
+      const code = lang === 'it' ? 'it' : 'en';
+      return ttsVoices.find(v => v.lang.startsWith(code)) || ttsVoices[0];
+    }
+
+    function toggleTTS() {
+      ttsActive = !ttsActive;
+      document.getElementById('ttsPlayer').classList.toggle('active', ttsActive);
+      if (!ttsActive) stopTTS();
+    }
+
+    function ttsToggle() {
+      if (ttsPlaying) stopTTS();
+      else playTTS();
+    }
+
+    function playTTS() {
+      if (!currentBook || ttsSentences.length === 0) return;
+      ttsPlaying = true;
+      updateTTSButtons();
+      speakSentence(ttsIndex);
+    }
+
+    function stopTTS() {
+      ttsPlaying = false;
+      speechSynthesis.cancel();
+      updateTTSButtons();
+    }
+
+    function speakSentence(idx) {
+      if (!ttsPlaying || idx >= ttsSentences.length) { stopTTS(); return; }
+      ttsIndex = idx;
+      const utterance = new SpeechSynthesisUtterance(ttsSentences[idx]);
+      const voice = getVoice(currentBook.language);
+      if (voice) { 
+        utterance.voice = voice; 
+        utterance.lang = currentBook.language === 'it' ? 'it-IT' : 'en-US'; 
+      }
+      utterance.rate = parseFloat(document.getElementById('ttsSpeed').value);
+      utterance.onend = () => { if (ttsPlaying) speakSentence(idx + 1); };
+      utterance.onerror = () => { if (ttsPlaying) speakSentence(idx + 1); };
+      speechSynthesis.speak(utterance);
+    }
+
+    function ttsNext() { speechSynthesis.cancel(); if (ttsIndex < ttsSentences.length - 1) speakSentence(ttsIndex + 1); }
+    function ttsPrev() { speechSynthesis.cancel(); if (ttsIndex > 0) speakSentence(ttsIndex - 1); }
+    function ttsChangeSpeed() { if (ttsPlaying) { speechSynthesis.cancel(); speakSentence(ttsIndex); } }
+
+    function updateTTSButtons() {
+      document.getElementById('ttsPlayIcon').style.display = ttsPlaying ? 'none' : 'block';
+      document.getElementById('ttsPauseIcon').style.display = ttsPlaying ? 'block' : 'none';
+    }
+
+    function setupEventListeners() {
+      document.getElementById('bookContent').addEventListener('mouseup', handleSelection);
+      document.getElementById('bookContent').addEventListener('touchend', handleSelection);
+      document.addEventListener('click', e => {
+        const popup = document.getElementById('dictPopup');
+        if (!popup.contains(e.target) && popup.classList.contains('active')) closeDict();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { closeDict(); closeSettings(); }
+      });
+      let lastScroll = 0;
+      window.addEventListener('scroll', () => {
+        const current = window.scrollY;
+        const header = document.getElementById('readerHeader');
+        const status = document.getElementById('statusBar');
+        if (header && status) {
+          if (current > lastScroll && current > 100) {
+            header.classList.add('hidden');
+            status.classList.add('hidden');
+          } else {
+            header.classList.remove('hidden');
+            status.classList.remove('hidden');
+          }
+        }
+        lastScroll = current;
+      });
+    }
+
+    function handleSelection() {
+      const selection = window.getSelection();
+      const text = selection.toString().trim();
+      if (text && text.length > 0 && text.split(/\s+/).length <= 5) {
+        showDict(text, selection);
+      }
+    }
+
+    function showDict(text, selection) {
+      const popup = document.getElementById('dictPopup');
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      let left = rect.left + (rect.width / 2) - 150;
+      let top = rect.bottom + 10 + window.scrollY;
+      left = Math.max(10, Math.min(left, window.innerWidth - 310));
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+      document.getElementById('dictWord').textContent = text;
+      document.getElementById('dictBody').innerHTML = '<div style="text-align:center;opacity:0.7">Loading...</div>';
+      popup.classList.add('active');
+      fetchDict(text);
+    }
+
+    function closeDict() {
+      document.getElementById('dictPopup').classList.remove('active');
+    }
+
+    async function fetchDict(text) {
+      const body = document.getElementById('dictBody');
+      const isIt = currentBook ? currentBook.language === 'it' : true;
+      const word = text.toLowerCase().split(/\s+/)[0];
+      let html = '';
+      try {
+        const res = await fetch('https://api.dictionaryapi.dev/api/v2/entries/' + (isIt ? 'it' : 'en') + '/' + encodeURIComponent(word));
+        if (res.ok) {
+          const data = await res.json();
+          if (data[0] && data[0].meanings && data[0].meanings[0]) {
+            const m = data[0].meanings[0];
+            const def = m.definitions && m.definitions[0] ? m.definitions[0].definition : '';
+            html += '<div class="dict-section"><div class="dict-section-title">📖 Definition</div><div class="dict-content">' + def + '</div></div>';
+          }
+        }
+      } catch (e) {}
+      try {
+        const from = isIt ? 'it' : 'en';
+        const to = isIt ? 'en' : 'it';
+        const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + from + '|' + to);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.responseData && data.responseData.translatedText) {
+            html += '<div class="dict-section"><div class="dict-section-title">🌐 Translation (' + to.toUpperCase() + ')</div><div class="dict-content">' + data.responseData.translatedText + '</div></div>';
+          }
+        }
+      } catch (e) {}
+      body.innerHTML = html || '<div style="opacity:0.7">No results found.</div>';
+    }
+  </script>
+</body>
+</html>
