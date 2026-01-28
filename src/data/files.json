@@ -1,5 +1,14 @@
 [
   {
+    "id": "new-1769626223573",
+    "name": "Replicator v9",
+    "type": "app",
+    "description": "game - upload + usage attemot",
+    "filename": "/img/replicator_v9.jsx",
+    "size": "",
+    "date": "2026-01-28"
+  },
+  {
     "id": "quizrest",
     "name": "QuizRest",
     "type": "app",
