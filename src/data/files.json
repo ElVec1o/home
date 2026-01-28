@@ -1,11 +1,22 @@
 [
   {
-    "id": "new-1769626223573",
+    "id": "stitchx-pro",
+    "name": "StitchX Pro",
+    "type": "app",
+    "description": "Image Stitcher & Censor Tool - combine and redact screenshots",
+    "filename": "stitchx-pro.html",
+    "playable": true,
+    "size": "~95 KB",
+    "date": "2026-01-29"
+  },
+  {
+    "id": "replicator-v9",
     "name": "Replicator v9",
     "type": "app",
-    "description": "game - upload + usage attempt",
+    "description": "Space colonization strategy game - build probes, survey planets, establish colonies",
     "filename": "replicator_v9.jsx",
-    "size": "",
+    "playable": true,
+    "size": "~68 KB",
     "date": "2026-01-28"
   },
   {

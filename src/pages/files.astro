@@ -33,6 +33,9 @@ const types = [...new Set(files.map(f => f.type))];
           {file.filename.endsWith('.jsx') && (
             <a href={`${base}/files/${file.filename.replace('.jsx', '_play.html')}`} class="play-btn" target="_blank">▶ Play Now</a>
           )}
+          {file.filename.endsWith('.html') && (
+            <a href={`${base}/files/${file.filename}`} class="play-btn" target="_blank">▶ Play Now</a>
+          )}
           {file.isFolder ? (
             <a href={`${base}/files/${file.filename}`} class="download-btn">→ Browse</a>
           ) : (

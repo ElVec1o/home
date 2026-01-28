@@ -1,0 +1,2917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StitchX Pro - Image Stitcher & Censor Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #141416;
+            --bg-tertiary: #1c1c1f;
+            --border: #2a2a2e;
+            --text-primary: #f5f5f7;
+            --text-secondary: #8e8e93;
+            --accent: #ff3b30;
+            --accent-hover: #ff5147;
+            --accent-glow: rgba(255, 59, 48, 0.3);
+            --success: #30d158;
+            --pro-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --pro-color: #a78bfa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Intro Animation */
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .intro-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .intro-logo {
+            font-size: 5rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            position: relative;
+            background: linear-gradient(90deg, #333 0%, #333 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .intro-logo .x {
+            color: var(--accent);
+            -webkit-text-fill-color: var(--accent);
+        }
+
+        .intro-logo::before {
+            content: 'StitchX';
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255,255,255,0.1) 45%,
+                rgba(255,255,255,0.8) 50%,
+                rgba(255,255,255,0.1) 55%,
+                transparent 100%
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 100%;
+            animation: rayTrace 2s ease-in-out forwards;
+        }
+
+        @keyframes rayTrace {
+            0% {
+                background-position: -100% 0;
+                filter: blur(0px);
+            }
+            50% {
+                filter: blur(0px);
+            }
+            100% {
+                background-position: 200% 0;
+                filter: blur(0px);
+            }
+        }
+
+        .intro-logo::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            animation: glowPulse 2s ease-in-out;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes glowPulse {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .intro-tagline {
+            margin-top: 1rem;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            animation: fadeIn 1s ease 1s forwards;
+        }
+
+        .intro-version {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--pro-gradient);
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            opacity: 0;
+            animation: fadeIn 1s ease 1.2s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .skip-intro {
+            position: absolute;
+            bottom: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 0.5s forwards;
+        }
+
+        .skip-intro:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        /* Tutorial Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 9000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(80vh - 140px);
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        /* Tutorial Styles */
+        .tutorial-step {
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .tutorial-step.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .tutorial-image {
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-primary) 100%);
+            border-radius: 12px;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .tutorial-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+            color: var(--text-primary);
+        }
+
+        .tutorial-text {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 0.9rem;
+        }
+
+        .tutorial-text strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .tutorial-progress {
+            display: flex;
+            gap: 0.4rem;
+            justify-content: center;
+            margin-top: 1.25rem;
+        }
+
+        .tutorial-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .tutorial-dot:hover {
+            background: var(--text-secondary);
+        }
+
+        .tutorial-dot.active {
+            background: var(--accent);
+            width: 20px;
+            border-radius: 4px;
+        }
+
+        /* Options Form */
+        .options-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .form-input, .form-select {
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Header */
+        .header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .logo-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .logo h1 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .logo-badge {
+            font-size: 0.625rem;
+            padding: 0.15rem 0.5rem;
+            background: var(--pro-gradient);
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+
+        .header-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .header-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* Main Layout */
+        :root {
+            --sidebar-width: 220px;
+            --min-sidebar: 180px;
+            --max-sidebar: 320px;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
+            min-height: calc(100vh - 57px);
+            overflow: hidden;
+        }
+
+        /* Resize Handle */
+        .resize-handle {
+            position: absolute;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            background: transparent;
+            cursor: col-resize;
+            z-index: 50;
+            transition: background 0.15s ease;
+        }
+
+        .resize-handle:hover,
+        .resize-handle.active {
+            background: var(--accent);
+        }
+
+        .resize-handle.left {
+            right: 0;
+        }
+
+        .resize-handle.right {
+            left: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .tools-panel {
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .panel {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .panel-title svg {
+            width: 11px;
+            height: 11px;
+            fill: var(--text-secondary);
+        }
+
+        .panel-title .pro-badge {
+            font-size: 0.45rem;
+            padding: 0.1rem 0.3rem;
+            background: var(--pro-gradient);
+            border-radius: 6px;
+            color: white;
+            margin-left: auto;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(255, 59, 48, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background: rgba(255, 59, 48, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            width: 36px;
+            height: 36px;
+            margin: 0 auto 0.4rem;
+            background: var(--bg-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--accent);
+        }
+
+        .upload-text {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .upload-text strong {
+            color: var(--accent);
+        }
+
+        /* Image List */
+        .image-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            max-height: 140px;
+            overflow-y: auto;
+            margin-top: 0.6rem;
+        }
+
+        .image-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem;
+            background: var(--bg-secondary);
+            border-radius: 5px;
+            cursor: grab;
+            transition: all 0.15s ease;
+        }
+
+        .image-item:hover {
+            background: var(--bg-primary);
+        }
+
+        .image-item.dragging {
+            opacity: 0.5;
+        }
+
+        .image-thumb {
+            width: 28px;
+            height: 28px;
+            border-radius: 3px;
+            object-fit: cover;
+        }
+
+        .image-name {
+            flex: 1;
+            font-size: 0.55rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .remove-btn {
+            width: 18px;
+            height: 18px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .remove-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .remove-btn svg {
+            width: 10px;
+            height: 10px;
+            fill: currentColor;
+        }
+
+        /* Layout Options */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.3rem;
+        }
+
+        .layout-btn {
+            padding: 0.5rem 0.25rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.2rem;
+            font-size: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            min-height: 50px;
+        }
+
+        .layout-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .layout-btn.active {
+            border-color: var(--accent);
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--accent);
+        }
+
+        .layout-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Canvas Area */
+        .canvas-area {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: 
+                radial-gradient(circle at 50% 50%, var(--bg-secondary) 0%, var(--bg-primary) 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 20px, var(--border) 20px, var(--border) 21px),
+                repeating-linear-gradient(90deg, transparent, transparent 20px, var(--border) 20px, var(--border) 21px);
+            background-size: 100% 100%, 21px 21px, 21px 21px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            border-radius: 8px;
+            overflow: visible;
+            transition: width 0.15s ease, height 0.15s ease;
+        }
+
+        .canvas-scroll-container {
+            overflow: auto;
+            max-width: calc(100vw - var(--sidebar-width) * 2 - 40px);
+            max-height: calc(100vh - 120px);
+            border-radius: 8px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 1024px) {
+            .canvas-scroll-container {
+                max-width: calc(100vw - 40px);
+                max-height: 50vh;
+            }
+        }
+
+        #mainCanvas {
+            display: block;
+            background: #1a1a1a;
+            cursor: crosshair;
+        }
+
+        #mainCanvas.pan-mode {
+            cursor: grab;
+        }
+
+        #mainCanvas.pan-mode:active {
+            cursor: grabbing;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .empty-state-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            filter: drop-shadow(0 0 30px var(--accent-glow));
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px var(--accent-glow)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 40px var(--accent-glow)); }
+        }
+
+        .empty-state-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .empty-state-title span {
+            color: var(--accent);
+        }
+
+        .empty-state-badge {
+            font-size: 0.55rem;
+            padding: 0.15rem 0.5rem;
+            background: var(--pro-gradient);
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .empty-state-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .empty-state-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-top: 0.4rem;
+        }
+
+        .empty-state-hint svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Zoom Controls */
+        .zoom-controls {
+            position: fixed;
+            bottom: 1.5rem;
+            right: calc(var(--sidebar-width) + 1rem);
+            display: none;
+            gap: 0.3rem;
+            z-index: 100;
+            background: var(--bg-secondary);
+            padding: 0.35rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .zoom-controls.visible {
+            display: flex;
+        }
+
+        @media (max-width: 1024px) {
+            .zoom-controls {
+                right: 1rem;
+                bottom: 1rem;
+            }
+        }
+
+        .zoom-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.15s ease;
+        }
+
+        .zoom-btn:hover {
+            border-color: var(--accent);
+            background: rgba(255, 59, 48, 0.1);
+        }
+
+        .zoom-level {
+            padding: 0 0.4rem;
+            min-width: 44px;
+            height: 28px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+        }
+
+        /* Tool Buttons */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.3rem;
+        }
+
+        .tool-btn {
+            padding: 0.5rem 0.3rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            font-size: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            position: relative;
+            min-height: 55px;
+        }
+
+        .tool-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .tool-btn.active {
+            border-color: var(--accent);
+            background: rgba(255, 59, 48, 0.15);
+            color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .tool-btn.pro {
+            border-color: rgba(167, 139, 250, 0.3);
+        }
+
+        .tool-btn.pro:hover {
+            border-color: var(--pro-color);
+        }
+
+        .tool-btn.pro.active {
+            border-color: var(--pro-color);
+            background: rgba(167, 139, 250, 0.15);
+            color: var(--pro-color);
+            box-shadow: 0 0 12px rgba(167, 139, 250, 0.3);
+        }
+
+        .tool-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .tool-btn .pro-marker {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            background: var(--pro-gradient);
+            border-radius: 50%;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .slider-value {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 5px;
+            background: var(--bg-primary);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        /* History Panel */
+        .history-controls {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .history-btn {
+            flex: 1;
+            padding: 0.5rem 0.4rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.55rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .history-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .history-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .history-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        .history-info {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 0.3rem;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            width: 100%;
+            padding: 0.6rem 0.6rem;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+
+        .action-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .action-btn.primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .action-btn.secondary:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        /* Export Buttons - More Prominent */
+        .export-section {
+            margin-top: auto;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .export-section .action-btn.primary {
+            padding: 0.75rem 0.75rem;
+            font-size: 0.75rem;
+            background: linear-gradient(135deg, var(--accent) 0%, #ff6b5b 100%);
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .export-section .action-btn.primary:hover {
+            box-shadow: 0 6px 25px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        .export-section .action-btn.primary svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .export-section .action-btn.secondary {
+            padding: 0.6rem 0.6rem;
+            font-size: 0.7rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+            }
+
+            .sidebar {
+                flex-direction: row;
+                flex-wrap: wrap;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 0.75rem;
+                gap: 0.75rem;
+            }
+
+            .sidebar .panel {
+                flex: 1;
+                min-width: 180px;
+            }
+
+            .tools-panel {
+                flex-direction: row;
+                flex-wrap: wrap;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                padding: 0.75rem;
+                gap: 0.75rem;
+            }
+
+            .tools-panel .panel {
+                flex: 1;
+                min-width: 140px;
+            }
+
+            .tools-panel > div:last-child {
+                margin-top: 0;
+                width: 100%;
+            }
+
+            .canvas-area {
+                min-height: 350px;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.75rem 1rem;
+            }
+
+            .sidebar, .tools-panel {
+                flex-direction: column;
+            }
+
+            .sidebar .panel, .tools-panel .panel {
+                min-width: 100%;
+            }
+
+            .layout-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+
+            .tool-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .intro-logo {
+                font-size: 3rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Color Picker */
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .color-picker {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 0;
+            background: var(--accent);
+        }
+
+        .color-picker::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-picker::-webkit-color-swatch {
+            border: none;
+            border-radius: 4px;
+        }
+
+        .color-presets {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .color-preset {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        .color-preset:hover {
+            transform: scale(1.2);
+        }
+
+        /* Custom Checkbox */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+        }
+
+        .checkbox-label input[type="checkbox"]:hover {
+            border-color: var(--accent);
+        }
+
+        .checkbox-label input[type="checkbox"]:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .checkbox-label input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Credit Links */
+        .credit-sidebar a:hover,
+        .credit-line a:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        /* Tooltips */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.4rem 0.6rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 400;
+            color: var(--text-primary);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease 0s, visibility 0.2s ease 0s;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-tooltip]::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--border);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease 0s, visibility 0.2s ease 0s;
+            z-index: 1001;
+        }
+
+        [data-tooltip]:hover::after,
+        [data-tooltip]:hover::before {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.2s ease 1.5s, visibility 0.2s ease 1.5s;
+        }
+
+        /* Tooltip positions for edge buttons */
+        [data-tooltip-pos="left"]::after {
+            left: 0;
+            transform: translateX(0);
+        }
+
+        [data-tooltip-pos="right"]::after {
+            left: auto;
+            right: 0;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Intro Animation -->
+    <div class="intro-overlay" id="introOverlay">
+        <div class="intro-logo">Stitch<span class="x">X</span></div>
+        <p class="intro-tagline">Professional Image Stitching & Censoring</p>
+        <span class="intro-version">PRO</span>
+        <button class="skip-intro" id="skipIntro">Press any key or click to continue</button>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div class="modal-overlay" id="tutorialModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">🚀 Welcome to StitchX Pro</span>
+                <button class="modal-close" id="closeTutorial">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tutorial-step active" data-step="1">
+                    <div class="tutorial-image">📸</div>
+                    <h3 class="tutorial-title">1. Upload Your Images</h3>
+                    <p class="tutorial-text">Drag and drop multiple images or click the upload area. Reorder by dragging items in the list. Supports PNG, JPG, GIF, and WebP formats.</p>
+                </div>
+                <div class="tutorial-step" data-step="2">
+                    <div class="tutorial-image">🎨</div>
+                    <h3 class="tutorial-title">2. Choose a Layout</h3>
+                    <p class="tutorial-text">Pick from 6 layout modes: <strong>Horizontal</strong> (side-by-side), <strong>Vertical</strong> (stacked), <strong>Grid</strong> (auto-arranged), <strong>Diagonal</strong> (cascading), <strong>Overlap</strong> (layered cards), or <strong>Freeform</strong> (masonry style).</p>
+                </div>
+                <div class="tutorial-step" data-step="3">
+                    <div class="tutorial-image">🔒</div>
+                    <h3 class="tutorial-title">3. Basic Censor Tools</h3>
+                    <p class="tutorial-text">Use <strong>Rectangle</strong> to draw solid boxes, <strong>Line</strong> for strike-throughs, <strong>Brush</strong> for freehand strokes, and <strong>Eraser</strong> to remove censoring. Adjust size and color in the settings.</p>
+                </div>
+                <div class="tutorial-step" data-step="4">
+                    <div class="tutorial-image">✨</div>
+                    <h3 class="tutorial-title">4. Pro Effects</h3>
+                    <p class="tutorial-text"><strong>Pixelate</strong> creates a mosaic blur effect. <strong>Matte Glass</strong> adds a frosted glass overlay. Perfect for professional-looking redactions that hint at content underneath.</p>
+                </div>
+                <div class="tutorial-step" data-step="5">
+                    <div class="tutorial-image">🔍</div>
+                    <h3 class="tutorial-title">5. Navigate & Pan</h3>
+                    <p class="tutorial-text">Use <strong>zoom controls</strong> (+, -, Fit, 1:1) or <strong>Ctrl+scroll</strong>. Select the <strong>Pan tool</strong> or hold <strong>Spacebar</strong> to drag around when zoomed in. Resize sidebars by dragging their edges.</p>
+                </div>
+                <div class="tutorial-step" data-step="6">
+                    <div class="tutorial-image">💾</div>
+                    <h3 class="tutorial-title">6. Export & Save</h3>
+                    <p class="tutorial-text"><strong>Export PNG</strong> saves the final image. <strong>Save Project</strong> creates a .stitchx file with all images and edits—import it later to continue working. Access <strong>Options</strong> to set defaults.</p>
+                </div>
+                <div class="tutorial-progress">
+                    <div class="tutorial-dot active" data-step="1"></div>
+                    <div class="tutorial-dot" data-step="2"></div>
+                    <div class="tutorial-dot" data-step="3"></div>
+                    <div class="tutorial-dot" data-step="4"></div>
+                    <div class="tutorial-dot" data-step="5"></div>
+                    <div class="tutorial-dot" data-step="6"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="dontShowTutorial">
+                    Don't show this again
+                </label>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="action-btn secondary" id="tutorialPrev" style="width: auto; padding: 0.6rem 1.25rem;" disabled>Previous</button>
+                    <button class="action-btn primary" id="tutorialNext" style="width: auto; padding: 0.6rem 1.25rem;">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Options Modal -->
+    <div class="modal-overlay" id="optionsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">⚙️ Settings</span>
+                <button class="modal-close" id="closeOptions">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="options-form">
+                    <div class="form-group">
+                        <label class="form-label">Default Brush Size</label>
+                        <input type="number" class="form-input" id="optBrushSize" min="5" max="100" value="20">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Default Layout</label>
+                            <select class="form-select" id="optLayout">
+                                <option value="horizontal">Horizontal</option>
+                                <option value="vertical">Vertical</option>
+                                <option value="grid">Grid</option>
+                                <option value="diagonal">Diagonal</option>
+                                <option value="overlap">Overlap</option>
+                                <option value="freeform">Freeform</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Default Tool</label>
+                            <select class="form-select" id="optTool">
+                                <option value="rect">Rectangle</option>
+                                <option value="line">Line</option>
+                                <option value="brush">Brush</option>
+                                <option value="pixelate">Pixelate</option>
+                                <option value="glass">Matte Glass</option>
+                                <option value="eraser">Eraser</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Censor Color</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" class="color-picker" id="optColor" value="#ff3b30">
+                            <div class="color-presets">
+                                <div class="color-preset" style="background: #ff3b30;" data-color="#ff3b30"></div>
+                                <div class="color-preset" style="background: #000000;" data-color="#000000"></div>
+                                <div class="color-preset" style="background: #ffffff;" data-color="#ffffff"></div>
+                                <div class="color-preset" style="background: #ffcc00;" data-color="#ffcc00"></div>
+                                <div class="color-preset" style="background: #30d158;" data-color="#30d158"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Pixelate Block Size</label>
+                            <input type="number" class="form-input" id="optPixelSize" min="5" max="50" value="15">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Glass Blur Amount</label>
+                            <input type="number" class="form-input" id="optGlassBlur" min="5" max="30" value="12">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Max Image Dimension (px)</label>
+                        <input type="number" class="form-input" id="optMaxDim" min="400" max="2000" value="800">
+                    </div>
+                    <div class="form-group" style="margin-top: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                        <button class="action-btn secondary" id="showTutorialBtn" style="width: 100%;">
+                            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
+                            Show Tutorial Again
+                        </button>
+                    </div>
+                    <div class="credit-line" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">Made by <a href="https://x.com/Elvec10" target="_blank" style="color: var(--accent); text-decoration: none;">ElVec1o</a></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn secondary" id="resetOptions" style="width: auto; padding: 0.6rem 1.25rem;">Reset Defaults</button>
+                <button class="action-btn primary" id="saveOptions" style="width: auto; padding: 0.6rem 1.25rem;">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M4 4h6v6H4V4zm1 1v4h4V5H5zm9-1h6v6h-6V4zm1 1v4h4V5h-4zM4 14h6v6H4v-6zm1 1v4h4v-4H5zm9-1h6v6h-6v-6zm1 1v4h4v-4h-4z"/>
+                    <path d="M11 2v4h2V2h-2zm0 16v4h2v-4h-2zM2 11v2h4v-2H2zm16 0v2h4v-2h-4z" opacity="0.6"/>
+                    <circle cx="12" cy="12" r="2" fill="white"/>
+                </svg>
+            </div>
+            <h1>Stitch<span>X</span></h1>
+            <span class="logo-badge">PRO</span>
+        </div>
+        <div class="header-actions">
+            <button class="header-btn" id="helpBtn" data-tooltip="View the tutorial guide">
+                <svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
+                Help
+            </button>
+            <button class="header-btn" id="optionsBtn" data-tooltip="Customize default settings">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                Options
+            </button>
+            <button class="header-btn" id="importBtn" data-tooltip="Load a saved .stitchx project file">
+                <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+                Import .stitchx
+            </button>
+            <input type="file" id="importFile" accept=".stitchx" hidden>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar" id="leftSidebar">
+            <div class="resize-handle left" id="resizeHandleLeft"></div>
+            <div class="panel">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    Add Images
+                </div>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept="image/*" multiple hidden>
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                    </div>
+                    <p class="upload-text"><strong>Click to upload</strong><br>or drag & drop</p>
+                </div>
+                <div class="image-list" id="imageList"></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>
+                    Layout Mode
+                </div>
+                <div class="layout-grid">
+                    <button class="layout-btn active" data-mode="horizontal" data-tooltip="Arrange images side by side">
+                        <svg viewBox="0 0 24 24"><path d="M3 5h8v14H3V5zm10 0h8v14h-8V5z"/></svg>
+                        Horiz
+                    </button>
+                    <button class="layout-btn" data-mode="vertical" data-tooltip="Stack images top to bottom">
+                        <svg viewBox="0 0 24 24"><path d="M5 3h14v8H5V3zm0 10h14v8H5v-8z"/></svg>
+                        Vert
+                    </button>
+                    <button class="layout-btn" data-mode="grid" data-tooltip="Auto-arrange in a grid pattern">
+                        <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10-10h8v8h-8V3zm0 10h8v8h-8v-8z"/></svg>
+                        Grid
+                    </button>
+                    <button class="layout-btn" data-mode="diagonal" data-tooltip="Cascade images diagonally">
+                        <svg viewBox="0 0 24 24"><path d="M3 3h6v6H3V3zm6 6h6v6H9V9zm6 6h6v6h-6v-6z"/></svg>
+                        Diag
+                    </button>
+                    <button class="layout-btn" data-mode="overlap" data-tooltip="Overlap images like cards">
+                        <svg viewBox="0 0 24 24"><path d="M2 4h10v10H2V4zm4 4h10v10H6V8zm4 4h10v10H10V12z"/></svg>
+                        Over
+                    </button>
+                    <button class="layout-btn" data-mode="freeform" data-tooltip="Masonry-style layout">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h5v7H4V4zm0 9h5v7H4v-7zm7-9h9v5h-9V4zm0 7h4v9h-4v-9zm6 0h3v9h-3v-9z"/></svg>
+                        Free
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    Actions
+                </div>
+                <div class="action-group">
+                    <button class="action-btn secondary" id="clearCensors" data-tooltip="Remove all censor marks, keep images">Clear Censors</button>
+                    <button class="action-btn secondary" id="clearAll" data-tooltip="Remove everything and start fresh">Clear All</button>
+                </div>
+            </div>
+
+            <div class="credit-sidebar" style="margin-top: auto; padding: 0.5rem; text-align: center;">
+                <span style="font-size: 0.6rem; color: var(--text-secondary);">Made by <a href="https://x.com/Elvec10" target="_blank" style="color: var(--accent); text-decoration: none; transition: opacity 0.15s;">ElVec1o</a></span>
+            </div>
+        </aside>
+
+        <!-- Canvas Area -->
+        <section class="canvas-area" id="canvasArea">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-state-logo">
+                    <svg viewBox="0 0 24 24" class="empty-state-icon">
+                        <path d="M4 4h6v6H4V4zm1 1v4h4V5H5zm9-1h6v6h-6V4zm1 1v4h4V5h-4zM4 14h6v6H4v-6zm1 1v4h4v-4H5zm9-1h6v6h-6v-6zm1 1v4h4v-4h-4z" fill="var(--accent)"/>
+                        <path d="M11 2v4h2V2h-2zm0 16v4h2v-4h-2zM2 11v2h4v-2H2zm16 0v2h4v-2h-4z" fill="var(--accent)" opacity="0.5"/>
+                        <circle cx="12" cy="12" r="2.5" fill="var(--accent)"/>
+                    </svg>
+                    <h2 class="empty-state-title">Stitch<span>X</span></h2>
+                    <span class="empty-state-badge">PRO</span>
+                </div>
+                <p class="empty-state-text">Upload images to get started</p>
+                <div class="empty-state-hint">
+                    <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" fill="currentColor"/></svg>
+                    <span>Drag & drop or click the upload area</span>
+                </div>
+            </div>
+            <div class="canvas-scroll-container" id="canvasScrollContainer" style="display: none;">
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <canvas id="mainCanvas"></canvas>
+                </div>
+            </div>
+            <div class="zoom-controls" id="zoomControls">
+                <button class="zoom-btn" id="zoomOut" data-tooltip="Zoom out (−)">−</button>
+                <span class="zoom-level" id="zoomLevel">100%</span>
+                <button class="zoom-btn" id="zoomIn" data-tooltip="Zoom in (+)">+</button>
+                <button class="zoom-btn" id="zoom100" data-tooltip="Reset to actual size">1:1</button>
+                <button class="zoom-btn" id="zoomFit" data-tooltip="Fit canvas to view">⊡</button>
+            </div>
+        </section>
+
+        <!-- Right Tools Panel -->
+        <aside class="tools-panel" id="rightSidebar">
+            <div class="resize-handle right" id="resizeHandleRight"></div>
+            <div class="panel">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 00-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 000-1.41z"/></svg>
+                    Censor Tools
+                </div>
+                <div class="tool-grid">
+                    <button class="tool-btn" id="panTool" data-tool="pan" data-tooltip="Drag to move around when zoomed in">
+                        <svg viewBox="0 0 24 24"><path d="M23 5.5V20c0 2.2-1.8 4-4 4h-7.3c-1.08 0-2.1-.43-2.85-1.19L1 14.83s1.26-1.23 1.3-1.25c.22-.19.49-.29.79-.29.22 0 .42.06.6.16.04.01 4.31 2.46 4.31 2.46V4c0-.83.67-1.5 1.5-1.5S11 3.17 11 4v7h1V1.5c0-.83.67-1.5 1.5-1.5S15 .67 15 1.5V11h1V2.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5V11h1V5.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5z"/></svg>
+                        Pan
+                    </button>
+                    <button class="tool-btn active" id="rectTool" data-tool="rect" data-tooltip="Draw filled rectangles to censor">
+                        <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm2 2v14h14V5H5z"/></svg>
+                        Rect
+                    </button>
+                    <button class="tool-btn" id="lineTool" data-tool="line" data-tooltip="Draw thick lines for strike-through">
+                        <svg viewBox="0 0 24 24"><path d="M19.77 4.93l-.71-.71a.996.996 0 00-1.41 0L3.5 18.36l-.71.71a.996.996 0 000 1.41l.71.71c.39.39 1.02.39 1.41 0L19.06 7.05l.71-.71a.996.996 0 000-1.41z"/></svg>
+                        Line
+                    </button>
+                    <button class="tool-btn" id="brushTool" data-tool="brush" data-tooltip="Freehand brush for manual censoring">
+                        <svg viewBox="0 0 24 24"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 00-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 000-1.41z"/></svg>
+                        Brush
+                    </button>
+                    <button class="tool-btn" id="eraserTool" data-tool="eraser" data-tooltip="Remove censoring to reveal original">
+                        <svg viewBox="0 0 24 24"><path d="M16.24 3.56l4.95 4.94-12.02 12.02-7.77-2.59 1.41-1.41 5.66 1.89 12.77-14.85zm-8.49 14.14l-2.12-2.12 9.19-9.19 2.12 2.12-9.19 9.19z"/></svg>
+                        Eraser
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    Pro Tools
+                    <span class="pro-badge">PRO</span>
+                </div>
+                <div class="tool-grid">
+                    <button class="tool-btn pro" id="pixelateTool" data-tool="pixelate" data-tooltip="Mosaic blur effect - hides content">
+                        <span class="pro-marker"></span>
+                        <svg viewBox="0 0 24 24"><path d="M3 3h4v4H3V3zm7 0h4v4h-4V3zm7 0h4v4h-4V3zM3 10h4v4H3v-4zm7 0h4v4h-4v-4zm7 0h4v4h-4v-4zM3 17h4v4H3v-4zm7 0h4v4h-4v-4zm7 0h4v4h-4v-4z"/></svg>
+                        Pixelate
+                    </button>
+                    <button class="tool-btn pro" id="glassTool" data-tool="glass" data-tooltip="Frosted glass effect - blurs softly">
+                        <span class="pro-marker"></span>
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 9c0 1.66-1.34 3-3 3H8v4H6V8h4c1.66 0 3 1.34 3 3zm-3 1c.55 0 1-.45 1-1s-.45-1-1-1H8v2h2z"/></svg>
+                        Glass
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+                    Size & Color
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Brush Size</span>
+                        <span class="slider-value" id="sizeValue">20px</span>
+                    </div>
+                    <input type="range" id="brushSize" min="5" max="100" value="20">
+                </div>
+                <div class="color-picker-wrapper" style="margin-top: 0.75rem;">
+                    <input type="color" class="color-picker" id="censorColor" value="#ff3b30">
+                    <div class="color-presets">
+                        <div class="color-preset" style="background: #ff3b30;" data-color="#ff3b30"></div>
+                        <div class="color-preset" style="background: #000000;" data-color="#000000"></div>
+                        <div class="color-preset" style="background: #ffffff;" data-color="#ffffff"></div>
+                        <div class="color-preset" style="background: #ffcc00;" data-color="#ffcc00"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                    History
+                </div>
+                <div class="history-controls">
+                    <button class="history-btn" id="undoBtn" disabled data-tooltip="Undo last action (Ctrl+Z)">
+                        <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                        Undo
+                    </button>
+                    <button class="history-btn" id="redoBtn" disabled data-tooltip="Redo last undone action (Ctrl+Y)">
+                        <svg viewBox="0 0 24 24"><path d="M11.5 8c2.65 0 5.05.99 6.9 2.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/></svg>
+                        Redo
+                    </button>
+                </div>
+                <p class="history-info" id="historyInfo">0 / 0</p>
+            </div>
+
+            <div class="export-section">
+                <div class="action-group">
+                    <button class="action-btn primary" id="exportBtn" data-tooltip="Download as PNG image">
+                        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                        Export PNG
+                    </button>
+                    <button class="action-btn secondary" id="saveProjectBtn" data-tooltip="Save project to edit later (.stitchx)">
+                        <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                        Save Project
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        // Settings defaults
+        const defaultSettings = {
+            brushSize: 20,
+            layout: 'horizontal',
+            tool: 'rect',
+            color: '#ff3b30',
+            pixelSize: 15,
+            glassBlur: 12,
+            maxDim: 800
+        };
+
+        // Load settings from localStorage or use defaults
+        let settings = { ...defaultSettings, ...JSON.parse(localStorage.getItem('stitchxSettings') || '{}') };
+
+        // State
+        const state = {
+            images: [],
+            layoutMode: settings.layout,
+            currentTool: settings.tool,
+            previousTool: settings.tool, // For auto-pan switching
+            brushSize: settings.brushSize,
+            censorColor: settings.color,
+            isDrawing: false,
+            isPanning: false,
+            panStartX: 0,
+            panStartY: 0,
+            scrollStartX: 0,
+            scrollStartY: 0,
+            startX: 0,
+            startY: 0,
+            history: [],
+            historyIndex: -1,
+            baseImageData: null,
+            actions: [] // For saving to .stitchx
+        };
+
+        let zoomLevel = 1;
+
+        // DOM Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const imageList = document.getElementById('imageList');
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const canvasScrollContainer = document.getElementById('canvasScrollContainer');
+        const emptyState = document.getElementById('emptyState');
+        const brushSizeInput = document.getElementById('brushSize');
+        const sizeValue = document.getElementById('sizeValue');
+        const historyInfo = document.getElementById('historyInfo');
+        const censorColorInput = document.getElementById('censorColor');
+
+        // Initialize
+        brushSizeInput.value = state.brushSize;
+        sizeValue.textContent = state.brushSize + 'px';
+        censorColorInput.value = state.censorColor;
+
+        // Set active layout button
+        document.querySelector(`.layout-btn[data-mode="${state.layoutMode}"]`)?.classList.add('active');
+        document.querySelectorAll('.layout-btn').forEach(b => {
+            if (b.dataset.mode !== state.layoutMode) b.classList.remove('active');
+        });
+
+        // Set active tool button
+        document.querySelector(`.tool-btn[data-tool="${state.currentTool}"]`)?.classList.add('active');
+
+        // ========== INTRO ANIMATION ==========
+        const introOverlay = document.getElementById('introOverlay');
+        const skipIntro = document.getElementById('skipIntro');
+
+        function hideIntro() {
+            introOverlay.classList.add('hidden');
+            setTimeout(() => {
+                // Show tutorial on first visit
+                if (!localStorage.getItem('stitchxTutorialSeen')) {
+                    document.getElementById('dontShowTutorial').checked = false;
+                    document.getElementById('tutorialModal').classList.add('active');
+                }
+            }, 800);
+        }
+
+        setTimeout(hideIntro, 3500);
+        skipIntro.addEventListener('click', hideIntro);
+        document.addEventListener('keydown', function introKey(e) {
+            hideIntro();
+            document.removeEventListener('keydown', introKey);
+        }, { once: true });
+
+        // ========== TUTORIAL ==========
+        let tutorialStep = 1;
+        const tutorialSteps = document.querySelectorAll('.tutorial-step');
+        const tutorialDots = document.querySelectorAll('.tutorial-dot');
+        const tutorialPrev = document.getElementById('tutorialPrev');
+        const tutorialNext = document.getElementById('tutorialNext');
+
+        function updateTutorial() {
+            tutorialSteps.forEach(s => s.classList.remove('active'));
+            tutorialDots.forEach(d => d.classList.remove('active'));
+            document.querySelector(`.tutorial-step[data-step="${tutorialStep}"]`).classList.add('active');
+            document.querySelector(`.tutorial-dot[data-step="${tutorialStep}"]`).classList.add('active');
+            tutorialPrev.disabled = tutorialStep === 1;
+            tutorialNext.textContent = tutorialStep === 6 ? 'Get Started' : 'Next';
+        }
+
+        tutorialPrev.addEventListener('click', () => {
+            if (tutorialStep > 1) { tutorialStep--; updateTutorial(); }
+        });
+
+        tutorialNext.addEventListener('click', () => {
+            if (tutorialStep < 6) { tutorialStep++; updateTutorial(); }
+            else {
+                document.getElementById('tutorialModal').classList.remove('active');
+                if (document.getElementById('dontShowTutorial').checked) {
+                    localStorage.setItem('stitchxTutorialSeen', 'true');
+                }
+            }
+        });
+
+        document.getElementById('closeTutorial').addEventListener('click', () => {
+            document.getElementById('tutorialModal').classList.remove('active');
+            if (document.getElementById('dontShowTutorial').checked) {
+                localStorage.setItem('stitchxTutorialSeen', 'true');
+            }
+        });
+
+        document.getElementById('helpBtn').addEventListener('click', () => {
+            tutorialStep = 1;
+            updateTutorial();
+            document.getElementById('dontShowTutorial').checked = false;
+            document.getElementById('tutorialModal').classList.add('active');
+        });
+
+        // Allow clicking on dots to navigate
+        document.querySelectorAll('.tutorial-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                tutorialStep = parseInt(dot.dataset.step);
+                updateTutorial();
+            });
+        });
+
+        // ========== OPTIONS MODAL ==========
+        const optionsModal = document.getElementById('optionsModal');
+        
+        document.getElementById('optionsBtn').addEventListener('click', () => {
+            // Populate form with current settings
+            document.getElementById('optBrushSize').value = settings.brushSize;
+            document.getElementById('optLayout').value = settings.layout;
+            document.getElementById('optTool').value = settings.tool;
+            document.getElementById('optColor').value = settings.color;
+            document.getElementById('optPixelSize').value = settings.pixelSize;
+            document.getElementById('optGlassBlur').value = settings.glassBlur;
+            document.getElementById('optMaxDim').value = settings.maxDim;
+            optionsModal.classList.add('active');
+        });
+
+        document.getElementById('closeOptions').addEventListener('click', () => {
+            optionsModal.classList.remove('active');
+        });
+
+        document.getElementById('saveOptions').addEventListener('click', () => {
+            settings.brushSize = parseInt(document.getElementById('optBrushSize').value);
+            settings.layout = document.getElementById('optLayout').value;
+            settings.tool = document.getElementById('optTool').value;
+            settings.color = document.getElementById('optColor').value;
+            settings.pixelSize = parseInt(document.getElementById('optPixelSize').value);
+            settings.glassBlur = parseInt(document.getElementById('optGlassBlur').value);
+            settings.maxDim = parseInt(document.getElementById('optMaxDim').value);
+            
+            localStorage.setItem('stitchxSettings', JSON.stringify(settings));
+            
+            // Apply settings
+            state.brushSize = settings.brushSize;
+            state.censorColor = settings.color;
+            brushSizeInput.value = settings.brushSize;
+            sizeValue.textContent = settings.brushSize + 'px';
+            censorColorInput.value = settings.color;
+            
+            optionsModal.classList.remove('active');
+        });
+
+        document.getElementById('resetOptions').addEventListener('click', () => {
+            Object.assign(settings, defaultSettings);
+            document.getElementById('optBrushSize').value = settings.brushSize;
+            document.getElementById('optLayout').value = settings.layout;
+            document.getElementById('optTool').value = settings.tool;
+            document.getElementById('optColor').value = settings.color;
+            document.getElementById('optPixelSize').value = settings.pixelSize;
+            document.getElementById('optGlassBlur').value = settings.glassBlur;
+            document.getElementById('optMaxDim').value = settings.maxDim;
+        });
+
+        // Color presets in options
+        document.querySelectorAll('#optionsModal .color-preset').forEach(preset => {
+            preset.addEventListener('click', () => {
+                document.getElementById('optColor').value = preset.dataset.color;
+            });
+        });
+
+        // Show Tutorial button in options
+        document.getElementById('showTutorialBtn').addEventListener('click', () => {
+            document.getElementById('optionsModal').classList.remove('active');
+            localStorage.removeItem('stitchxTutorialSeen');
+            tutorialStep = 1;
+            updateTutorial();
+            document.getElementById('dontShowTutorial').checked = false;
+            document.getElementById('tutorialModal').classList.add('active');
+        });
+
+        // ========== FILE UPLOAD ==========
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            state.images.push({
+                                id: Date.now() + Math.random(),
+                                name: file.name,
+                                img: img,
+                                dataUrl: e.target.result
+                            });
+                            renderImageList();
+                            stitchImages();
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function renderImageList() {
+            imageList.innerHTML = state.images.map((img, idx) => `
+                <div class="image-item" draggable="true" data-idx="${idx}">
+                    <img class="image-thumb" src="${img.dataUrl}" alt="${img.name}">
+                    <span class="image-name">${img.name}</span>
+                    <button class="remove-btn" onclick="removeImage(${idx})">
+                        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </button>
+                </div>
+            `).join('');
+
+            const items = imageList.querySelectorAll('.image-item');
+            items.forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragend', handleDragEnd);
+            });
+        }
+
+        let draggedIdx = null;
+
+        function handleDragStart(e) {
+            draggedIdx = parseInt(e.target.dataset.idx);
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetIdx = parseInt(e.target.closest('.image-item').dataset.idx);
+            if (draggedIdx !== null && draggedIdx !== targetIdx) {
+                const item = state.images.splice(draggedIdx, 1)[0];
+                state.images.splice(targetIdx, 0, item);
+                renderImageList();
+                stitchImages();
+            }
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedIdx = null;
+        }
+
+        window.removeImage = function(idx) {
+            state.images.splice(idx, 1);
+            renderImageList();
+            if (state.images.length === 0) {
+                emptyState.style.display = 'block';
+                canvasScrollContainer.style.display = 'none';
+                document.getElementById('zoomControls').classList.remove('visible');
+            } else {
+                stitchImages();
+            }
+        };
+
+        // ========== LAYOUT MODE ==========
+        document.querySelectorAll('.layout-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.layoutMode = btn.dataset.mode;
+                if (state.images.length > 0) stitchImages();
+            });
+        });
+
+        // ========== STITCH IMAGES ==========
+        function stitchImages() {
+            if (state.images.length === 0) return;
+
+            emptyState.style.display = 'none';
+            canvasScrollContainer.style.display = 'block';
+            document.getElementById('zoomControls').classList.add('visible');
+            
+            // Will auto-fit after canvas is drawn
+            setTimeout(autoFitCanvas, 50);
+
+            const maxDim = settings.maxDim;
+            
+            const scaledImages = state.images.map(img => {
+                let scale = 1;
+                if (img.img.width > maxDim || img.img.height > maxDim) {
+                    scale = maxDim / Math.max(img.img.width, img.img.height);
+                }
+                return {
+                    img: img.img,
+                    width: Math.round(img.img.width * scale),
+                    height: Math.round(img.img.height * scale)
+                };
+            });
+
+            let totalWidth = 0, totalHeight = 0;
+            let positions = [];
+
+            if (state.layoutMode === 'horizontal') {
+                totalWidth = scaledImages.reduce((sum, img) => sum + img.width, 0);
+                totalHeight = Math.max(...scaledImages.map(img => img.height));
+                let x = 0;
+                positions = scaledImages.map(img => {
+                    const pos = { x, y: (totalHeight - img.height) / 2, w: img.width, h: img.height };
+                    x += img.width;
+                    return pos;
+                });
+            } else if (state.layoutMode === 'vertical') {
+                totalWidth = Math.max(...scaledImages.map(img => img.width));
+                totalHeight = scaledImages.reduce((sum, img) => sum + img.height, 0);
+                let y = 0;
+                positions = scaledImages.map(img => {
+                    const pos = { x: (totalWidth - img.width) / 2, y, w: img.width, h: img.height };
+                    y += img.height;
+                    return pos;
+                });
+            } else if (state.layoutMode === 'grid') {
+                const cols = Math.ceil(Math.sqrt(scaledImages.length));
+                const rows = Math.ceil(scaledImages.length / cols);
+                const maxW = Math.max(...scaledImages.map(img => img.width));
+                const maxH = Math.max(...scaledImages.map(img => img.height));
+                totalWidth = maxW * cols;
+                totalHeight = maxH * rows;
+                positions = scaledImages.map((img, i) => {
+                    const col = i % cols;
+                    const row = Math.floor(i / cols);
+                    return {
+                        x: col * maxW + (maxW - img.width) / 2,
+                        y: row * maxH + (maxH - img.height) / 2,
+                        w: img.width,
+                        h: img.height
+                    };
+                });
+            } else if (state.layoutMode === 'diagonal') {
+                const offsetX = 60, offsetY = 60;
+                const maxW = Math.max(...scaledImages.map(img => img.width));
+                const maxH = Math.max(...scaledImages.map(img => img.height));
+                totalWidth = maxW + offsetX * (scaledImages.length - 1);
+                totalHeight = maxH + offsetY * (scaledImages.length - 1);
+                positions = scaledImages.map((img, i) => ({
+                    x: i * offsetX,
+                    y: i * offsetY,
+                    w: img.width,
+                    h: img.height
+                }));
+            } else if (state.layoutMode === 'overlap') {
+                const offsetX = 80;
+                const maxW = Math.max(...scaledImages.map(img => img.width));
+                const maxH = Math.max(...scaledImages.map(img => img.height));
+                totalWidth = maxW + offsetX * (scaledImages.length - 1);
+                totalHeight = maxH;
+                positions = scaledImages.map((img, i) => ({
+                    x: i * offsetX,
+                    y: (totalHeight - img.height) / 2,
+                    w: img.width,
+                    h: img.height
+                }));
+            } else if (state.layoutMode === 'freeform') {
+                // Masonry-like layout
+                const cols = Math.min(3, scaledImages.length);
+                const colHeights = new Array(cols).fill(0);
+                const gap = 10;
+                const colWidth = Math.max(...scaledImages.map(img => img.width));
+                
+                positions = scaledImages.map((img, i) => {
+                    const minCol = colHeights.indexOf(Math.min(...colHeights));
+                    const pos = {
+                        x: minCol * (colWidth + gap),
+                        y: colHeights[minCol],
+                        w: img.width,
+                        h: img.height
+                    };
+                    colHeights[minCol] += img.height + gap;
+                    return pos;
+                });
+                
+                totalWidth = cols * colWidth + (cols - 1) * gap;
+                totalHeight = Math.max(...colHeights);
+            }
+
+            canvas.width = totalWidth;
+            canvas.height = totalHeight;
+
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, totalWidth, totalHeight);
+
+            positions.forEach((pos, i) => {
+                ctx.drawImage(scaledImages[i].img, pos.x, pos.y, pos.w, pos.h);
+            });
+
+            state.baseImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            state.history = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
+            state.historyIndex = 0;
+            state.actions = [];
+            updateHistoryButtons();
+        }
+
+        // ========== TOOLS ==========
+        function setTool(toolName, saveAsPrevious = true) {
+            if (saveAsPrevious && toolName !== 'pan' && state.currentTool !== 'pan') {
+                state.previousTool = state.currentTool;
+            }
+            state.currentTool = toolName;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            const toolBtn = document.querySelector(`.tool-btn[data-tool="${toolName}"]`);
+            if (toolBtn) toolBtn.classList.add('active');
+            
+            // Update cursor
+            if (toolName === 'pan') {
+                canvas.classList.add('pan-mode');
+            } else {
+                canvas.classList.remove('pan-mode');
+            }
+        }
+
+        function activatePanMode() {
+            if (state.currentTool !== 'pan') {
+                state.previousTool = state.currentTool;
+                setTool('pan', false);
+            }
+        }
+
+        function deactivatePanMode() {
+            if (state.currentTool === 'pan' && state.previousTool) {
+                setTool(state.previousTool, false);
+            }
+        }
+
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTool(btn.dataset.tool);
+            });
+        });
+
+        // Brush Size
+        brushSizeInput.addEventListener('input', (e) => {
+            state.brushSize = parseInt(e.target.value);
+            sizeValue.textContent = state.brushSize + 'px';
+        });
+
+        // Color
+        censorColorInput.addEventListener('input', (e) => {
+            state.censorColor = e.target.value;
+        });
+
+        document.querySelectorAll('.tools-panel .color-preset').forEach(preset => {
+            preset.addEventListener('click', () => {
+                state.censorColor = preset.dataset.color;
+                censorColorInput.value = preset.dataset.color;
+            });
+        });
+
+        // ========== CANVAS DRAWING ==========
+        let lastX, lastY;
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (state.images.length === 0) return;
+            
+            // Pan mode
+            if (state.currentTool === 'pan') {
+                state.isPanning = true;
+                state.panStartX = e.clientX;
+                state.panStartY = e.clientY;
+                state.scrollStartX = canvasScrollContainer.scrollLeft;
+                state.scrollStartY = canvasScrollContainer.scrollTop;
+                canvas.style.cursor = 'grabbing';
+                return;
+            }
+            
+            state.isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            // getBoundingClientRect already accounts for CSS transform, so just scale to canvas pixels
+            state.startX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            state.startY = (e.clientY - rect.top) * (canvas.height / rect.height);
+            lastX = state.startX;
+            lastY = state.startY;
+
+            if (state.currentTool === 'brush' || state.currentTool === 'eraser') {
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            // Pan mode
+            if (state.isPanning) {
+                const dx = e.clientX - state.panStartX;
+                const dy = e.clientY - state.panStartY;
+                canvasScrollContainer.scrollLeft = state.scrollStartX - dx;
+                canvasScrollContainer.scrollTop = state.scrollStartY - dy;
+                return;
+            }
+            
+            if (!state.isDrawing) return;
+
+            const rect = canvas.getBoundingClientRect();
+            // getBoundingClientRect already accounts for CSS transform, so just scale to canvas pixels
+            const currentX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const currentY = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+            if (['rect', 'line', 'pixelate', 'glass'].includes(state.currentTool)) {
+                ctx.putImageData(state.history[state.historyIndex], 0, 0);
+                drawShape(state.startX, state.startY, currentX, currentY);
+            } else if (state.currentTool === 'brush') {
+                ctx.strokeStyle = state.censorColor;
+                ctx.lineWidth = state.brushSize;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineTo(currentX, currentY);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(currentX, currentY);
+            } else if (state.currentTool === 'eraser') {
+                applyEraser(currentX, currentY);
+            }
+
+            lastX = currentX;
+            lastY = currentY;
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            // Pan mode
+            if (state.isPanning) {
+                state.isPanning = false;
+                canvas.style.cursor = 'grab';
+                return;
+            }
+            
+            if (!state.isDrawing) return;
+            state.isDrawing = false;
+
+            const rect = canvas.getBoundingClientRect();
+            // getBoundingClientRect already accounts for CSS transform, so just scale to canvas pixels
+            const endX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const endY = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+            if (['rect', 'line', 'pixelate', 'glass'].includes(state.currentTool)) {
+                // Only draw if there's actual size
+                const width = Math.abs(endX - state.startX);
+                const height = Math.abs(endY - state.startY);
+                if (width > 1 || height > 1) {
+                    ctx.putImageData(state.history[state.historyIndex], 0, 0);
+                    drawShape(state.startX, state.startY, endX, endY);
+                    
+                    // Record action
+                    state.actions.push({
+                        tool: state.currentTool,
+                        startX: state.startX,
+                        startY: state.startY,
+                        endX: endX,
+                        endY: endY,
+                        brushSize: state.brushSize,
+                        color: state.censorColor
+                    });
+                    
+                    saveHistory();
+                }
+            } else if (state.currentTool === 'brush' || state.currentTool === 'eraser') {
+                // Record action for brush/eraser
+                state.actions.push({
+                    tool: state.currentTool,
+                    startX: state.startX,
+                    startY: state.startY,
+                    endX: endX,
+                    endY: endY,
+                    brushSize: state.brushSize,
+                    color: state.censorColor
+                });
+                
+                saveHistory();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            if (state.isPanning) {
+                state.isPanning = false;
+                canvas.style.cursor = 'grab';
+            }
+            if (state.isDrawing && ['brush', 'eraser'].includes(state.currentTool)) {
+                state.isDrawing = false;
+                saveHistory();
+            }
+        });
+
+        function drawShape(x1, y1, x2, y2) {
+            ctx.strokeStyle = state.censorColor;
+            ctx.fillStyle = state.censorColor;
+            ctx.lineWidth = state.brushSize;
+            ctx.lineCap = 'round';
+
+            if (state.currentTool === 'rect') {
+                ctx.fillRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+            } else if (state.currentTool === 'line') {
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            } else if (state.currentTool === 'pixelate') {
+                applyPixelate(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+            } else if (state.currentTool === 'glass') {
+                applyGlassEffect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+            }
+        }
+
+        function applyPixelate(x, y, w, h) {
+            // Validate dimensions
+            if (w < 1 || h < 1) return;
+            
+            x = Math.max(0, Math.floor(x));
+            y = Math.max(0, Math.floor(y));
+            w = Math.min(Math.floor(w), canvas.width - x);
+            h = Math.min(Math.floor(h), canvas.height - y);
+            
+            if (w < 1 || h < 1) return;
+            
+            const pixelSize = settings.pixelSize;
+            const imgData = ctx.getImageData(x, y, w, h);
+            
+            for (let py = 0; py < h; py += pixelSize) {
+                for (let px = 0; px < w; px += pixelSize) {
+                    let r = 0, g = 0, b = 0, count = 0;
+                    
+                    for (let dy = 0; dy < pixelSize && py + dy < h; dy++) {
+                        for (let dx = 0; dx < pixelSize && px + dx < w; dx++) {
+                            const idx = ((py + dy) * w + (px + dx)) * 4;
+                            r += imgData.data[idx];
+                            g += imgData.data[idx + 1];
+                            b += imgData.data[idx + 2];
+                            count++;
+                        }
+                    }
+                    
+                    r = Math.floor(r / count);
+                    g = Math.floor(g / count);
+                    b = Math.floor(b / count);
+                    
+                    for (let dy = 0; dy < pixelSize && py + dy < h; dy++) {
+                        for (let dx = 0; dx < pixelSize && px + dx < w; dx++) {
+                            const idx = ((py + dy) * w + (px + dx)) * 4;
+                            imgData.data[idx] = r;
+                            imgData.data[idx + 1] = g;
+                            imgData.data[idx + 2] = b;
+                        }
+                    }
+                }
+            }
+            
+            ctx.putImageData(imgData, x, y);
+        }
+
+        function applyGlassEffect(x, y, w, h) {
+            // Validate dimensions
+            if (w < 1 || h < 1) return;
+            
+            x = Math.max(0, Math.floor(x));
+            y = Math.max(0, Math.floor(y));
+            w = Math.min(Math.floor(w), canvas.width - x);
+            h = Math.min(Math.floor(h), canvas.height - y);
+            
+            if (w < 1 || h < 1) return;
+            
+            const blur = settings.glassBlur;
+            const imgData = ctx.getImageData(x, y, w, h);
+            const copy = new Uint8ClampedArray(imgData.data);
+            
+            // Simple box blur
+            for (let py = 0; py < h; py++) {
+                for (let px = 0; px < w; px++) {
+                    let r = 0, g = 0, b = 0, count = 0;
+                    
+                    for (let dy = -blur; dy <= blur; dy++) {
+                        for (let dx = -blur; dx <= blur; dx++) {
+                            const ny = py + dy;
+                            const nx = px + dx;
+                            if (ny >= 0 && ny < h && nx >= 0 && nx < w) {
+                                const idx = (ny * w + nx) * 4;
+                                r += copy[idx];
+                                g += copy[idx + 1];
+                                b += copy[idx + 2];
+                                count++;
+                            }
+                        }
+                    }
+                    
+                    const idx = (py * w + px) * 4;
+                    imgData.data[idx] = Math.floor(r / count);
+                    imgData.data[idx + 1] = Math.floor(g / count);
+                    imgData.data[idx + 2] = Math.floor(b / count);
+                }
+            }
+            
+            // Add slight white overlay for matte effect
+            for (let i = 0; i < imgData.data.length; i += 4) {
+                imgData.data[i] = Math.min(255, imgData.data[i] + 30);
+                imgData.data[i + 1] = Math.min(255, imgData.data[i + 1] + 30);
+                imgData.data[i + 2] = Math.min(255, imgData.data[i + 2] + 30);
+            }
+            
+            ctx.putImageData(imgData, x, y);
+        }
+
+        function applyEraser(x, y) {
+            const halfSize = state.brushSize / 2;
+            const sx = Math.max(0, Math.floor(x - halfSize));
+            const sy = Math.max(0, Math.floor(y - halfSize));
+            const sw = Math.min(state.brushSize, canvas.width - sx);
+            const sh = Math.min(state.brushSize, canvas.height - sy);
+            
+            if (sw <= 0 || sh <= 0) return;
+            
+            const baseData = state.baseImageData;
+            const currentData = ctx.getImageData(sx, sy, sw, sh);
+            
+            for (let py = 0; py < sh; py++) {
+                for (let px = 0; px < sw; px++) {
+                    const dist = Math.sqrt(Math.pow(px - halfSize, 2) + Math.pow(py - halfSize, 2));
+                    if (dist <= halfSize) {
+                        const srcIdx = ((sy + py) * baseData.width + (sx + px)) * 4;
+                        const dstIdx = (py * sw + px) * 4;
+                        currentData.data[dstIdx] = baseData.data[srcIdx];
+                        currentData.data[dstIdx + 1] = baseData.data[srcIdx + 1];
+                        currentData.data[dstIdx + 2] = baseData.data[srcIdx + 2];
+                        currentData.data[dstIdx + 3] = baseData.data[srcIdx + 3];
+                    }
+                }
+            }
+            ctx.putImageData(currentData, sx, sy);
+        }
+
+        function saveHistory() {
+            state.history = state.history.slice(0, state.historyIndex + 1);
+            state.history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            state.historyIndex = state.history.length - 1;
+            
+            if (state.history.length > 50) {
+                state.history.shift();
+                state.historyIndex--;
+            }
+            updateHistoryButtons();
+        }
+
+        function updateHistoryButtons() {
+            document.getElementById('undoBtn').disabled = state.historyIndex <= 0;
+            document.getElementById('redoBtn').disabled = state.historyIndex >= state.history.length - 1;
+            historyInfo.textContent = `${state.historyIndex} / ${state.history.length - 1}`;
+        }
+
+        // Undo/Redo
+        document.getElementById('undoBtn').addEventListener('click', undo);
+        document.getElementById('redoBtn').addEventListener('click', redo);
+
+        function undo() {
+            if (state.historyIndex > 0) {
+                state.historyIndex--;
+                ctx.putImageData(state.history[state.historyIndex], 0, 0);
+                updateHistoryButtons();
+            }
+        }
+
+        function redo() {
+            if (state.historyIndex < state.history.length - 1) {
+                state.historyIndex++;
+                ctx.putImageData(state.history[state.historyIndex], 0, 0);
+                updateHistoryButtons();
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
+            else if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
+            else if (e.key === 'Delete') { clearAll(); }
+            else if (e.key === ' ' && state.currentTool !== 'pan') {
+                // Spacebar to temporarily activate pan
+                e.preventDefault();
+                activatePanMode();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === ' ' && state.currentTool === 'pan') {
+                // Release spacebar to go back to previous tool
+                deactivatePanMode();
+            }
+        });
+
+        // Global mouseup to stop panning if mouse released outside canvas
+        document.addEventListener('mouseup', () => {
+            if (state.isPanning) {
+                state.isPanning = false;
+                canvas.style.cursor = 'grab';
+            }
+        });
+
+        // Clear
+        document.getElementById('clearCensors').addEventListener('click', () => {
+            if (state.baseImageData) {
+                ctx.putImageData(state.baseImageData, 0, 0);
+                state.actions = [];
+                saveHistory();
+            }
+        });
+
+        document.getElementById('clearAll').addEventListener('click', clearAll);
+
+        function clearAll() {
+            state.images = [];
+            state.history = [];
+            state.historyIndex = -1;
+            state.baseImageData = null;
+            state.actions = [];
+            renderImageList();
+            emptyState.style.display = 'block';
+            canvasScrollContainer.style.display = 'none';
+            document.getElementById('zoomControls').classList.remove('visible');
+            updateHistoryButtons();
+        }
+
+        // ========== ZOOM ==========
+        function updateZoom() {
+            canvas.style.transform = `scale(${zoomLevel})`;
+            canvas.style.transformOrigin = 'top left';
+            document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
+            
+            // Update wrapper size to accommodate zoomed canvas
+            canvasWrapper.style.width = (canvas.width * zoomLevel) + 'px';
+            canvasWrapper.style.height = (canvas.height * zoomLevel) + 'px';
+        }
+
+        function autoFitCanvas() {
+            if (canvas.width === 0 || canvas.height === 0) return;
+            const canvasArea = document.getElementById('canvasArea');
+            const availableWidth = canvasArea.clientWidth - 100;
+            const availableHeight = canvasArea.clientHeight - 100;
+            const scaleX = availableWidth / canvas.width;
+            const scaleY = availableHeight / canvas.height;
+            zoomLevel = Math.min(scaleX, scaleY);
+            // Clamp between 10% and 100% for auto-fit
+            zoomLevel = Math.max(0.1, Math.min(1, zoomLevel));
+            updateZoom();
+        }
+
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            zoomLevel = Math.min(5, zoomLevel + 0.25);
+            updateZoom();
+            if (zoomLevel > 1) activatePanMode();
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            zoomLevel = Math.max(0.1, zoomLevel - 0.25);
+            updateZoom();
+            if (zoomLevel <= 1) deactivatePanMode();
+        });
+
+        document.getElementById('zoomFit').addEventListener('click', () => {
+            autoFitCanvas();
+            deactivatePanMode();
+        });
+
+        document.getElementById('zoom100').addEventListener('click', () => {
+            zoomLevel = 1;
+            updateZoom();
+            deactivatePanMode();
+        });
+
+        // Mouse wheel zoom
+        canvasScrollContainer.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                zoomLevel = Math.max(0.1, Math.min(5, zoomLevel + delta));
+                updateZoom();
+                if (zoomLevel > 1) {
+                    activatePanMode();
+                } else {
+                    deactivatePanMode();
+                }
+            }
+        }, { passive: false });
+
+        // ========== EXPORT ==========
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            if (state.images.length === 0) {
+                alert('Please add images first!');
+                return;
+            }
+            
+            try {
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = 'stitchx-export-' + Date.now() + '.png';
+                        link.href = url;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }
+                }, 'image/png');
+            } catch (err) {
+                console.error('Export error:', err);
+                alert('Export failed.');
+            }
+        });
+
+        // ========== SAVE PROJECT ==========
+        document.getElementById('saveProjectBtn').addEventListener('click', () => {
+            if (state.images.length === 0) {
+                alert('Please add images first!');
+                return;
+            }
+
+            const project = {
+                version: '1.0',
+                layoutMode: state.layoutMode,
+                settings: settings,
+                images: state.images.map(img => ({
+                    name: img.name,
+                    dataUrl: img.dataUrl
+                })),
+                actions: state.actions,
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height
+            };
+
+            const blob = new Blob([JSON.stringify(project)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'project-' + Date.now() + '.stitchx';
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+
+        // ========== IMPORT PROJECT ==========
+        document.getElementById('importBtn').addEventListener('click', () => {
+            document.getElementById('importFile').click();
+        });
+
+        document.getElementById('importFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const project = JSON.parse(ev.target.result);
+                    loadProject(project);
+                } catch (err) {
+                    alert('Invalid project file.');
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+        function loadProject(project) {
+            // Clear current state
+            state.images = [];
+            state.actions = [];
+            state.layoutMode = project.layoutMode || 'horizontal';
+
+            // Update layout button
+            document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.layout-btn[data-mode="${state.layoutMode}"]`)?.classList.add('active');
+
+            // Load images
+            let loaded = 0;
+            const total = project.images.length;
+
+            project.images.forEach((imgData, idx) => {
+                const img = new Image();
+                img.onload = () => {
+                    state.images[idx] = {
+                        id: Date.now() + Math.random(),
+                        name: imgData.name,
+                        img: img,
+                        dataUrl: imgData.dataUrl
+                    };
+                    loaded++;
+                    
+                    if (loaded === total) {
+                        renderImageList();
+                        stitchImages();
+                        
+                        // Replay actions
+                        if (project.actions && project.actions.length > 0) {
+                            project.actions.forEach(action => {
+                                state.currentTool = action.tool;
+                                state.brushSize = action.brushSize;
+                                state.censorColor = action.color;
+                                drawShape(action.startX, action.startY, action.endX, action.endY);
+                            });
+                            state.actions = project.actions;
+                            saveHistory();
+                        }
+
+                        // Reset tool to rect
+                        state.currentTool = 'rect';
+                        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                        document.querySelector('.tool-btn[data-tool="rect"]').classList.add('active');
+                    }
+                };
+                img.src = imgData.dataUrl;
+            });
+        }
+
+        // ========== RESIZE SIDEBARS ==========
+        const resizeHandleLeft = document.getElementById('resizeHandleLeft');
+        const resizeHandleRight = document.getElementById('resizeHandleRight');
+        const leftSidebar = document.getElementById('leftSidebar');
+        const rightSidebar = document.getElementById('rightSidebar');
+        const mainContainer = document.querySelector('.main-container');
+        const root = document.documentElement;
+
+        let isResizing = false;
+        let currentHandle = null;
+        let startX = 0;
+        let startWidth = 0;
+
+        function startResize(e, handle) {
+            isResizing = true;
+            currentHandle = handle;
+            startX = e.clientX;
+            startWidth = parseFloat(getComputedStyle(root).getPropertyValue('--sidebar-width'));
+            handle.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        }
+
+        function doResize(e) {
+            if (!isResizing) return;
+            
+            const minWidth = 180;
+            const maxWidth = Math.min(320, window.innerWidth * 0.2);
+            
+            let delta;
+            if (currentHandle === resizeHandleLeft) {
+                delta = e.clientX - startX;
+            } else {
+                delta = startX - e.clientX;
+            }
+            
+            let newWidth = startWidth + delta;
+            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+            
+            root.style.setProperty('--sidebar-width', newWidth + 'px');
+        }
+
+        function stopResize() {
+            if (!isResizing) return;
+            isResizing = false;
+            if (currentHandle) currentHandle.classList.remove('active');
+            currentHandle = null;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+
+        resizeHandleLeft.addEventListener('mousedown', (e) => startResize(e, resizeHandleLeft));
+        resizeHandleRight.addEventListener('mousedown', (e) => startResize(e, resizeHandleRight));
+        document.addEventListener('mousemove', doResize);
+        document.addEventListener('mouseup', stopResize);
+
+        // Set initial sidebar width based on screen size
+        function setInitialSidebarWidth() {
+            const screenWidth = window.innerWidth;
+            let width = 220;
+            if (screenWidth >= 1800) width = 280;
+            else if (screenWidth >= 1400) width = 250;
+            else if (screenWidth >= 1200) width = 220;
+            else if (screenWidth >= 1024) width = 200;
+            else width = 180;
+            root.style.setProperty('--sidebar-width', width + 'px');
+        }
+        
+        setInitialSidebarWidth();
+        window.addEventListener('resize', setInitialSidebarWidth);
+    </script>
+</body>
+</html>
