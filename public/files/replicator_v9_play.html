@@ -13,41 +13,52 @@
       overflow: hidden;
     }
   </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <div style="color:#fff;padding:2rem;font-family:monospace;">Loading game...</div>
+  </div>
 
-  <!-- React & ReactDOM from CDN -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- Load and run the game -->
-  <script type="text/babel" data-type="module">
-    // Fetch and execute the JSX file
+  <script>
+    // Fetch and process the JSX
     fetch('./replicator_v9.jsx')
-      .then(res => res.text())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load: ' + res.status);
+        return res.text();
+      })
       .then(code => {
-        // Remove the import statement and export default
-        const cleanCode = code
-          .replace(/^import.*from.*['"]react['"];?/gm, '')
-          .replace(/^export default /, 'window.Game = ');
+        // Remove import and change export to assignment
+        let cleanCode = code
+          .replace(/^import\s+.*?from\s+['"]react['"];?\s*/gm, '')
+          .replace(/^export\s+default\s+function\s+(\w+)/m, 'function $1');
 
-        // Execute with Babel
-        const transformed = Babel.transform(cleanCode, { presets: ['react'] }).code;
+        // Add render call at the end
+        cleanCode += `
+          const root = ReactDOM.createRoot(document.getElementById('root'));
+          root.render(React.createElement(Game));
+        `;
+
+        // Transform with Babel
+        const transformed = Babel.transform(cleanCode, {
+          presets: ['react'],
+          filename: 'game.jsx'
+        }).code;
+
+        // Execute
         eval(transformed);
-
-        // Render
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(React.createElement(window.Game));
       })
       .catch(err => {
         document.getElementById('root').innerHTML = `
-          <div style="color: #f00; padding: 2rem; font-family: monospace;">
+          <div style="color:#f55;padding:2rem;font-family:monospace;">
             <h1>Error loading game</h1>
             <pre>${err.message}</pre>
+            <p style="color:#888;margin-top:2rem;">Try refreshing or check console for details.</p>
           </div>
         `;
+        console.error(err);
       });
   </script>
 </body>
