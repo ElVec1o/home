@@ -1,5 +1,15 @@
 [
   {
+    "id": "type-explorer",
+    "name": "Type.Explorer",
+    "type": "app",
+    "description": "Custom font creator for macOS - design unique typefaces with transforms, colors, and multi-language support. Export as OTF.",
+    "filename": "TypeExplorer-1.2.0.dmg",
+    "size": "1.8 MB",
+    "date": "2026-01-29",
+    "platform": "macOS"
+  },
+  {
     "id": "ebook-reader",
     "name": "E-Reader",
     "type": "utility",
