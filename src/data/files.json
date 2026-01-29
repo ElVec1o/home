@@ -18,7 +18,8 @@
     "filename": "TypeExplorer-1.2.0.dmg",
     "size": "1.8 MB",
     "date": "2026-01-29",
-    "platform": "macOS"
+    "platform": "macOS",
+    "screenshots": ["type-explorer-1.png", "type-explorer-2.png", "type-explorer-3.png", "type-explorer-4.png", "type-explorer-5.png"]
   },
   {
     "id": "ebook-reader",

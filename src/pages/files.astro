@@ -25,9 +25,19 @@ const types = [...new Set(files.map(f => f.type))];
       <div class="file-entry" data-type={file.type}>
         <div class="file-info">
           <span class="file-type">{file.type}</span>
+          {file.platform && <span class="file-platform">{file.platform}</span>}
           <h3>{file.name}</h3>
           <p class="meta">{file.date} · {file.size}</p>
           <p>{file.description}</p>
+          {file.screenshots && file.screenshots.length > 0 && (
+            <div class="screenshots">
+              {file.screenshots.map((img: string) => (
+                <a href={`${base}/img/${img}`} target="_blank" class="screenshot-thumb">
+                  <img src={`${base}/img/${img}`} alt={`${file.name} screenshot`} loading="lazy" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         <div class="file-actions">
           {file.filename.endsWith('.jsx') && (
@@ -95,6 +105,38 @@ const types = [...new Set(files.map(f => f.type))];
     font-size: 0.75rem;
     text-transform: uppercase;
     margin-bottom: 0.5rem;
+  }
+  .file-platform {
+    display: inline-block;
+    background: #333;
+    color: #fff;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    margin-left: 0.3rem;
+    margin-bottom: 0.5rem;
+  }
+  .screenshots {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  .screenshot-thumb {
+    display: block;
+    width: 120px;
+    height: 80px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  .screenshot-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s;
+  }
+  .screenshot-thumb:hover img {
+    transform: scale(1.05);
   }
   .file-entry h3 {
     margin: 0.3rem 0;
