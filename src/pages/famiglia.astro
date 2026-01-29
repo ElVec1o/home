@@ -1,0 +1,265 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
+---
+<Base title="Famiglia — elvec1o">
+  <div id="login-section">
+    <div class="login-box">
+      <h1>👨‍👩‍👦 Area Famiglia</h1>
+      <p>Questa sezione è riservata alla famiglia.</p>
+
+      <form id="login-form" onsubmit="return checkLogin(event)">
+        <div class="form-group">
+          <label for="username">Nome utente</label>
+          <input type="text" id="username" placeholder="Inserisci nome utente" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Inserisci password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="login-btn">Entra</button>
+        <p id="error-msg" class="error-msg"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="family-content" class="hidden">
+    <h1>👨‍👩‍👦 Benvenuto in Famiglia!</h1>
+    <p class="welcome-msg">Ciao! Ecco i contenuti riservati alla nostra famiglia.</p>
+
+    <div class="family-items">
+      <div class="family-card">
+        <div class="card-icon">📖</div>
+        <h3>Mamma Buffona</h3>
+        <p>Il libro illustrato per il nostro piccolo Luca</p>
+        <div class="card-actions">
+          <a href={`${base}/famiglia/mamma-buffona.html`} class="btn btn-primary" target="_blank">📖 Leggi Online</a>
+          <a href={`${base}/famiglia/mamma-buffona.pptx`} class="btn btn-secondary" download>⬇️ Scarica PPTX</a>
+        </div>
+      </div>
+
+      <!-- Placeholder per futuri contenuti -->
+      <div class="family-card coming-soon">
+        <div class="card-icon">🎬</div>
+        <h3>Video e Ricordi</h3>
+        <p>Prossimamente...</p>
+      </div>
+
+      <div class="family-card coming-soon">
+        <div class="card-icon">📸</div>
+        <h3>Album Fotografico</h3>
+        <p>Prossimamente...</p>
+      </div>
+    </div>
+
+    <button onclick="logout()" class="logout-btn">🚪 Esci</button>
+  </div>
+
+  <p><a href={`${base}/`}>← Torna alla home</a></p>
+</Base>
+
+<style>
+  #login-section {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+  }
+  .login-box {
+    background: linear-gradient(135deg, #f8f4f0 0%, #f0e8e0 100%);
+    border: 2px solid #d4c4a8;
+    border-radius: 12px;
+    padding: 2.5rem;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+  }
+  .login-box h1 {
+    margin-bottom: 0.5rem;
+    border: none;
+  }
+  .login-box > p {
+    color: #666;
+    margin-bottom: 1.5rem;
+  }
+  .form-group {
+    margin-bottom: 1rem;
+    text-align: left;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+    color: #444;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  .form-group input:focus {
+    outline: none;
+    border-color: #8b5a2b;
+    box-shadow: 0 0 0 3px rgba(139, 90, 43, 0.1);
+  }
+  .login-btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: #8b5a2b;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    font-family: inherit;
+  }
+  .login-btn:hover {
+    background: #6b4423;
+  }
+  .error-msg {
+    color: #c00;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    min-height: 1.2em;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  #family-content {
+    padding: 1rem 0;
+  }
+  #family-content h1 {
+    border: none;
+  }
+  .welcome-msg {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 2rem;
+  }
+
+  .family-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  .family-card {
+    background: linear-gradient(135deg, #fdfcfa 0%, #f5f0e8 100%);
+    border: 1px solid #e0d4c4;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .family-card.coming-soon {
+    opacity: 0.6;
+  }
+  .card-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+  }
+  .family-card h3 {
+    margin: 0.5rem 0;
+    color: #333;
+  }
+  .family-card p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  .card-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .btn-primary {
+    background: #8b5a2b;
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: #6b4423;
+    color: #fff;
+  }
+  .btn-secondary {
+    background: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+  }
+  .btn-secondary:hover {
+    background: #f5f5f5;
+    color: #333;
+  }
+
+  .logout-btn {
+    margin-top: 2rem;
+    padding: 0.6rem 1.5rem;
+    background: #eee;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+  .logout-btn:hover {
+    background: #ddd;
+  }
+</style>
+
+<script is:inline>
+  // Check if already logged in
+  function checkSession() {
+    const session = sessionStorage.getItem('famiglia_auth');
+    if (session === 'true') {
+      showContent();
+    }
+  }
+
+  function checkLogin(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value.trim().toLowerCase();
+    const password = document.getElementById('password').value.trim().toLowerCase();
+    const errorMsg = document.getElementById('error-msg');
+
+    // Check credentials: username=famiglia, password=luca (case insensitive)
+    if (username === 'famiglia' && password === 'luca') {
+      sessionStorage.setItem('famiglia_auth', 'true');
+      showContent();
+      errorMsg.textContent = '';
+    } else {
+      errorMsg.textContent = '❌ Credenziali non valide. Riprova.';
+      document.getElementById('password').value = '';
+    }
+
+    return false;
+  }
+
+  function showContent() {
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('family-content').classList.remove('hidden');
+  }
+
+  function logout() {
+    sessionStorage.removeItem('famiglia_auth');
+    document.getElementById('login-section').classList.remove('hidden');
+    document.getElementById('family-content').classList.add('hidden');
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+  }
+
+  // Check on load
+  checkSession();
+</script>
