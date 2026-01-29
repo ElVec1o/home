@@ -30,11 +30,11 @@ const types = [...new Set(files.map(f => f.type))];
           <p class="meta">{file.date} · {file.size}</p>
           <p>{file.description}</p>
           {file.screenshots && file.screenshots.length > 0 && (
-            <div class="screenshots">
-              {file.screenshots.map((img: string) => (
-                <a href={`${base}/img/${img}`} target="_blank" class="screenshot-thumb">
+            <div class="screenshots" data-gallery={file.id}>
+              {file.screenshots.map((img: string, idx: number) => (
+                <button class="screenshot-thumb" data-src={`${base}/img/${img}`} data-index={idx} data-gallery={file.id} onclick="openCarousel(this)">
                   <img src={`${base}/img/${img}`} alt={`${file.name} screenshot`} loading="lazy" />
-                </a>
+                </button>
               ))}
             </div>
           )}
@@ -61,6 +61,17 @@ const types = [...new Set(files.map(f => f.type))];
   )}
 
   <p><a href={`${base}/`}>← Back home</a></p>
+
+  <!-- Image Carousel Overlay -->
+  <div class="carousel-overlay" id="carousel">
+    <div class="carousel-content">
+      <button class="carousel-close" onclick="closeCarousel()">×</button>
+      <button class="carousel-nav carousel-prev" onclick="carouselNav(-1)">‹</button>
+      <img id="carousel-img" src="" alt="Screenshot">
+      <button class="carousel-nav carousel-next" onclick="carouselNav(1)">›</button>
+      <div class="carousel-counter"><span id="carousel-current">1</span> / <span id="carousel-total">1</span></div>
+    </div>
+  </div>
 </Base>
 
 <style>
@@ -128,6 +139,9 @@ const types = [...new Set(files.map(f => f.type))];
     overflow: hidden;
     border: 1px solid #ddd;
     border-radius: 4px;
+    padding: 0;
+    background: none;
+    cursor: pointer;
   }
   .screenshot-thumb img {
     width: 100%;
@@ -137,6 +151,77 @@ const types = [...new Set(files.map(f => f.type))];
   }
   .screenshot-thumb:hover img {
     transform: scale(1.05);
+  }
+
+  /* Carousel Overlay */
+  .carousel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+  }
+  .carousel-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .carousel-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+  }
+  .carousel-content img {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+  .carousel-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+  .carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 1rem;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+  .carousel-nav:hover {
+    background: rgba(255,255,255,0.4);
+  }
+  .carousel-prev { left: -60px; }
+  .carousel-next { right: -60px; }
+  .carousel-counter {
+    text-align: center;
+    color: #fff;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+  @media (max-width: 768px) {
+    .carousel-prev { left: 10px; }
+    .carousel-next { right: 10px; }
   }
   .file-entry h3 {
     margin: 0.3rem 0;
@@ -190,5 +275,48 @@ const types = [...new Set(files.map(f => f.type))];
         }
       });
     });
+  });
+
+  // Carousel functionality
+  let currentGallery = [];
+  let currentIndex = 0;
+
+  function openCarousel(btn) {
+    const galleryId = btn.dataset.gallery;
+    const thumbs = document.querySelectorAll(`[data-gallery="${galleryId}"][data-src]`);
+    currentGallery = Array.from(thumbs).map(t => t.dataset.src);
+    currentIndex = parseInt(btn.dataset.index);
+    updateCarousel();
+    document.getElementById('carousel').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCarousel() {
+    document.getElementById('carousel').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  function carouselNav(dir) {
+    currentIndex += dir;
+    if (currentIndex < 0) currentIndex = currentGallery.length - 1;
+    if (currentIndex >= currentGallery.length) currentIndex = 0;
+    updateCarousel();
+  }
+
+  function updateCarousel() {
+    document.getElementById('carousel-img').src = currentGallery[currentIndex];
+    document.getElementById('carousel-current').textContent = currentIndex + 1;
+    document.getElementById('carousel-total').textContent = currentGallery.length;
+  }
+
+  // Close on ESC or click outside
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeCarousel();
+    if (e.key === 'ArrowLeft') carouselNav(-1);
+    if (e.key === 'ArrowRight') carouselNav(1);
+  });
+
+  document.getElementById('carousel').addEventListener('click', (e) => {
+    if (e.target.id === 'carousel') closeCarousel();
   });
 </script>
