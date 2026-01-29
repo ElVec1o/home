@@ -261,7 +261,8 @@ const types = [...new Set(files.map(f => f.type))];
   .hidden { display: none; }
 </style>
 
-<script>
+<script is:inline>
+  // Tab filtering
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -277,31 +278,31 @@ const types = [...new Set(files.map(f => f.type))];
     });
   });
 
-  // Carousel functionality
-  let currentGallery = [];
-  let currentIndex = 0;
+  // Carousel functionality - global scope
+  var currentGallery = [];
+  var currentIndex = 0;
 
-  function openCarousel(btn) {
-    const galleryId = btn.dataset.gallery;
-    const thumbs = document.querySelectorAll(`[data-gallery="${galleryId}"][data-src]`);
-    currentGallery = Array.from(thumbs).map(t => t.dataset.src);
+  window.openCarousel = function(btn) {
+    var galleryId = btn.dataset.gallery;
+    var thumbs = document.querySelectorAll('[data-gallery="' + galleryId + '"][data-src]');
+    currentGallery = Array.from(thumbs).map(function(t) { return t.dataset.src; });
     currentIndex = parseInt(btn.dataset.index);
     updateCarousel();
     document.getElementById('carousel').classList.add('active');
     document.body.style.overflow = 'hidden';
-  }
+  };
 
-  function closeCarousel() {
+  window.closeCarousel = function() {
     document.getElementById('carousel').classList.remove('active');
     document.body.style.overflow = '';
-  }
+  };
 
-  function carouselNav(dir) {
+  window.carouselNav = function(dir) {
     currentIndex += dir;
     if (currentIndex < 0) currentIndex = currentGallery.length - 1;
     if (currentIndex >= currentGallery.length) currentIndex = 0;
     updateCarousel();
-  }
+  };
 
   function updateCarousel() {
     document.getElementById('carousel-img').src = currentGallery[currentIndex];
@@ -310,13 +311,13 @@ const types = [...new Set(files.map(f => f.type))];
   }
 
   // Close on ESC or click outside
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeCarousel();
-    if (e.key === 'ArrowLeft') carouselNav(-1);
-    if (e.key === 'ArrowRight') carouselNav(1);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') window.closeCarousel();
+    if (e.key === 'ArrowLeft') window.carouselNav(-1);
+    if (e.key === 'ArrowRight') window.carouselNav(1);
   });
 
-  document.getElementById('carousel').addEventListener('click', (e) => {
-    if (e.target.id === 'carousel') closeCarousel();
+  document.getElementById('carousel').addEventListener('click', function(e) {
+    if (e.target.id === 'carousel') window.closeCarousel();
   });
 </script>
