@@ -8,15 +8,74 @@
     <script type="module" crossorigin src="./assets/index-DTnfOci6.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-QmLU6N3m.css">
     <style>
-      /* Fix: Make all language buttons visible */
-      .language-toggle .lang-btn {
-        display: inline-block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
+      /* Hide original language toggle */
+      .language-toggle { display: none !important; }
+
+      /* Custom language selector */
+      #custom-lang {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 1000;
+        display: flex;
+        gap: .5rem;
+        padding: .5rem;
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 50px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      }
+      #custom-lang button {
+        padding: .5rem 1rem;
+        border: none;
+        background: transparent;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: .9rem;
+        transition: all .3s;
+      }
+      #custom-lang button.active {
+        background: #ff6b6b;
+        color: #fff;
+      }
+      #custom-lang button:hover:not(.active) {
+        background: rgba(255,107,107,0.2);
       }
     </style>
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Custom Language Selector -->
+    <div id="custom-lang">
+      <button class="active" onclick="setLang('it')">🇮🇹 IT</button>
+      <button onclick="setLang('en')">🇬🇧 EN</button>
+      <button onclick="setLang('vi')">🇻🇳 VI</button>
+    </div>
+
+    <script>
+      function setLang(lang) {
+        // Update button states
+        document.querySelectorAll('#custom-lang button').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.textContent.toLowerCase().includes(lang)) {
+            btn.classList.add('active');
+          }
+        });
+
+        // Find and click the React language button
+        setTimeout(() => {
+          const reactBtns = document.querySelectorAll('.language-toggle .lang-btn, .lang-btn');
+          reactBtns.forEach(btn => {
+            const btnText = btn.textContent.toLowerCase();
+            if (btnText.includes(lang) || btn.innerText.toLowerCase() === lang) {
+              btn.click();
+            }
+          });
+        }, 100);
+      }
+    </script>
   </body>
 </html>
