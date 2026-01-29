@@ -31,10 +31,18 @@ const base = import.meta.env.BASE_URL;
       <div class="family-card">
         <div class="card-icon">📖</div>
         <h3>Mamma Buffona</h3>
-        <p>Illustrated book for our little one</p>
+        <p class="version-label">Interactive Version (AntiGravity + Gemini)</p>
         <div class="card-actions">
-          <a href={`${base}/famiglia/mamma-buffona.html`} class="btn btn-primary" target="_blank">📖 Read Online</a>
-          <a href={`${base}/famiglia/mamma-buffona.pptx`} class="btn btn-secondary" download>⬇️ Download PPTX</a>
+          <a href={`${base}/famiglia/mamma-buffona.html`} class="btn btn-primary" target="_blank">📖 Read Interactive</a>
+        </div>
+      </div>
+      <div class="family-card">
+        <div class="card-icon">🎞️</div>
+        <h3>Mamma Buffona</h3>
+        <p class="version-label">Slideshow Version (Kimi 2.5)</p>
+        <div class="card-actions">
+          <a href={`${base}/famiglia/mamma-buffona-slides.html`} class="btn btn-primary" target="_blank">🎞️ View Slides</a>
+          <a href={`${base}/famiglia/mamma-buffona.pptx`} class="btn btn-secondary" download>⬇️ PPTX</a>
         </div>
       </div>
     </div>
@@ -155,6 +163,11 @@ const base = import.meta.env.BASE_URL;
     color: #666;
     font-size: 0.9rem;
     margin-bottom: 1rem;
+  }
+  .version-label {
+    font-size: 0.8rem !important;
+    color: #888 !important;
+    font-style: italic;
   }
   .card-actions {
     display: flex;

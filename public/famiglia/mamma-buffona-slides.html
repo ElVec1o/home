@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mamma Buffona - Slideshow</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #fef6e4 0%, #f3d9c4 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    h1 {
+      color: #5c4033;
+      margin-bottom: 0.5rem;
+      font-size: 2rem;
+    }
+    .subtitle {
+      color: #8b6914;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+    .slideshow {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+      max-width: 900px;
+      width: 100%;
+    }
+    .slide-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #f5f5f5;
+    }
+    .slide-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.5rem;
+      background: #fafafa;
+    }
+    .btn {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-nav {
+      background: #e07a5f;
+      color: white;
+    }
+    .btn-nav:hover:not(:disabled) {
+      background: #c4634b;
+    }
+    .btn-nav:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .page-info {
+      font-size: 1.1rem;
+      color: #333;
+      min-width: 100px;
+      text-align: center;
+    }
+    .thumbnails {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem;
+      overflow-x: auto;
+      background: #f0f0f0;
+    }
+    .thumb {
+      width: 80px;
+      height: 45px;
+      object-fit: cover;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .thumb:hover {
+      transform: scale(1.05);
+    }
+    .thumb.active {
+      border-color: #e07a5f;
+    }
+    .version-note {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(255,255,255,0.7);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+    }
+    .version-note strong {
+      color: #5c4033;
+    }
+  </style>
+</head>
+<body>
+  <h1>📖 Mamma Buffona</h1>
+  <p class="subtitle">Un libro per Luca - Versione PPTX (Kimi 2.5)</p>
+
+  <div class="slideshow">
+    <div class="slide-container">
+      <img id="currentSlide" src="./assets/cover.png" alt="Slide">
+    </div>
+    <div class="thumbnails" id="thumbnails"></div>
+    <div class="controls">
+      <button class="btn btn-nav" id="prevBtn" onclick="prevSlide()">← Previous</button>
+      <span class="page-info" id="pageInfo">Cover</span>
+      <button class="btn btn-nav" id="nextBtn" onclick="nextSlide()">Next →</button>
+    </div>
+  </div>
+
+  <div class="version-note">
+    <strong>Note:</strong> This is the PPTX version (Kimi 2.5).<br>
+    <a href="./mamma-buffona.html">View the interactive React version (AntiGravity + Gemini)</a>
+  </div>
+
+  <script>
+    const slides = [
+      { src: './assets/cover.png', label: 'Cover' },
+      { src: './assets/page_1.png', label: 'Page 1' },
+      { src: './assets/page_2.png', label: 'Page 2' },
+      { src: './assets/page_3.png', label: 'Page 3' },
+      { src: './assets/page_4.png', label: 'Page 4' },
+      { src: './assets/page_5.png', label: 'Page 5' },
+      { src: './assets/page_6.png', label: 'Page 6' },
+      { src: './assets/page_7.png', label: 'Page 7' },
+      { src: './assets/page_8.png', label: 'Page 8' },
+      { src: './assets/page_9.png', label: 'Page 9' }
+    ];
+
+    let currentIndex = 0;
+
+    function updateSlide() {
+      document.getElementById('currentSlide').src = slides[currentIndex].src;
+      document.getElementById('pageInfo').textContent = slides[currentIndex].label;
+      document.getElementById('prevBtn').disabled = currentIndex === 0;
+      document.getElementById('nextBtn').disabled = currentIndex === slides.length - 1;
+
+      document.querySelectorAll('.thumb').forEach((t, i) => {
+        t.classList.toggle('active', i === currentIndex);
+      });
+    }
+
+    function nextSlide() {
+      if (currentIndex < slides.length - 1) {
+        currentIndex++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateSlide();
+      }
+    }
+
+    function goToSlide(index) {
+      currentIndex = index;
+      updateSlide();
+    }
+
+    // Create thumbnails
+    const thumbContainer = document.getElementById('thumbnails');
+    slides.forEach((slide, i) => {
+      const img = document.createElement('img');
+      img.src = slide.src;
+      img.className = 'thumb' + (i === 0 ? ' active' : '');
+      img.onclick = () => goToSlide(i);
+      thumbContainer.appendChild(img);
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+  </script>
+</body>
+</html>
