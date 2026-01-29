@@ -102,6 +102,27 @@
     .error-modal-content .fix-command button { background: #333; color: #fff; border: none; padding: 0.4rem 0.8rem; cursor: pointer; white-space: nowrap; }
     .error-modal-content .fix-command button:hover { background: #555; }
     .error-modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+
+    /* Status Panel */
+    .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+    .status-card { background: #f9f9f9; border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px; }
+    .status-card.full-width { grid-column: 1 / -1; }
+    .status-card h4 { margin-bottom: 1rem; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; }
+    .status-items { display: flex; flex-direction: column; gap: 0.75rem; }
+    .status-item { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; padding: 0.5rem; background: #fff; border-radius: 4px; }
+    .status-label { font-weight: 600; min-width: 150px; }
+    .status-value { color: #2e7d32; font-weight: bold; }
+    .status-limit { color: #888; font-size: 0.85rem; }
+    .analytics-options { display: flex; flex-direction: column; gap: 1rem; }
+    .analytics-option { background: #fff; padding: 1rem; border-radius: 4px; border: 1px solid #eee; }
+    .analytics-option strong { display: block; margin-bottom: 0.3rem; }
+    .analytics-option p { font-size: 0.85rem; color: #666; margin-bottom: 0.5rem; }
+    .analytics-option code { font-size: 0.75rem; background: #f0f0f0; padding: 0.3rem; display: block; overflow-x: auto; }
+    .btn-small { display: inline-block; padding: 0.3rem 0.6rem; background: #111; color: #fff; text-decoration: none; font-size: 0.8rem; border-radius: 3px; }
+    .btn-small:hover { background: #333; color: #fff; }
+    .security-info { line-height: 1.8; }
+    .security-info ul { margin: 1rem 0; padding-left: 1.5rem; }
+    .security-info li { margin-bottom: 0.5rem; }
     .error-modal-actions button { padding: 0.5rem 1rem; }
 
     /* Activity Log */
@@ -154,6 +175,7 @@
       <button class="tab" data-tab="uploads">📁 Uploads</button>
       <button class="tab" data-tab="config">Config</button>
       <button class="tab" data-tab="activity">📋 Activity</button>
+      <button class="tab" data-tab="status">📊 Status</button>
       <button class="tab" data-tab="settings">⚙️ Settings</button>
     </div>
 
@@ -606,6 +628,81 @@
       </div>
       <div class="activity-log" id="activityLog">
         <div class="activity-empty">No activity yet. Start editing to see your history here.</div>
+      </div>
+    </div>
+
+    <!-- STATUS PANEL -->
+    <div class="panel" id="panel-status">
+      <h3 style="margin-bottom:1rem;border-bottom:1px solid #ddd;padding-bottom:0.5rem;">📊 Site Status & Analytics</h3>
+
+      <div class="status-grid">
+        <div class="status-card">
+          <h4>🐙 GitHub Pages Limits</h4>
+          <div class="status-items">
+            <div class="status-item">
+              <span class="status-label">Repository Size</span>
+              <span class="status-value" id="repo-size">Loading...</span>
+              <span class="status-limit">/ 1 GB recommended</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Bandwidth (soft limit)</span>
+              <span class="status-value">100 GB/month</span>
+              <span class="status-limit">no tracking available</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Build time limit</span>
+              <span class="status-value">10 min/build</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">File size limit</span>
+              <span class="status-value">100 MB</span>
+            </div>
+          </div>
+          <button class="secondary" onclick="loadRepoStats()" style="margin-top:1rem;">🔄 Refresh Stats</button>
+        </div>
+
+        <div class="status-card">
+          <h4>📈 Visitor Analytics</h4>
+          <p style="color:#666;font-size:0.85rem;margin-bottom:1rem;">
+            GitHub Pages is static hosting - no built-in analytics. Options:
+          </p>
+          <div class="analytics-options">
+            <div class="analytics-option">
+              <strong>GoatCounter</strong> (Recommended)
+              <p>Free, privacy-friendly, no cookies</p>
+              <a href="https://www.goatcounter.com/" target="_blank" class="btn-small">Setup →</a>
+            </div>
+            <div class="analytics-option">
+              <strong>Plausible</strong>
+              <p>Privacy-first, paid ($9/mo)</p>
+              <a href="https://plausible.io/" target="_blank" class="btn-small">Learn more →</a>
+            </div>
+            <div class="analytics-option">
+              <strong>Simple Badge</strong>
+              <p>Just a visitor counter image</p>
+              <code>![](https://visitor-badge.laobi.icu/badge?page_id=elvec1o.home)</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-card full-width">
+          <h4>🔒 Security Notes</h4>
+          <div class="security-info">
+            <p><strong>Your site is PUBLIC and OPEN SOURCE.</strong> This means:</p>
+            <ul>
+              <li>✅ <strong>Safe:</strong> All code is static HTML/CSS/JS - no server to hack</li>
+              <li>✅ <strong>Safe:</strong> No database to breach, no user data stored</li>
+              <li>✅ <strong>Safe:</strong> GitHub handles DDoS protection and SSL</li>
+              <li>⚠️ <strong>Note:</strong> Your git history is public - anyone can see all changes</li>
+              <li>⚠️ <strong>Note:</strong> Don't commit secrets, API keys, or sensitive data</li>
+              <li>⚠️ <strong>Note:</strong> The "famiglia" password is in the public code (security by obscurity only)</li>
+            </ul>
+            <p style="margin-top:1rem;color:#666;">
+              <strong>Can someone "inject" into your site?</strong> No. They can't modify your files without your GitHub credentials.
+              The code is readable but not writable by others. Your CMS runs locally, not on the internet.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1359,6 +1456,49 @@ window.fetch = async function(...args) {
     throw err;
   }
 };
+
+// ============ STATUS / REPO STATS ============
+async function loadRepoStats() {
+  const repoSizeEl = document.getElementById('repo-size');
+  repoSizeEl.textContent = 'Loading...';
+
+  try {
+    // Use GitHub API to get repo info
+    const res = await fetch('https://api.github.com/repos/elvec1o/home');
+    if (!res.ok) throw new Error('API error: ' + res.status);
+    const data = await res.json();
+
+    const sizeMB = (data.size / 1024).toFixed(2);
+    const percent = ((data.size / 1024) / 1024 * 100).toFixed(1); // % of 1GB
+
+    repoSizeEl.innerHTML = `<strong>${sizeMB} MB</strong> <span style="color:#666;">(${percent}% of limit)</span>`;
+
+    // Color code based on usage
+    if (percent > 80) {
+      repoSizeEl.style.color = '#c00';
+    } else if (percent > 50) {
+      repoSizeEl.style.color = '#f90';
+    } else {
+      repoSizeEl.style.color = '#2e7d32';
+    }
+
+    debugLog(`Repo size: ${sizeMB} MB (${percent}%)`, 'info');
+  } catch (err) {
+    repoSizeEl.textContent = 'Error: ' + err.message;
+    repoSizeEl.style.color = '#c00';
+    debugLog('Failed to load repo stats: ' + err.message, 'error');
+  }
+}
+
+// Load stats when Status tab is shown
+document.addEventListener('DOMContentLoaded', () => {
+  const statusTab = document.querySelector('[data-tab="status"]');
+  if (statusTab) {
+    statusTab.addEventListener('click', () => {
+      setTimeout(loadRepoStats, 100);
+    });
+  }
+});
 
 // ============ SETTINGS / AUTH ============
 async function loadSettings() {

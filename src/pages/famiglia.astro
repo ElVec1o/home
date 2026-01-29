@@ -2,60 +2,47 @@
 import Base from '../layouts/Base.astro';
 const base = import.meta.env.BASE_URL;
 ---
-<Base title="Famiglia — elvec1o">
+<Base title="Family — elvec1o">
   <div id="login-section">
     <div class="login-box">
-      <h1>👨‍👩‍👦 Area Famiglia</h1>
-      <p>Questa sezione è riservata alla famiglia.</p>
+      <h1>👨‍👩‍👦 Family Area</h1>
+      <p>This section is reserved for family members.</p>
 
       <form id="login-form" onsubmit="return checkLogin(event)">
         <div class="form-group">
-          <label for="username">Nome utente</label>
-          <input type="text" id="username" placeholder="Inserisci nome utente" autocomplete="username" required>
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="Enter username" autocomplete="username" required>
         </div>
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" id="password" placeholder="Inserisci password" autocomplete="current-password" required>
+          <input type="password" id="password" placeholder="Enter password" autocomplete="current-password" required>
         </div>
-        <button type="submit" class="login-btn">Entra</button>
+        <button type="submit" class="login-btn">Login</button>
         <p id="error-msg" class="error-msg"></p>
       </form>
     </div>
   </div>
 
   <div id="family-content" class="hidden">
-    <h1>👨‍👩‍👦 Benvenuto in Famiglia!</h1>
-    <p class="welcome-msg">Ciao! Ecco i contenuti riservati alla nostra famiglia.</p>
+    <h1>👨‍👩‍👦 Welcome to Family!</h1>
+    <p class="welcome-msg">Hello! Here are the contents reserved for our family.</p>
 
     <div class="family-items">
       <div class="family-card">
         <div class="card-icon">📖</div>
         <h3>Mamma Buffona</h3>
-        <p>Il libro illustrato per il nostro piccolo Luca</p>
+        <p>Illustrated book for our little one</p>
         <div class="card-actions">
-          <a href={`${base}/famiglia/mamma-buffona.html`} class="btn btn-primary" target="_blank">📖 Leggi Online</a>
-          <a href={`${base}/famiglia/mamma-buffona.pptx`} class="btn btn-secondary" download>⬇️ Scarica PPTX</a>
+          <a href={`${base}/famiglia/mamma-buffona.html`} class="btn btn-primary" target="_blank">📖 Read Online</a>
+          <a href={`${base}/famiglia/mamma-buffona.pptx`} class="btn btn-secondary" download>⬇️ Download PPTX</a>
         </div>
-      </div>
-
-      <!-- Placeholder per futuri contenuti -->
-      <div class="family-card coming-soon">
-        <div class="card-icon">🎬</div>
-        <h3>Video e Ricordi</h3>
-        <p>Prossimamente...</p>
-      </div>
-
-      <div class="family-card coming-soon">
-        <div class="card-icon">📸</div>
-        <h3>Album Fotografico</h3>
-        <p>Prossimamente...</p>
       </div>
     </div>
 
-    <button onclick="logout()" class="logout-btn">🚪 Esci</button>
+    <button onclick="logout()" class="logout-btn">🚪 Logout</button>
   </div>
 
-  <p><a href={`${base}/`}>← Torna alla home</a></p>
+  <p><a href={`${base}/`}>← Back home</a></p>
 </Base>
 
 <style>
@@ -156,9 +143,6 @@ const base = import.meta.env.BASE_URL;
     padding: 1.5rem;
     text-align: center;
   }
-  .family-card.coming-soon {
-    opacity: 0.6;
-  }
   .card-icon {
     font-size: 3rem;
     margin-bottom: 0.5rem;
@@ -219,7 +203,18 @@ const base = import.meta.env.BASE_URL;
 </style>
 
 <script is:inline>
-  // Check if already logged in
+  // SHA256 hash function
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Expected hashes (not the actual passwords!)
+  const EXPECTED_USER_HASH = '992211bc7aafc07db8f575e3acf08813084e3a4fcb5f674ab2db7c2c97c14954'; // famiglia
+  const EXPECTED_PASS_HASH = 'd70f47790f689414789eeff231703429c7f88a10210775906460edbf38589d90'; // the password
+
   function checkSession() {
     const session = sessionStorage.getItem('famiglia_auth');
     if (session === 'true') {
@@ -227,20 +222,22 @@ const base = import.meta.env.BASE_URL;
     }
   }
 
-  function checkLogin(e) {
+  async function checkLogin(e) {
     e.preventDefault();
 
     const username = document.getElementById('username').value.trim().toLowerCase();
     const password = document.getElementById('password').value.trim().toLowerCase();
     const errorMsg = document.getElementById('error-msg');
 
-    // Check credentials: username=famiglia, password=luca (case insensitive)
-    if (username === 'famiglia' && password === 'luca') {
+    const userHash = await sha256(username);
+    const passHash = await sha256(password);
+
+    if (userHash === EXPECTED_USER_HASH && passHash === EXPECTED_PASS_HASH) {
       sessionStorage.setItem('famiglia_auth', 'true');
       showContent();
       errorMsg.textContent = '';
     } else {
-      errorMsg.textContent = '❌ Credenziali non valide. Riprova.';
+      errorMsg.textContent = '❌ Invalid credentials. Try again.';
       document.getElementById('password').value = '';
     }
 
@@ -260,6 +257,5 @@ const base = import.meta.env.BASE_URL;
     document.getElementById('password').value = '';
   }
 
-  // Check on load
   checkSession();
 </script>

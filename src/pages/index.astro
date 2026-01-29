@@ -40,18 +40,4 @@ const recentWork = breaksData.filter(b => b.name && b.technique).slice(0, 3);
   <p>
     <a href="https://app.grayswan.ai/arena/leaderboard/global" target="_blank">Gray Swan Arena Global Leaderboard</a> — competing as <strong>{siteConfig.grayswanUser}</strong>
   </p>
-  <p class="admin-link">
-    <a href={`${base}/admin.html`}>Admin</a>
-  </p>
 </Base>
-
-<style>
-  .admin-link {
-    margin-top: 2rem;
-    font-size: 0.85rem;
-    opacity: 0.5;
-  }
-  .admin-link:hover {
-    opacity: 1;
-  }
-</style>

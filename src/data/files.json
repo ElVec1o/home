@@ -1,5 +1,16 @@
 [
   {
+    "id": "disk-analyzer",
+    "name": "Disk Analyzer",
+    "type": "app",
+    "description": "macOS disk space analyzer - Dashboard overview, Scanner for large files, and Developer cleanup for Xcode, Android SDK, Docker, Gradle caches.",
+    "filename": "DiskAnalyzer.dmg",
+    "size": "3.4 MB",
+    "date": "2026-01-29",
+    "platform": "macOS",
+    "screenshots": ["disk-analyzer-1.png", "disk-analyzer-2.png", "disk-analyzer-3.png"]
+  },
+  {
     "id": "type-explorer",
     "name": "Type.Explorer",
     "type": "app",
