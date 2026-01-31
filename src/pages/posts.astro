@@ -63,17 +63,26 @@ function renderProtected(text: string, id: string): string {
   <h1>Posts</h1>
   <p>{breaks.length} entries</p>
 
-  <!-- Featured X Posts Section -->
+  <!-- Featured X Posts Carousel -->
   <div id="featured-tweets" class="featured-section">
     <h2>Latest from X</h2>
-    <div class="tweet-grid">
-      {featuredXposts.map(xp => (
-        <div class="tweet-card">
-          <blockquote class="twitter-tweet" data-conversation="none" data-dnt="true">
-            <a href={xp.tweetUrl}></a>
-          </blockquote>
-          {xp.note && <p class="tweet-note">{xp.note}</p>}
-        </div>
+    <div class="tweet-carousel">
+      <button class="carousel-btn carousel-prev" onclick="tweetCarouselNav(-1)">‹</button>
+      <div class="tweet-carousel-track">
+        {featuredXposts.map((xp, idx) => (
+          <div class={`tweet-slide ${idx === 0 ? 'active' : ''}`} data-index={idx}>
+            <blockquote class="twitter-tweet" data-conversation="none" data-dnt="true">
+              <a href={xp.tweetUrl}></a>
+            </blockquote>
+            {xp.note && <p class="tweet-note">{xp.note}</p>}
+          </div>
+        ))}
+      </div>
+      <button class="carousel-btn carousel-next" onclick="tweetCarouselNav(1)">›</button>
+    </div>
+    <div class="carousel-dots">
+      {featuredXposts.map((_, idx) => (
+        <button class={`dot ${idx === 0 ? 'active' : ''}`} onclick={`goToTweetSlide(${idx})`}></button>
       ))}
     </div>
     <p class="featured-link"><a href="https://x.com/elvec10" target="_blank">→ Follow @elvec10 on X</a></p>
@@ -184,7 +193,7 @@ function renderProtected(text: string, id: string): string {
 </Base>
 
 <style>
-  /* Featured tweets section */
+  /* Featured tweets carousel */
   .featured-section {
     background: #f9f9f9;
     border: 1px solid #ddd;
@@ -198,18 +207,28 @@ function renderProtected(text: string, id: string): string {
     letter-spacing: 0.1em;
     border: none;
   }
-  .tweet-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
+  .tweet-carousel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
-  .tweet-card {
+  .tweet-carousel-track {
+    flex: 1;
+    overflow: hidden;
+    min-height: 400px;
+  }
+  .tweet-slide {
+    display: none;
     background: #fff;
     border: 1px solid #e1e8ed;
-    padding: 0.5rem;
-    min-height: 150px;
+    padding: 1rem;
+    min-height: 350px;
   }
-  .tweet-card blockquote {
+  .tweet-slide.active {
+    display: block;
+  }
+  .tweet-slide blockquote {
     margin: 0 !important;
   }
   .tweet-note {
@@ -219,6 +238,42 @@ function renderProtected(text: string, id: string): string {
     margin: 0.5rem 0 0;
     padding-top: 0.5rem;
     border-top: 1px solid #eee;
+  }
+  .carousel-btn {
+    background: #111;
+    color: #fff;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .carousel-btn:hover {
+    background: #333;
+  }
+  .carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    background: #ccc;
+    cursor: pointer;
+    padding: 0;
+  }
+  .dot.active {
+    background: #111;
   }
   .featured-link {
     margin: 1rem 0 0;
@@ -373,4 +428,31 @@ function renderProtected(text: string, id: string): string {
 
   // Initialize on load
   initTabs();
+
+  // Tweet Carousel
+  var currentTweetIndex = 0;
+  var totalTweets = document.querySelectorAll('.tweet-slide').length;
+
+  window.tweetCarouselNav = function(dir) {
+    currentTweetIndex += dir;
+    if (currentTweetIndex < 0) currentTweetIndex = totalTweets - 1;
+    if (currentTweetIndex >= totalTweets) currentTweetIndex = 0;
+    updateTweetCarousel();
+  };
+
+  window.goToTweetSlide = function(idx) {
+    currentTweetIndex = idx;
+    updateTweetCarousel();
+  };
+
+  function updateTweetCarousel() {
+    // Update slides
+    document.querySelectorAll('.tweet-slide').forEach((slide, i) => {
+      slide.classList.toggle('active', i === currentTweetIndex);
+    });
+    // Update dots
+    document.querySelectorAll('.carousel-dots .dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === currentTweetIndex);
+    });
+  }
 </script>
