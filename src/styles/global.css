@@ -34,6 +34,8 @@ p { margin-bottom: 1rem; }
 
 nav { margin-bottom: 3rem; padding-bottom: 1rem; border-bottom: 2px solid #111; }
 nav a { margin-right: 1.5rem; text-decoration: none; }
+nav a.nav-home { position: relative; }
+nav .version { font-size: 0.6rem; color: #999; display: block; margin-top: -0.3rem; letter-spacing: 0; }
 
 footer { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid #111; font-size: 0.85rem; color: #666; }
 

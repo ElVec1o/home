@@ -345,6 +345,13 @@
             </select>
           </div>
         </div>
+        <div class="form-row" style="margin: 0.5rem 0;">
+          <label style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" id="breaks-visible" checked style="width: auto;">
+            <span>Visible</span>
+          </label>
+          <span class="help">Uncheck to hide this entry from the site without deleting it</span>
+        </div>
         <div class="form-row" id="breaks-xpost-fields" style="display:none;">
           <label>Tweet URL</label>
           <input type="text" id="breaks-tweetUrl" placeholder="https://twitter.com/...">
@@ -997,10 +1004,12 @@ function renderList(type) {
     }
     const typeLabel = type === 'breaks' && item.type ? `<span class="entry-item-type">${item.type}</span>` : '';
     const priorityLabel = type === 'writeups' && item.priority ? `<span class="entry-item-type">#${item.priority}</span>` : '';
+    const hiddenLabel = type === 'breaks' && item.visible === false ? `<span class="entry-item-type" style="background:#ffebee;color:#c00;">HIDDEN</span>` : '';
+    const hiddenStyle = type === 'breaks' && item.visible === false ? 'opacity: 0.5;' : '';
     return `
-      <div class="entry-item ${selectedIndex[type] === i ? 'selected' : ''}" onclick="selectEntry('${type}', ${i})">
+      <div class="entry-item ${selectedIndex[type] === i ? 'selected' : ''}" style="${hiddenStyle}" onclick="selectEntry('${type}', ${i})">
         <div class="entry-item-info">
-          <div class="entry-item-title">${title}${typeLabel}${priorityLabel}</div>
+          <div class="entry-item-title">${title}${typeLabel}${priorityLabel}${hiddenLabel}</div>
           <div class="entry-item-meta">${meta}</div>
         </div>
       </div>
@@ -1033,6 +1042,7 @@ function showEditor(type, item) {
   if (type === 'breaks') {
     document.getElementById('breaks-id').value = item.id || '';
     document.getElementById('breaks-type').value = item.type || '';
+    document.getElementById('breaks-visible').checked = item.visible !== false;
     document.getElementById('breaks-type').dispatchEvent(new Event('change'));
 
     if (item.type === 'xpost') {
@@ -1107,13 +1117,15 @@ function updateEntry(type) {
 
   if (type === 'breaks') {
     const itemType = document.getElementById('breaks-type').value;
+    const isVisible = document.getElementById('breaks-visible').checked;
     if (itemType === 'xpost') {
       data.breaks[index] = {
         id: document.getElementById('breaks-id').value,
         type: 'xpost',
         tweetUrl: document.getElementById('breaks-tweetUrl').value,
         date: document.getElementById('breaks-date').value,
-        note: document.getElementById('breaks-note').value
+        note: document.getElementById('breaks-note').value,
+        visible: isVisible
       };
     } else {
       data.breaks[index] = {
@@ -1127,11 +1139,14 @@ function updateEntry(type) {
         insight: document.getElementById('breaks-insight').value,
         prompt: document.getElementById('breaks-prompt').value,
         result: document.getElementById('breaks-result').value,
-        url: document.getElementById('breaks-url').value
+        url: document.getElementById('breaks-url').value,
+        visible: isVisible
       };
       // Clean undefined type
       if (!data.breaks[index].type) delete data.breaks[index].type;
     }
+    // Clean visible if true (default)
+    if (data.breaks[index].visible === true) delete data.breaks[index].visible;
   } else if (type === 'books') {
     data.books[index] = {
       id: document.getElementById('books-id').value,
