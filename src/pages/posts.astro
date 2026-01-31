@@ -219,13 +219,16 @@ function renderProtected(text: string, id: string): string {
     min-height: 400px;
   }
   .tweet-slide {
-    display: none;
     background: #fff;
     border: 1px solid #e1e8ed;
     padding: 1rem;
     min-height: 350px;
   }
-  .tweet-slide.active {
+  /* Initially show all for Twitter to render, then JS hides them */
+  .tweet-carousel.initialized .tweet-slide {
+    display: none;
+  }
+  .tweet-carousel.initialized .tweet-slide.active {
     display: block;
   }
   .tweet-slide blockquote {
@@ -321,11 +324,31 @@ function renderProtected(text: string, id: string): string {
 </style>
 
 <script>
-  // Twitter embed script
-  const script = document.createElement('script');
-  script.src = 'https://platform.twitter.com/widgets.js';
-  script.async = true;
-  document.body.appendChild(script);
+  // Twitter embed script - load all tweets first, then init carousel
+  window.twttr = (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0], t = window.twttr || {};
+    if (d.getElementById(id)) return t;
+    js = d.createElement(s);
+    js.id = id;
+    js.src = "https://platform.twitter.com/widgets.js";
+    fjs.parentNode.insertBefore(js, fjs);
+    t._e = [];
+    t.ready = function(f) { t._e.push(f); };
+    return t;
+  }(document, "script", "twitter-wjs"));
+
+  // After Twitter loads all tweets, initialize the carousel (hide non-active slides)
+  if (window.twttr && window.twttr.ready) {
+    window.twttr.ready(function(twttr) {
+      // Wait for Twitter to render, then enable carousel
+      setTimeout(function() {
+        var carousel = document.querySelector('.tweet-carousel');
+        if (carousel) {
+          carousel.classList.add('initialized');
+        }
+      }, 2000);
+    });
+  }
 
   // Simple hash function for password verification
   function simpleHash(str) {
