@@ -57,6 +57,16 @@
     .book-progress-fill { height: 100%; background: var(--accent-color); border-radius: 2px; transition: width 0.3s ease; }
     .book-progress-text { font-size: 0.75rem; color: var(--accent-color); margin-top: 5px; font-weight: 600; }
     .lang-badge { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); color: #333; font-size: 0.6rem; padding: 2px 5px; border-radius: 3px; font-weight: 600; text-transform: uppercase; }
+    .series-badge { display: inline-block; background: var(--accent-color); color: var(--bg-color); font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; font-weight: 600; }
+    .book-subtitle { font-size: 0.8rem; color: var(--accent-color); font-style: italic; margin-bottom: 6px; opacity: 0.9; }
+
+    /* HOME OVERLAY */
+    .home-overlay { position: fixed; top: 15px; left: 15px; z-index: 9999; }
+    .home-overlay a { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 100%); padding: 8px 14px; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.3s ease; border: 1px solid #3d3d5c; }
+    .home-overlay a:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+    .home-overlay img { height: 28px; width: auto; }
+    .home-overlay .home-text { font-family: 'Playfair Display', serif; font-size: 0.9rem; color: #d4a574; font-weight: 600; letter-spacing: 1px; }
+    @media (max-width: 768px) { .home-overlay { top: 10px; left: 10px; } .home-overlay a { padding: 6px 10px; } .home-overlay img { height: 22px; } .home-overlay .home-text { display: none; } }
 
     /* READER */
     .reader-view { display: none; min-height: 100vh; flex-direction: column; }
@@ -191,6 +201,14 @@
   </style>
 </head>
 <body>
+  <!-- HOME OVERLAY -->
+  <div class="home-overlay">
+    <a href="https://elvec1o.github.io/home/" title="Back to elvec1o">
+      <img src="../img/logo-elvec1o.png" alt="elvec1o" onerror="this.style.display='none'">
+      <span class="home-text">elvec1o</span>
+    </a>
+  </div>
+
   <!-- SPLASH -->
   <div class="splash-screen" id="splash">
     <div class="splash-logo">
@@ -392,15 +410,22 @@
 
   <script>
     const BASE_URL = 'https://elvec1o.github.io/home/books/';
+    const BOOKS_JSON_URL = 'https://elvec1o.github.io/home/books/books.json';
     const WORDS_PER_MINUTE = 200;
     const CHECKPOINT_INTERVAL = 5;
 
-    const BOOKS = [
-      { id: 'book-of-views', title: 'Book of Views', author: 'elvec1o', language: 'en', coverColor: 'linear-gradient(135deg, #4A5568 0%, #718096 100%)', file: 'Book_of_Views_COMPLETE.docx', summary: 'A complete collection of philosophical views and perspectives on life, society, and human nature.' },
-      { id: 'la-critica', title: 'La Critica', author: 'elvec1o', language: 'it', coverColor: 'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)', file: 'BOOK ITA La Critica.docx', summary: 'Un\'analisi critica della società contemporanea italiana attraverso una lente filosofica e personale.' },
-      { id: 'via-dolci', title: 'Via Dolci Romanzo', author: 'elvec1o', language: 'it', coverColor: 'linear-gradient(135deg, #6B4423 0%, #A0522D 100%)', file: 'BOOK ITA Via_Dolci_Romanzo.docx', summary: 'Un romanzo ambientato nelle strade italiane, che racconta storie di vita quotidiana, amore e tradizioni.' },
-      { id: 'arte-antica', title: 'Arte Antica', author: 'elvec1o', language: 'it', coverColor: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', file: 'BOOK ITA arte antica.docx', summary: 'Un\'esplorazione dell\'arte antica e del suo significato nel mondo moderno.' }
+    // Cover colors based on book characteristics
+    const COVER_COLORS = [
+      'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',  // purple - tech/AI
+      'linear-gradient(135deg, #6B4423 0%, #A0522D 100%)',  // brown - saga
+      'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)',  // sienna - saga
+      'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',  // blue - emotional
+      'linear-gradient(135deg, #4A5568 0%, #718096 100%)',  // gray - views
+      'linear-gradient(135deg, #8B4513 0%, #D2691E 100%)',  // orange - critica
+      'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'   // dark - arte
     ];
+
+    let BOOKS = [];
 
     const TEXTS = {
       en: { library: 'My Library', selectBook: 'Select a book to start reading', back: 'Library', loading: 'Loading book...', settings: 'Settings', language: 'Language', theme: 'Theme', font: 'Font', textSize: 'Text Size', lineHeight: 'Line Height', remaining: 'remaining', paused: 'Paused', reading: 'Reading...', start: 'Start', completed: 'completed', notStarted: 'Not started', showDesc: 'Show description ▼', hideDesc: 'Hide description ▲', words: 'words', chars: 'characters', min: 'min', statsNA: 'Stats not available', loadError: 'Loading error', checkConnection: 'Check that the file exists and connection is active.', credits: 'Made with ❤️ by', splashSub: 'Your reading space' },
@@ -418,15 +443,40 @@
     let savedProgress = {};
     let ttsActive = false, ttsPlaying = false, ttsSentences = [], ttsIndex = 0, ttsVoices = [];
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       loadSettings();
       loadAllProgress();
       applyLanguage();
+      await loadBooksFromJSON();
       renderLibrary();
       setupEventListeners();
       loadVoices();
       setTimeout(() => document.getElementById('splash').classList.add('hidden'), 2000);
     });
+
+    async function loadBooksFromJSON() {
+      try {
+        const res = await fetch(BOOKS_JSON_URL);
+        if (!res.ok) throw new Error('Failed to fetch books.json');
+        const booksData = await res.json();
+        BOOKS = booksData.map((book, index) => ({
+          id: book.id,
+          title: book.title,
+          subtitle: book.subtitle || null,
+          author: book.author,
+          language: book.language || (book.filename.includes('ITA') ? 'it' : 'en'),
+          coverColor: COVER_COLORS[index % COVER_COLORS.length],
+          file: book.filename,
+          summary: book.description,
+          series: book.series || null
+        }));
+        console.log('Loaded ' + BOOKS.length + ' books from JSON');
+      } catch (e) {
+        console.error('Error loading books:', e);
+        // Fallback to empty array, will show error in library
+        BOOKS = [];
+      }
+    }
 
     function applyLanguage() {
       const t = TEXTS[settings.lang];
@@ -459,9 +509,15 @@
     function renderLibrary() {
       const t = TEXTS[settings.lang];
       const list = document.getElementById('booksList');
+      if (BOOKS.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--accent-color);">No books found. Check books.json</div>';
+        return;
+      }
       list.innerHTML = BOOKS.map(book => {
         const progress = savedProgress[book.id] || 0;
         const progressText = progress > 0 ? Math.round(progress) + '% ' + t.completed : t.notStarted;
+        const seriesBadge = book.series ? '<span class="series-badge">' + book.series + '</span>' : '';
+        const subtitleHtml = book.subtitle ? '<p class="book-subtitle">' + book.subtitle + '</p>' : '';
         return '<div class="book-card" onclick="openBook(\'' + book.id + '\')">' +
           '<div class="book-card-inner">' +
             '<div class="book-cover-small" style="background: ' + book.coverColor + '">' +
@@ -470,6 +526,8 @@
             '</div>' +
             '<div class="book-info">' +
               '<h3>' + book.title + '</h3>' +
+              subtitleHtml +
+              seriesBadge +
               '<p class="author">' + book.author + '</p>' +
               '<div class="book-stats" id="stats-' + book.id + '"><span>⏱️ ' + t.loading + '</span></div>' +
               '<div class="book-summary" id="summary-' + book.id + '"><p>' + book.summary + '</p></div>' +
