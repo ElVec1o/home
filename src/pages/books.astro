@@ -2,12 +2,20 @@
 import Base from '../layouts/Base.astro';
 import booksData from '../data/books.json';
 
-const books = booksData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 const base = import.meta.env.BASE_URL;
+
+// Featured book (sticky at top)
+const featuredId = 'book-of-views';
+const featured = booksData.find(b => b.id === featuredId);
+
+// Separate by language
+const enBooks = booksData.filter(b => b.language === 'en' && b.id !== featuredId);
+const itBooks = booksData.filter(b => b.language === 'it');
+const otherBooks = booksData.filter(b => !b.language && b.id !== featuredId);
 ---
 <Base title="Books — elvec1o">
   <h1>Books</h1>
-  <p>{books.length} books available</p>
+  <p>{booksData.length} books available</p>
 
   <div class="reader-banner">
     <span class="banner-icon">📖</span>
@@ -18,27 +26,113 @@ const base = import.meta.env.BASE_URL;
     <a href={`${base}/files/ebook-reader.html`} class="open-reader-btn" target="_blank">Open E-Reader</a>
   </div>
 
-  <div class="book-list">
-    {books.map(book => (
-      <div class="book-entry">
-        <div class="book-info">
-          <h3>{book.title}</h3>
-          <p class="meta">by {book.author} · {book.size}</p>
-          <p>{book.description}</p>
+  {/* Featured Book */}
+  {featured && (
+    <div class="featured-book">
+      <span class="featured-badge">⭐ Featured</span>
+      <div class="featured-content">
+        <div class="featured-info">
+          <h2>{featured.title}</h2>
+          {featured.subtitle && <p class="featured-subtitle">{featured.subtitle}</p>}
+          <p class="meta">by {featured.author} · {featured.size}</p>
+          <p>{featured.description}</p>
         </div>
         <div class="book-actions">
-          <a href={`${base}/files/ebook-reader.html?book=${encodeURIComponent('../books/' + book.filename)}`} class="read-btn" target="_blank">📖 Read</a>
-          <a href={`${base}/books/${book.filename}`} class="download-btn" download>↓ Download</a>
+          <a href={`${base}/files/ebook-reader.html?book=${encodeURIComponent('../books/' + featured.filename)}`} class="read-btn" target="_blank">📖 Read</a>
+          <a href={`${base}/books/${featured.filename}`} class="download-btn" download>↓ Download</a>
         </div>
       </div>
-    ))}
-  </div>
-
-  {books.length === 0 && (
-    <p class="empty">No books yet. Add PDFs to public/books/ and update src/data/books.json</p>
+    </div>
   )}
 
-  <p><a href={`${base}/`}>← Back home</a></p>
+  {/* Language Tabs */}
+  <div class="lang-tabs">
+    <button class="lang-tab active" data-lang="en">
+      <span class="flag">🇬🇧</span> English <span class="count">{enBooks.length}</span>
+    </button>
+    <button class="lang-tab" data-lang="it">
+      <span class="flag">🇮🇹</span> Italiano <span class="count">{itBooks.length}</span>
+    </button>
+    {otherBooks.length > 0 && (
+      <button class="lang-tab" data-lang="other">
+        <span class="flag">🌐</span> Other <span class="count">{otherBooks.length}</span>
+      </button>
+    )}
+  </div>
+
+  {/* English Books */}
+  <div class="book-section active" id="section-en">
+    {enBooks.length === 0 ? (
+      <p class="empty">No English books yet</p>
+    ) : (
+      <div class="book-list">
+        {enBooks.map(book => (
+          <div class="book-entry">
+            <div class="book-info">
+              <h3>{book.title}</h3>
+              {book.subtitle && <p class="book-subtitle">{book.subtitle}</p>}
+              {book.series && <span class="series-badge">{book.series}</span>}
+              <p class="meta">by {book.author} · {book.size}</p>
+              <p>{book.description}</p>
+            </div>
+            <div class="book-actions">
+              <a href={`${base}/files/ebook-reader.html?book=${encodeURIComponent('../books/' + book.filename)}`} class="read-btn" target="_blank">📖 Read</a>
+              <a href={`${base}/books/${book.filename}`} class="download-btn" download>↓ Download</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* Italian Books */}
+  <div class="book-section" id="section-it">
+    {itBooks.length === 0 ? (
+      <p class="empty">Nessun libro in italiano</p>
+    ) : (
+      <div class="book-list">
+        {itBooks.map(book => (
+          <div class="book-entry">
+            <div class="book-info">
+              <h3>{book.title}</h3>
+              {book.subtitle && <p class="book-subtitle">{book.subtitle}</p>}
+              {book.series && <span class="series-badge">{book.series}</span>}
+              <p class="meta">by {book.author} · {book.size}</p>
+              <p>{book.description}</p>
+            </div>
+            <div class="book-actions">
+              <a href={`${base}/files/ebook-reader.html?book=${encodeURIComponent('../books/' + book.filename)}`} class="read-btn" target="_blank">📖 Read</a>
+              <a href={`${base}/books/${book.filename}`} class="download-btn" download>↓ Download</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* Other Books */}
+  {otherBooks.length > 0 && (
+    <div class="book-section" id="section-other">
+      <div class="book-list">
+        {otherBooks.map(book => (
+          <div class="book-entry">
+            <div class="book-info">
+              <h3>{book.title}</h3>
+              {book.subtitle && <p class="book-subtitle">{book.subtitle}</p>}
+              <p class="meta">by {book.author} · {book.size}</p>
+              <p>{book.description}</p>
+            </div>
+            <div class="book-actions">
+              <a href={`${base}/files/ebook-reader.html?book=${encodeURIComponent('../books/' + book.filename)}`} class="read-btn" target="_blank">📖 Read</a>
+              <a href={`${base}/books/${book.filename}`} class="download-btn" download>↓ Download</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <p style="margin-top: 2rem;"><a href={`${base}/`}>← Back home</a></p>
 </Base>
 
 <style>
@@ -52,21 +146,10 @@ const base = import.meta.env.BASE_URL;
     margin: 1.5rem 0;
     border-radius: 8px;
   }
-  .banner-icon {
-    font-size: 2rem;
-  }
-  .banner-text {
-    flex: 1;
-  }
-  .banner-text strong {
-    display: block;
-    color: #5c4a32;
-  }
-  .banner-text p {
-    margin: 0.2rem 0 0;
-    font-size: 0.85rem;
-    color: #7a6a52;
-  }
+  .banner-icon { font-size: 2rem; }
+  .banner-text { flex: 1; }
+  .banner-text strong { display: block; color: #5c4a32; }
+  .banner-text p { margin: 0.2rem 0 0; font-size: 0.85rem; color: #7a6a52; }
   .open-reader-btn {
     background: #5c4a32;
     color: #fff;
@@ -76,14 +159,78 @@ const base = import.meta.env.BASE_URL;
     border-radius: 4px;
     white-space: nowrap;
   }
-  .open-reader-btn:hover {
-    background: #4a3a28;
-    color: #fff;
-  }
+  .open-reader-btn:hover { background: #4a3a28; color: #fff; }
 
-  .book-list {
-    margin: 2rem 0;
+  /* Featured Book */
+  .featured-book {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 100%);
+    color: #fff;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    position: relative;
   }
+  .featured-badge {
+    position: absolute;
+    top: -10px;
+    left: 1rem;
+    background: #f59e0b;
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+  }
+  .featured-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .featured-info { flex: 1; }
+  .featured-info h2 { margin: 0 0 0.3rem; color: #d4a574; border: none; font-size: 1.3rem; }
+  .featured-subtitle { color: #a78bfa; font-style: italic; margin: 0 0 0.5rem; font-size: 0.9rem; }
+  .featured-info .meta { color: #888; }
+  .featured-info p { color: #ccc; margin: 0.5rem 0 0; }
+  .featured-book .read-btn { background: #8b5cf6; }
+  .featured-book .read-btn:hover { background: #7c3aed; }
+
+  /* Language Tabs */
+  .lang-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin: 2rem 0 1rem;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 0.5rem;
+  }
+  .lang-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: #fff;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .lang-tab:hover { background: #f5f5f5; }
+  .lang-tab.active { background: #111; color: #fff; border-color: #111; }
+  .lang-tab .flag { font-size: 1.1rem; }
+  .lang-tab .count {
+    font-size: 0.75rem;
+    background: rgba(0,0,0,0.1);
+    padding: 0.1rem 0.4rem;
+    border-radius: 8px;
+  }
+  .lang-tab.active .count { background: rgba(255,255,255,0.2); }
+
+  /* Book Sections */
+  .book-section { display: none; }
+  .book-section.active { display: block; }
+
+  .book-list { margin: 1rem 0; }
   .book-entry {
     display: flex;
     justify-content: space-between;
@@ -92,40 +239,50 @@ const base = import.meta.env.BASE_URL;
     border-bottom: 1px solid #eee;
     gap: 1rem;
   }
-  .book-info {
-    flex: 1;
+  .book-info { flex: 1; }
+  .book-entry h3 { margin: 0 0 0.3rem; }
+  .book-subtitle { font-size: 0.85rem; color: #666; font-style: italic; margin: 0 0 0.3rem; }
+  .series-badge {
+    display: inline-block;
+    background: #8b5a2b;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    margin-bottom: 0.3rem;
   }
-  .book-entry h3 {
-    margin: 0 0 0.3rem;
-  }
-  .book-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
+  .book-actions { display: flex; gap: 0.5rem; }
   .read-btn, .download-btn {
     padding: 0.5rem 1rem;
     text-decoration: none;
     font-size: 0.9rem;
     white-space: nowrap;
   }
-  .read-btn {
-    background: #8b5a2b;
-    color: #fff;
-  }
-  .read-btn:hover {
-    background: #6b4423;
-    color: #fff;
-  }
-  .download-btn {
-    background: #111;
-    color: #fff;
-  }
-  .download-btn:hover {
-    background: #333;
-    color: #fff;
-  }
-  .empty {
-    color: #666;
-    font-style: italic;
+  .read-btn { background: #8b5a2b; color: #fff; }
+  .read-btn:hover { background: #6b4423; color: #fff; }
+  .download-btn { background: #111; color: #fff; }
+  .download-btn:hover { background: #333; color: #fff; }
+  .empty { color: #666; font-style: italic; padding: 1rem 0; }
+
+  @media (max-width: 600px) {
+    .featured-content { flex-direction: column; align-items: flex-start; }
+    .book-entry { flex-direction: column; align-items: flex-start; }
+    .book-actions { margin-top: 1rem; }
   }
 </style>
+
+<script>
+  document.querySelectorAll('.lang-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const lang = tab.dataset.lang;
+
+      // Update tabs
+      document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      // Update sections
+      document.querySelectorAll('.book-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('section-' + lang)?.classList.add('active');
+    });
+  });
+</script>
