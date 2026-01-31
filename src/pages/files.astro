@@ -16,16 +16,18 @@ const types = [...new Set(files.map(f => f.type))];
     <button class="tab active" data-filter="all">All</button>
     <button class="tab" data-filter="app">Apps</button>
     <button class="tab" data-filter="utility">Utilities</button>
-    <button class="tab" data-filter="experiment">Experiments</button>
+    <button class="tab" data-filter="game">Games</button>
     <button class="tab" data-filter="vibe">Vibe Code</button>
   </div>
 
   <div class="file-list">
     {files.map(file => (
-      <div class="file-entry" data-type={file.type}>
+      <div class="file-entry" data-type={file.type} data-vibe={file.vibe ? 'true' : 'false'}>
         <div class="file-info">
           <span class="file-type">{file.type}</span>
           {file.platform && <span class="file-platform">{file.platform}</span>}
+          {file.playable && <span class="file-interactive">INTERACTIVE</span>}
+          {file.vibe && <span class="file-vibe">VIBE CODE</span>}
           <h3>{file.name}</h3>
           <p class="meta">{file.date} · {file.size}</p>
           <p>{file.description}</p>
@@ -41,10 +43,10 @@ const types = [...new Set(files.map(f => f.type))];
         </div>
         <div class="file-actions">
           {file.filename.endsWith('.jsx') && (
-            <a href={`${base}/files/${file.filename.replace('.jsx', '_play.html')}`} class="play-btn" target="_blank">▶ Play Now</a>
+            <a href={`${base}/files/${file.filename.replace('.jsx', '_play.html')}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
           )}
           {file.filename.endsWith('.html') && (
-            <a href={`${base}/files/${file.filename}`} class="play-btn" target="_blank">▶ Play Now</a>
+            <a href={`${base}/files/${file.filename}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
           )}
           {file.isFolder ? (
             <a href={`${base}/files/${file.filename}`} class="download-btn">→ Browse</a>
@@ -120,6 +122,24 @@ const types = [...new Set(files.map(f => f.type))];
   .file-platform {
     display: inline-block;
     background: #333;
+    color: #fff;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    margin-left: 0.3rem;
+    margin-bottom: 0.5rem;
+  }
+  .file-interactive {
+    display: inline-block;
+    background: #22c55e;
+    color: #fff;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    margin-left: 0.3rem;
+    margin-bottom: 0.5rem;
+  }
+  .file-vibe {
+    display: inline-block;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
     color: #fff;
     padding: 0.2rem 0.5rem;
     font-size: 0.75rem;
@@ -267,9 +287,17 @@ const types = [...new Set(files.map(f => f.type))];
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      const filter = tab.dataset.filter;
-      document.querySelectorAll('.file-entry').forEach(entry => {
-        if (filter === 'all' || entry.dataset.type === filter) {
+      var filter = tab.dataset.filter;
+      document.querySelectorAll('.file-entry').forEach(function(entry) {
+        if (filter === 'all') {
+          entry.classList.remove('hidden');
+        } else if (filter === 'vibe') {
+          if (entry.dataset.vibe === 'true') {
+            entry.classList.remove('hidden');
+          } else {
+            entry.classList.add('hidden');
+          }
+        } else if (entry.dataset.type === filter) {
           entry.classList.remove('hidden');
         } else {
           entry.classList.add('hidden');

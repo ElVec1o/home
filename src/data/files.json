@@ -8,6 +8,7 @@
     "size": "3.4 MB",
     "date": "2026-01-29",
     "platform": "macOS",
+    "vibe": true,
     "screenshots": ["disk-analyzer-1.png", "disk-analyzer-2.png", "disk-analyzer-3.png"]
   },
   {
@@ -19,6 +20,7 @@
     "size": "1.8 MB",
     "date": "2026-01-29",
     "platform": "macOS",
+    "vibe": true,
     "screenshots": ["type-explorer-1.png", "type-explorer-2.png", "type-explorer-3.png", "type-explorer-4.png", "type-explorer-5.png"]
   },
   {
@@ -28,26 +30,29 @@
     "description": "Beautiful ebook reader for DOCX files - multiple themes, progress tracking, bookmarks",
     "filename": "ebook-reader.html",
     "playable": true,
+    "vibe": true,
     "size": "~85 KB",
     "date": "2026-01-29"
   },
   {
     "id": "stitchx-pro",
     "name": "StitchX Pro",
-    "type": "app",
+    "type": "utility",
     "description": "Image Stitcher & Censor Tool - combine and redact screenshots",
     "filename": "stitchx-pro.html",
     "playable": true,
+    "vibe": true,
     "size": "~95 KB",
     "date": "2026-01-29"
   },
   {
     "id": "replicator-v9",
     "name": "Replicator v9",
-    "type": "app",
+    "type": "game",
     "description": "Space colonization strategy game - build probes, survey planets, establish colonies",
     "filename": "replicator_v9.jsx",
     "playable": true,
+    "vibe": true,
     "size": "~68 KB",
     "date": "2026-01-28"
   },
@@ -64,7 +69,7 @@
   {
     "id": "dos-golf-88",
     "name": "DOS Golf 88",
-    "type": "experiment",
+    "type": "game",
     "description": "Python golf game experiment",
     "filename": "dos_golf_88/",
     "isFolder": true,
