@@ -154,6 +154,13 @@ app.post('/api/breaks', async (req, res) => {
 app.post('/api/books', async (req, res) => {
   try {
     await writeData('books.json', req.body.data);
+    // Also sync to public/books for e-reader
+    const publicBooksDir = path.join(PUBLIC_DIR, 'books');
+    if (!fsSync.existsSync(publicBooksDir)) {
+      fsSync.mkdirSync(publicBooksDir, { recursive: true });
+    }
+    await fs.writeFile(path.join(publicBooksDir, 'books.json'), JSON.stringify(req.body.data, null, 2) + '\n');
+
     if (req.body.push) {
       const result = await gitPush('Update books via CMS');
       return res.json(result);
