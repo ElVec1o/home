@@ -1,6 +1,6 @@
 ---
-import Base from '../layouts/Base.astro';
-import writeupsData from '../data/writeups.json';
+import Base from '../../layouts/Base.astro';
+import writeupsData from '../../data/writeups.json';
 
 const writeups = writeupsData.sort((a, b) => a.priority - b.priority);
 const base = import.meta.env.BASE_URL;

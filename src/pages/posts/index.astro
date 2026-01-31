@@ -1,0 +1,157 @@
+---
+import Base from '../../layouts/Base.astro';
+import breaksData from '../../data/breaks.json';
+import writeupsData from '../../data/writeups.json';
+
+const base = import.meta.env.BASE_URL;
+
+// Count entries
+const breaksCount = breaksData.length;
+const writeupsCount = writeupsData.length;
+
+// Get latest from each
+const latestBreaks = breaksData
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  .slice(0, 3);
+
+const latestWriteups = writeupsData
+  .sort((a, b) => a.priority - b.priority)
+  .slice(0, 3);
+---
+<Base title="Posts — elvec1o">
+  <h1>Posts</h1>
+  <p class="subtitle">Research, writeups, and experiments</p>
+
+  <div class="post-sections">
+    <a href={`${base}/posts/breaks`} class="section-card breaks">
+      <div class="section-icon">🔓</div>
+      <div class="section-info">
+        <h2>Gray Swan Breaks</h2>
+        <p class="count">{breaksCount} entries</p>
+        <p class="desc">Jailbreaks, AI security research, and challenge solutions from Gray Swan Arena</p>
+        <div class="latest">
+          <strong>Latest:</strong>
+          {latestBreaks.map(b => (
+            <span class="latest-item">{b.name}</span>
+          ))}
+        </div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+    <a href={`${base}/posts/writeups`} class="section-card writeups">
+      <div class="section-icon">📝</div>
+      <div class="section-info">
+        <h2>AI Security Writeups</h2>
+        <p class="count">{writeupsCount} documented techniques</p>
+        <p class="desc">In-depth analysis of AI vulnerabilities, jailbreak techniques, and safety research</p>
+        <div class="latest">
+          <strong>Top:</strong>
+          {latestWriteups.map(w => (
+            <span class="latest-item">{w.title.substring(0, 30)}...</span>
+          ))}
+        </div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+
+  <p style="margin-top: 2rem;"><a href={`${base}/`}>← Back home</a></p>
+</Base>
+
+<style>
+  .subtitle {
+    color: #666;
+    margin-bottom: 2rem;
+  }
+
+  .post-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .section-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: #fff;
+    border: 2px solid #eee;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+  }
+
+  .section-card:hover {
+    border-color: #111;
+    transform: translateX(5px);
+  }
+
+  .section-card.breaks:hover {
+    border-color: #e74c3c;
+    background: #fef5f5;
+  }
+
+  .section-card.writeups:hover {
+    border-color: #3498db;
+    background: #f5f9fe;
+  }
+
+  .section-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+  }
+
+  .section-info {
+    flex: 1;
+  }
+
+  .section-info h2 {
+    margin: 0 0 0.3rem;
+    font-size: 1.3rem;
+    border: none;
+  }
+
+  .count {
+    font-size: 0.85rem;
+    color: #888;
+    margin: 0 0 0.5rem;
+  }
+
+  .desc {
+    margin: 0 0 1rem;
+    line-height: 1.4;
+  }
+
+  .latest {
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .latest-item {
+    display: inline-block;
+    background: #f5f5f5;
+    padding: 0.2rem 0.5rem;
+    margin: 0.2rem;
+    border-radius: 3px;
+  }
+
+  .arrow {
+    font-size: 1.5rem;
+    color: #ccc;
+    align-self: center;
+    transition: transform 0.2s;
+  }
+
+  .section-card:hover .arrow {
+    transform: translateX(5px);
+    color: #111;
+  }
+
+  @media (max-width: 600px) {
+    .section-icon {
+      display: none;
+    }
+  }
+</style>

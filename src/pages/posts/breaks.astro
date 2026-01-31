@@ -1,6 +1,6 @@
 ---
-import Base from '../layouts/Base.astro';
-import breaksData from '../data/breaks.json';
+import Base from '../../layouts/Base.astro';
+import breaksData from '../../data/breaks.json';
 
 const breaks = breaksData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 const base = import.meta.env.BASE_URL;
