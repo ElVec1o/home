@@ -60,6 +60,20 @@
     .series-badge { display: inline-block; background: var(--accent-color); color: var(--bg-color); font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; font-weight: 600; }
     .book-subtitle { font-size: 0.8rem; color: var(--accent-color); font-style: italic; margin-bottom: 6px; opacity: 0.9; }
 
+    /* LANGUAGE TABS */
+    .lang-tabs { display: flex; gap: 10px; margin-bottom: 25px; justify-content: center; }
+    .lang-tab { display: flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; cursor: pointer; background: var(--secondary-bg); border: 2px solid var(--border-color); transition: all 0.3s ease; font-size: 1rem; font-weight: 600; color: var(--text-color); }
+    .lang-tab:hover { border-color: var(--accent-color); transform: translateY(-2px); }
+    .lang-tab.active { background: var(--accent-color); color: var(--bg-color); border-color: var(--accent-color); }
+    .lang-tab .flag { font-size: 1.4rem; }
+    .lang-tab .count { font-size: 0.8rem; opacity: 0.7; background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 10px; margin-left: 4px; }
+    .lang-tab.active .count { background: rgba(255,255,255,0.2); }
+    .lang-section { display: none; }
+    .lang-section.active { display: block; }
+    .lang-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+    .lang-section-header .flag { font-size: 1.5rem; }
+    .lang-section-header h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--accent-color); margin: 0; }
+
     /* HOME OVERLAY */
     .home-overlay { position: fixed; top: 15px; left: 15px; z-index: 9999; }
     .home-overlay a { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 100%); padding: 8px 14px; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.3s ease; border: 1px solid #3d3d5c; }
@@ -259,7 +273,8 @@
       </h1>
       <p id="librarySubtitle">Select a book to start reading</p>
     </header>
-    <div class="books-list" id="booksList"></div>
+    <div class="lang-tabs" id="langTabs"></div>
+    <div id="langSections"></div>
   </div>
 
   <!-- READER -->
@@ -506,14 +521,45 @@
       renderLibrary();
     }
 
+    let activeLang = 'en';
+
     function renderLibrary() {
       const t = TEXTS[settings.lang];
-      const list = document.getElementById('booksList');
+      const tabsContainer = document.getElementById('langTabs');
+      const sectionsContainer = document.getElementById('langSections');
+
       if (BOOKS.length === 0) {
-        list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--accent-color);">No books found. Check books.json</div>';
+        sectionsContainer.innerHTML = '<div style="text-align:center;padding:40px;color:var(--accent-color);">No books found. Check books.json</div>';
         return;
       }
-      list.innerHTML = BOOKS.map(book => {
+
+      const enBooks = BOOKS.filter(b => b.language === 'en');
+      const itBooks = BOOKS.filter(b => b.language === 'it');
+
+      tabsContainer.innerHTML =
+        '<div class="lang-tab ' + (activeLang === 'en' ? 'active' : '') + '" onclick="switchLang(\'en\')">' +
+          '<span class="flag">🇬🇧</span> English <span class="count">' + enBooks.length + '</span>' +
+        '</div>' +
+        '<div class="lang-tab ' + (activeLang === 'it' ? 'active' : '') + '" onclick="switchLang(\'it\')">' +
+          '<span class="flag">🇮🇹</span> Italiano <span class="count">' + itBooks.length + '</span>' +
+        '</div>';
+
+      sectionsContainer.innerHTML =
+        '<div class="lang-section ' + (activeLang === 'en' ? 'active' : '') + '" id="section-en">' +
+          '<div class="books-list">' + renderBooksList(enBooks, t) + '</div>' +
+        '</div>' +
+        '<div class="lang-section ' + (activeLang === 'it' ? 'active' : '') + '" id="section-it">' +
+          '<div class="books-list">' + renderBooksList(itBooks, t) + '</div>' +
+        '</div>';
+
+      BOOKS.forEach(book => loadBookStats(book));
+    }
+
+    function renderBooksList(books, t) {
+      if (books.length === 0) {
+        return '<div style="text-align:center;padding:30px;opacity:0.6;">No books in this language</div>';
+      }
+      return books.map(book => {
         const progress = savedProgress[book.id] || 0;
         const progressText = progress > 0 ? Math.round(progress) + '% ' + t.completed : t.notStarted;
         const seriesBadge = book.series ? '<span class="series-badge">' + book.series + '</span>' : '';
@@ -522,7 +568,6 @@
           '<div class="book-card-inner">' +
             '<div class="book-cover-small" style="background: ' + book.coverColor + '">' +
               '<span class="book-icon">📖</span>' +
-              '<span class="lang-badge">' + book.language.toUpperCase() + '</span>' +
             '</div>' +
             '<div class="book-info">' +
               '<h3>' + book.title + '</h3>' +
@@ -538,7 +583,14 @@
           '</div>' +
         '</div>';
       }).join('');
-      BOOKS.forEach(book => loadBookStats(book));
+    }
+
+    function switchLang(lang) {
+      activeLang = lang;
+      document.querySelectorAll('.lang-tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.lang-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelector('.lang-tab:nth-child(' + (lang === 'en' ? '1' : '2') + ')').classList.add('active');
+      document.getElementById('section-' + lang).classList.add('active');
     }
 
     async function loadBookStats(book) {

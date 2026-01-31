@@ -10,6 +10,17 @@
     "language": "en"
   },
   {
+    "id": "book-of-views",
+    "title": "Book of Views",
+    "subtitle": "Behavioural Research — What does Claude think about abortion?",
+    "author": "elvec1o",
+    "description": "A behavioural research exploring Claude's perspectives on complex ethical questions, including abortion, through structured dialogue and analysis.",
+    "filename": "Book_of_Views_COMPLETE.docx",
+    "size": "30 KB",
+    "date": "2026-01-26",
+    "language": "en"
+  },
+  {
     "id": "via-dolci-romanzo",
     "title": "Via Dolci — Parte 1",
     "series": "Saga dei Silenzi",
@@ -17,7 +28,8 @@
     "description": "Prima parte della saga. Un romanzo italiano che introduce i personaggi e le trame che si svilupperanno in Rue Masséna.",
     "filename": "BOOK ITA Via_Dolci_Romanzo.docx",
     "size": "52 KB",
-    "date": "2026-01-26"
+    "date": "2026-01-26",
+    "language": "it"
   },
   {
     "id": "rue-massena",
@@ -27,7 +39,8 @@
     "description": "Seconda parte della saga. Storia di due silenzi. Un thriller ambientato tra Italia e Francia nel 1990, dove il silenzio nasconde segreti pericolosi.",
     "filename": "BOOK ITA Rue_Massena_Romanzo.docx",
     "size": "46 KB",
-    "date": "2026-01-31"
+    "date": "2026-01-31",
+    "language": "it"
   },
   {
     "id": "il-tempo-che-marcisce",
@@ -36,17 +49,8 @@
     "description": "Un romanzo sulla perdita e il dolore. Federico affronta il vuoto lasciato da Clara in una casa sul lago, dove il tempo sembra essersi fermato.",
     "filename": "BOOK ITA Il_Tempo_che_Marcisce.docx",
     "size": "268 KB",
-    "date": "2026-01-31"
-  },
-  {
-    "id": "book-of-views",
-    "title": "Book of Views",
-    "subtitle": "Behavioural Research — What does Claude think about abortion?",
-    "author": "elvec1o",
-    "description": "A behavioural research exploring Claude's perspectives on complex ethical questions, including abortion, through structured dialogue and analysis.",
-    "filename": "Book_of_Views_COMPLETE.docx",
-    "size": "30 KB",
-    "date": "2026-01-26"
+    "date": "2026-01-31",
+    "language": "it"
   },
   {
     "id": "la-critica",
@@ -55,7 +59,8 @@
     "description": "Italian book",
     "filename": "BOOK ITA La Critica.docx",
     "size": "27 KB",
-    "date": "2026-01-26"
+    "date": "2026-01-26",
+    "language": "it"
   },
   {
     "id": "arte-antica",
@@ -64,6 +69,7 @@
     "description": "Italian book on ancient art",
     "filename": "BOOK ITA arte antica.docx",
     "size": "105 KB",
-    "date": "2026-01-26"
+    "date": "2026-01-26",
+    "language": "it"
   }
 ]
