@@ -1387,9 +1387,25 @@
             right: 0;
             transform: translateX(0);
         }
+
+        /* HOME OVERLAY - TOP CENTER */
+        .home-overlay { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 9999; }
+        .home-overlay a { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 100%); padding: 8px 14px; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.3s ease; border: 1px solid #3d3d5c; }
+        .home-overlay a:hover { transform: translateX(-50%) scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+        .home-overlay img { height: 28px; width: auto; }
+        .home-overlay .home-text { font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; color: #d4a574; font-weight: 600; letter-spacing: 1px; }
+        @media (max-width: 768px) { .home-overlay { top: 10px; } .home-overlay a { padding: 6px 10px; } .home-overlay img { height: 22px; } .home-overlay .home-text { display: none; } }
     </style>
 </head>
 <body>
+    <!-- HOME OVERLAY -->
+    <div class="home-overlay">
+        <a href="https://elvec1o.github.io/home/" title="Back to elvec1o">
+            <img src="../img/logo-elvec1o.png" alt="elvec1o" onerror="this.style.display='none'">
+            <span class="home-text">elvec1o</span>
+        </a>
+    </div>
+
     <!-- Intro Animation -->
     <div class="intro-overlay" id="introOverlay">
         <div class="intro-logo">Stitch<span class="x">X</span></div>
