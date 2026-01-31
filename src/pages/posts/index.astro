@@ -5,12 +5,14 @@ import writeupsData from '../../data/writeups.json';
 
 const base = import.meta.env.BASE_URL;
 
-// Count entries
-const breaksCount = breaksData.length;
+// Filter visible entries only
+const visibleBreaks = breaksData.filter(b => b.visible !== false);
+const breaksCount = visibleBreaks.length;
 const writeupsCount = writeupsData.length;
 
-// Get latest from each
-const latestBreaks = breaksData
+// Get latest from each (only named entries, not xposts)
+const latestBreaks = visibleBreaks
+  .filter(b => b.name) // exclude xposts which have no name
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   .slice(0, 3);
 
