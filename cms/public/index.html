@@ -325,9 +325,24 @@
     <div class="panel active" id="panel-breaks">
       <div class="toolbar">
         <button onclick="addEntry('breaks')">+ New Break</button>
+        <button class="secondary" onclick="toggleVisibilityPanel()">👁 Visibility</button>
         <button class="secondary" onclick="saveData('breaks')">Save</button>
         <button class="secondary" onclick="saveData('breaks', true)">Save & Push</button>
       </div>
+
+      <!-- Quick Visibility Panel -->
+      <div id="visibility-panel" style="display:none; background:#f5f5f5; border:1px solid #ddd; padding:1rem; margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <strong>👁 Quick Visibility Toggle</strong>
+          <button class="secondary" onclick="toggleVisibilityPanel()" style="padding:0.3rem 0.6rem;">✕ Close</button>
+        </div>
+        <div id="visibility-list" style="max-height:300px; overflow-y:auto;"></div>
+        <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid #ddd; display:flex; gap:0.5rem;">
+          <button onclick="setAllVisibility(true)">Show All</button>
+          <button onclick="setAllVisibility(false)">Hide All</button>
+        </div>
+      </div>
+
       <div class="entry-list" id="list-breaks"></div>
       <div class="editor" id="editor-breaks" style="display:none;">
         <h3>Edit Break</h3>
@@ -1015,6 +1030,57 @@ function renderList(type) {
       </div>
     `;
   }).join('');
+}
+
+// Visibility Panel Functions
+function toggleVisibilityPanel() {
+  const panel = document.getElementById('visibility-panel');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    renderVisibilityList();
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function renderVisibilityList() {
+  const list = document.getElementById('visibility-list');
+  list.innerHTML = data.breaks.map((item, i) => {
+    const name = item.name || item.tweetUrl || item.id;
+    const isVisible = item.visible !== false;
+    const typeTag = item.type ? `<span style="font-size:0.7rem;background:#eee;padding:0.1rem 0.3rem;margin-left:0.3rem;">${item.type}</span>` : '';
+    return `
+      <div style="display:flex; align-items:center; gap:0.75rem; padding:0.5rem; border-bottom:1px solid #eee; ${!isVisible ? 'opacity:0.5;' : ''}">
+        <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1; min-width:0;">
+          <input type="checkbox" ${isVisible ? 'checked' : ''} onchange="toggleItemVisibility(${i}, this.checked)" style="width:auto; cursor:pointer;">
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name}</span>
+          ${typeTag}
+        </label>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleItemVisibility(index, visible) {
+  if (visible) {
+    delete data.breaks[index].visible;
+  } else {
+    data.breaks[index].visible = false;
+  }
+  renderList('breaks');
+  renderVisibilityList();
+}
+
+function setAllVisibility(visible) {
+  data.breaks.forEach(item => {
+    if (visible) {
+      delete item.visible;
+    } else {
+      item.visible = false;
+    }
+  });
+  renderList('breaks');
+  renderVisibilityList();
 }
 
 // Render config
