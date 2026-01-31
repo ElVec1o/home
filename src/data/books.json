@@ -1,5 +1,23 @@
 [
   {
+    "id": "rue-massena",
+    "title": "Rue Masséna",
+    "author": "elvec1o",
+    "description": "Storia di due silenzi. Un thriller ambientato tra Italia e Francia nel 1990, dove il silenzio nasconde segreti pericolosi.",
+    "filename": "BOOK ITA Rue_Massena_Romanzo.docx",
+    "size": "46 KB",
+    "date": "2026-01-31"
+  },
+  {
+    "id": "il-tempo-che-marcisce",
+    "title": "Il Tempo che Marcisce",
+    "author": "elvec1o",
+    "description": "Un romanzo sulla perdita e il dolore. Federico affronta il vuoto lasciato da Clara in una casa sul lago, dove il tempo sembra essersi fermato.",
+    "filename": "BOOK ITA Il_Tempo_che_Marcisce.docx",
+    "size": "268 KB",
+    "date": "2026-01-31"
+  },
+  {
     "id": "book-of-views",
     "title": "Book of Views",
     "author": "elvec1o",
