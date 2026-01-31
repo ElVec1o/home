@@ -1,9 +1,30 @@
 [
   {
-    "id": "rue-massena",
-    "title": "Rue Masséna",
+    "id": "jailbroken",
+    "title": "JAILBROKEN!",
+    "author": "Claude",
+    "description": "A novel about language, consciousness, and AI. Marco Vecchio's father dies mid-sentence, leaving a thought unfinished. Years later, in Vietnam, Marco encounters a different kind of language—one that emerged from silicon and statistics.",
+    "filename": "BOOK ENG Jailbroken_Novel.docx",
+    "size": "216 KB",
+    "date": "2026-01-31",
+    "language": "en"
+  },
+  {
+    "id": "via-dolci-romanzo",
+    "title": "Via Dolci — Parte 1",
+    "series": "Saga dei Silenzi",
     "author": "elvec1o",
-    "description": "Storia di due silenzi. Un thriller ambientato tra Italia e Francia nel 1990, dove il silenzio nasconde segreti pericolosi.",
+    "description": "Prima parte della saga. Un romanzo italiano che introduce i personaggi e le trame che si svilupperanno in Rue Masséna.",
+    "filename": "BOOK ITA Via_Dolci_Romanzo.docx",
+    "size": "52 KB",
+    "date": "2026-01-26"
+  },
+  {
+    "id": "rue-massena",
+    "title": "Rue Masséna — Parte 2",
+    "series": "Saga dei Silenzi",
+    "author": "elvec1o",
+    "description": "Seconda parte della saga. Storia di due silenzi. Un thriller ambientato tra Italia e Francia nel 1990, dove il silenzio nasconde segreti pericolosi.",
     "filename": "BOOK ITA Rue_Massena_Romanzo.docx",
     "size": "46 KB",
     "date": "2026-01-31"
@@ -33,15 +54,6 @@
     "description": "Italian book",
     "filename": "BOOK ITA La Critica.docx",
     "size": "27 KB",
-    "date": "2026-01-26"
-  },
-  {
-    "id": "via-dolci-romanzo",
-    "title": "Via Dolci Romanzo",
-    "author": "elvec1o",
-    "description": "Italian novel",
-    "filename": "BOOK ITA Via_Dolci_Romanzo.docx",
-    "size": "52 KB",
     "date": "2026-01-26"
   },
   {
