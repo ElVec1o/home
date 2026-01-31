@@ -348,6 +348,32 @@ app.post('/api/upload', upload.array('files', 20), async (req, res) => {
   }
 });
 
+// Upload base64 image (for Gray Swan screenshots)
+app.post('/api/upload-base64', async (req, res) => {
+  try {
+    const { filename, data, folder = 'img' } = req.body;
+    if (!filename || !data) {
+      return res.status(400).json({ error: 'Missing filename or data' });
+    }
+
+    // Extract base64 data (remove data:image/...;base64, prefix)
+    const base64Data = data.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const folderPath = path.join(PUBLIC_DIR, folder);
+    if (!fsSync.existsSync(folderPath)) {
+      fsSync.mkdirSync(folderPath, { recursive: true });
+    }
+
+    const filepath = path.join(folderPath, filename);
+    fsSync.writeFileSync(filepath, buffer);
+
+    res.json({ success: true, filename, path: `/${folder}/${filename}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // List files in a folder
 app.get('/api/files-list/:folder?', async (req, res) => {
   try {
