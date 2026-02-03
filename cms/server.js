@@ -273,6 +273,48 @@ app.get('/api/git-remote', async (req, res) => {
   });
 });
 
+// GitHub Actions build status
+app.get('/api/build-status', async (req, res) => {
+  try {
+    const https = require('https');
+    const options = {
+      hostname: 'api.github.com',
+      path: '/repos/ElVec1o/home/actions/runs?per_page=1',
+      headers: { 'User-Agent': 'elvec1o-cms' }
+    };
+
+    https.get(options, (response) => {
+      let data = '';
+      response.on('data', chunk => data += chunk);
+      response.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.workflow_runs && json.workflow_runs.length > 0) {
+            const run = json.workflow_runs[0];
+            res.json({
+              status: run.status,
+              conclusion: run.conclusion,
+              name: run.name,
+              created_at: run.created_at,
+              updated_at: run.updated_at,
+              html_url: run.html_url,
+              head_commit: run.head_commit?.message || 'N/A'
+            });
+          } else {
+            res.json({ status: 'unknown', conclusion: null });
+          }
+        } catch (e) {
+          res.json({ status: 'error', message: e.message });
+        }
+      });
+    }).on('error', (e) => {
+      res.json({ status: 'error', message: e.message });
+    });
+  } catch (err) {
+    res.json({ status: 'error', message: err.message });
+  }
+});
+
 // SSH Key management
 const os = require('os');
 const SSH_DIR = path.join(os.homedir(), '.ssh');

@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "title": "La Ballata di El Vecio",
+    "artist": "elvec1o",
+    "filename": "la-ballata-di-el-vecio.mp3",
+    "duration": "3:30"
+  },
+  {
+    "id": 2,
+    "title": "Deck Invaders",
+    "artist": "K.AiR.DECK™",
+    "filename": "deck-invaders.mp3",
+    "duration": "2:55"
+  },
+  {
+    "id": 3,
+    "title": "La Ballata di Marz",
+    "artist": "EL VECIO",
+    "filename": "el-vecio-la-ballata-di-marz.mp3",
+    "duration": "3:32"
+  },
+  {
+    "id": 4,
+    "title": "Locomotica JB",
+    "artist": "AI Composer",
+    "filename": "locomotica-jb.mp3",
+    "duration": "5:58"
+  }
+]

@@ -55,5 +55,16 @@
     "vibe": true,
     "size": "~68 KB",
     "date": "2026-01-28"
+  },
+  {
+    "id": "music-player",
+    "name": "Music Player",
+    "type": "utility",
+    "description": "AI-generated music collection - original tracks and remixes by elvec1o",
+    "filename": "music-player.html",
+    "playable": true,
+    "vibe": true,
+    "size": "~15 MB",
+    "date": "2026-02-03"
   }
 ]

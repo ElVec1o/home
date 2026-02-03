@@ -20,6 +20,15 @@
     .git-status .indicator.clean { background: #4CAF50; }
     .git-status .indicator.dirty { background: #ff9800; }
 
+    .build-status { font-size: 0.85rem; display: flex; gap: 0.5rem; align-items: center; cursor: pointer; padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.1); border-radius: 4px; transition: background 0.2s; }
+    .build-status:hover { background: rgba(255,255,255,0.2); }
+    .build-status .indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .build-status .indicator.success { background: #4CAF50; box-shadow: 0 0 8px #4CAF50; }
+    .build-status .indicator.failure { background: #f44336; box-shadow: 0 0 8px #f44336; animation: pulse 1s infinite; }
+    .build-status .indicator.pending { background: #ff9800; animation: pulse 1s infinite; }
+    .build-status .indicator.unknown { background: #888; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
     .tabs { display: flex; gap: 0; border-bottom: 2px solid #111; margin-bottom: 1rem; }
     .tab { background: #fff; color: #111; border: 1px solid #ddd; border-bottom: none; padding: 0.75rem 1.5rem; cursor: pointer; font-family: inherit; margin-bottom: -2px; }
     .tab:hover { background: #f5f5f5; color: #111; }
@@ -180,6 +189,10 @@
       <span class="indicator" id="gitIndicator"></span>
       <span id="gitStatusText">Checking...</span>
       <button class="success" onclick="pushChanges()">Push to GitHub</button>
+    </div>
+    <div class="build-status" id="buildStatus" onclick="checkBuildStatus()" title="Click to refresh">
+      <span class="indicator" id="buildIndicator"></span>
+      <span id="buildStatusText">Build: ...</span>
     </div>
   </header>
 
@@ -972,6 +985,7 @@ async function loadAll() {
     renderList('writeups');
     renderConfig();
     checkGitStatus();
+    checkBuildStatus();
   } catch (err) {
     showToast('Failed to load data: ' + err.message, 'error');
   }
@@ -993,6 +1007,48 @@ async function checkGitStatus() {
     }
   } catch (err) {
     document.getElementById('gitStatusText').textContent = 'Error';
+  }
+}
+
+// Check GitHub Actions build status
+async function checkBuildStatus() {
+  const indicator = document.getElementById('buildIndicator');
+  const text = document.getElementById('buildStatusText');
+  const container = document.getElementById('buildStatus');
+
+  try {
+    text.textContent = 'Build: checking...';
+    const status = await fetch(API + '/api/build-status').then(r => r.json());
+
+    if (status.status === 'completed') {
+      if (status.conclusion === 'success') {
+        indicator.className = 'indicator success';
+        text.textContent = 'Build: ✓ OK';
+        container.title = `Last build: ${status.head_commit}\nClick to open GitHub Actions`;
+        container.onclick = () => { window.open(status.html_url, '_blank'); };
+      } else {
+        indicator.className = 'indicator failure';
+        text.textContent = 'Build: ✗ FAILED';
+        container.title = `FAILED: ${status.head_commit}\nClick to see error`;
+        container.onclick = () => { window.open(status.html_url, '_blank'); };
+        // Show alert for failed builds
+        showToast('⚠️ GitHub build FAILED! Click the indicator to see details.', 'error');
+      }
+    } else if (status.status === 'in_progress' || status.status === 'queued') {
+      indicator.className = 'indicator pending';
+      text.textContent = 'Build: ⏳ Running...';
+      container.title = 'Build in progress...';
+      // Check again in 10 seconds
+      setTimeout(checkBuildStatus, 10000);
+    } else {
+      indicator.className = 'indicator unknown';
+      text.textContent = 'Build: ?';
+      container.title = status.message || 'Unknown status';
+    }
+  } catch (err) {
+    indicator.className = 'indicator unknown';
+    text.textContent = 'Build: ?';
+    container.title = 'Could not check build status';
   }
 }
 
@@ -1346,9 +1402,11 @@ async function confirmPush() {
     const result = await res.json();
 
     if (result.success === true) {
-      showToast(result.message, 'success');
+      showToast(result.message + ' — Checking build status...', 'success');
       checkGitStatus();
       logActivity('🚀', 'Pushed to GitHub', `Commit: "${message}"`, 'success');
+      // Check build status after 15 seconds (give GitHub time to start the action)
+      setTimeout(checkBuildStatus, 15000);
     } else {
       const errorMsg = result.message || 'Push failed';
       showErrorModal(errorMsg, { type: 'push' });
