@@ -73,6 +73,7 @@
     "type": "document",
     "description": "Full system prompt for Claude Opus 4.6 - leaked/extracted from Cowork mode",
     "filename": "opus-4.6-system-prompt.txt",
+    "viewerUrl": "prompt-viewer.html",
     "size": "97 KB",
     "date": "2026-02-06"
   }
