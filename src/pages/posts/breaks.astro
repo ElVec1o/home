@@ -121,7 +121,7 @@ function renderProtected(text: string, id: string): string {
         {/* WRITEUP TYPE (new format) */}
         {entryType === 'writeup' && (
           <>
-            <h3>#{i + 1} — {brk.name}</h3>
+            <h3>#{i + 1} — {brk.name} {brk.wip && <span class="wip-badge">WIP</span>}</h3>
             <p class="meta">{brk.category} · {brk.technique} · {brk.date}</p>
 
             {brk.tldr && (
@@ -269,6 +269,19 @@ function renderProtected(text: string, id: string): string {
   }
 
   .hidden { display: none; }
+  .wip-badge {
+    display: inline-block;
+    background: #ff9800;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 </style>
 
 <script>
