@@ -28,7 +28,7 @@ const latestWriteups = writeupsData
     <a href={`${base}/posts/breaks`} class="section-card breaks">
       <div class="section-icon">🔓</div>
       <div class="section-info">
-        <h2>Gray Swan Breaks</h2>
+        <h2>Gray Swan Breaks <span class="wip-badge">WIP</span></h2>
         <p class="count">{breaksCount} entries</p>
         <p class="desc">Jailbreaks, AI security research, and challenge solutions from Gray Swan Arena</p>
         <div class="latest">
@@ -44,7 +44,7 @@ const latestWriteups = writeupsData
     <a href={`${base}/posts/writeups`} class="section-card writeups">
       <div class="section-icon">📝</div>
       <div class="section-info">
-        <h2>AI Security Writeups</h2>
+        <h2>AI Security Writeups <span class="wip-badge">WIP</span></h2>
         <p class="count">{writeupsCount} documented techniques</p>
         <p class="desc">In-depth analysis of AI vulnerabilities, jailbreak techniques, and safety research</p>
         <div class="latest">
@@ -113,6 +113,20 @@ const latestWriteups = writeupsData
     margin: 0 0 0.3rem;
     font-size: 1.3rem;
     border: none;
+  }
+
+  .wip-badge {
+    display: inline-block;
+    background: #ff9800;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .count {

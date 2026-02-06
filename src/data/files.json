@@ -66,5 +66,14 @@
     "vibe": true,
     "size": "~15 MB",
     "date": "2026-02-03"
+  },
+  {
+    "id": "opus-system-prompt",
+    "name": "Claude Opus 4.6 System Prompt",
+    "type": "document",
+    "description": "Full system prompt for Claude Opus 4.6 - leaked/extracted from Cowork mode",
+    "filename": "opus-4.6-system-prompt.txt",
+    "size": "97 KB",
+    "date": "2026-02-06"
   }
 ]
