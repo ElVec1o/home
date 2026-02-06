@@ -71,7 +71,7 @@
     "id": "opus-system-prompt",
     "name": "Claude Opus 4.6 System Prompt",
     "type": "document",
-    "description": "Full system prompt for Claude Opus 4.6 - leaked/extracted from Cowork mode",
+    "description": "Full system prompt for Claude Opus 4.6 - leaked/extracted from web version",
     "filename": "opus-4.6-system-prompt.txt",
     "viewerUrl": "prompt-viewer.html",
     "size": "97 KB",
