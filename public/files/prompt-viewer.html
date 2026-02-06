@@ -170,12 +170,12 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 0 0 8px 8px;
-            overflow: hidden;
+            max-height: 75vh;
+            overflow: auto;
         }
 
         .code-wrapper {
             display: flex;
-            overflow-x: auto;
         }
 
         .line-numbers {
@@ -184,7 +184,9 @@
             text-align: right;
             user-select: none;
             border-right: 1px solid var(--border);
-            min-width: 50px;
+            min-width: 60px;
+            position: sticky;
+            left: 0;
         }
 
         .line-numbers span {
