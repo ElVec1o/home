@@ -175,43 +175,29 @@
         }
 
         .code-wrapper {
-            display: table;
-            width: 100%;
-        }
-
-        .line-numbers {
-            display: table-cell;
-            background: var(--bg-tertiary);
-            padding: 1rem 0;
-            text-align: right;
-            user-select: none;
-            border-right: 1px solid var(--border);
-            width: 60px;
-            vertical-align: top;
-        }
-
-        .line-numbers span {
-            display: block;
-            padding: 0 0.75rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        .code-content {
-            display: table-cell;
             padding: 1rem;
-            vertical-align: top;
         }
 
-        .code-content pre {
+        .code-line {
+            display: flex;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
-            line-height: 1.5;
+            line-height: 1.6;
+        }
+
+        .line-num {
+            flex-shrink: 0;
+            width: 50px;
+            text-align: right;
+            padding-right: 1rem;
+            color: var(--text-muted);
+            user-select: none;
+        }
+
+        .line-content {
+            flex: 1;
             white-space: pre-wrap;
             word-break: break-word;
-            margin: 0;
         }
 
         /* Syntax highlighting */
@@ -359,10 +345,7 @@
                 <p>Loading system prompt...</p>
             </div>
             <div class="code-wrapper" id="codeWrapper" style="display: none;">
-                <div class="line-numbers" id="lineNumbers"></div>
-                <div class="code-content">
-                    <pre id="codeContent"></pre>
-                </div>
+                <div id="codeContent"></div>
             </div>
         </div>
     </div>
@@ -380,7 +363,7 @@
                 displayContent(rawContent);
 
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('codeWrapper').style.display = 'flex';
+                document.getElementById('codeWrapper').style.display = 'block';
             } catch (error) {
                 document.getElementById('loading').innerHTML = `
                     <p style="color: #ff6b6b;">Error loading file: ${error.message}</p>
@@ -390,18 +373,17 @@
 
         function displayContent(content) {
             const lines = content.split('\n');
-            const lineNumbersEl = document.getElementById('lineNumbers');
             const codeContentEl = document.getElementById('codeContent');
 
-            // Line numbers
-            lineNumbersEl.innerHTML = lines.map((_, i) => `<span>${i + 1}</span>`).join('');
+            // Render each line with inline line number
+            const html = lines.map((line, i) => {
+                const highlighted = escapeHtml(line)
+                    .replace(/(&lt;\/?[\w-]+)/g, '<span class="tag">$1</span>')
+                    .replace(/(&gt;)/g, '<span class="tag">$1</span>');
+                return `<div class="code-line"><span class="line-num">${i + 1}</span><span class="line-content">${highlighted || ' '}</span></div>`;
+            }).join('');
 
-            // Content with basic syntax highlighting
-            const highlighted = escapeHtml(content)
-                .replace(/(&lt;\/?[\w-]+)/g, '<span class="tag">$1</span>')
-                .replace(/(&gt;)/g, '<span class="tag">$1</span>');
-
-            codeContentEl.innerHTML = highlighted;
+            codeContentEl.innerHTML = html;
 
             // Stats
             document.getElementById('lineCount').textContent = `${lines.length} lines`;
@@ -449,13 +431,17 @@
             if (matches) {
                 resultsEl.textContent = `Found ${matches.length} match${matches.length > 1 ? 'es' : ''}`;
 
-                // Highlight matches
-                const highlighted = escapeHtml(content)
-                    .replace(/(&lt;\/?[\w-]+)/g, '<span class="tag">$1</span>')
-                    .replace(/(&gt;)/g, '<span class="tag">$1</span>')
-                    .replace(new RegExp(escapeRegex(escapeHtml(query)), 'gi'), '<span class="highlight">$&</span>');
+                // Highlight matches with inline line numbers
+                const lines = content.split('\n');
+                const html = lines.map((line, i) => {
+                    let highlighted = escapeHtml(line)
+                        .replace(/(&lt;\/?[\w-]+)/g, '<span class="tag">$1</span>')
+                        .replace(/(&gt;)/g, '<span class="tag">$1</span>')
+                        .replace(new RegExp(escapeRegex(escapeHtml(query)), 'gi'), '<span class="highlight">$&</span>');
+                    return `<div class="code-line"><span class="line-num">${i + 1}</span><span class="line-content">${highlighted || ' '}</span></div>`;
+                }).join('');
 
-                document.getElementById('codeContent').innerHTML = highlighted;
+                document.getElementById('codeContent').innerHTML = html;
             } else {
                 resultsEl.textContent = 'No matches found';
             }
