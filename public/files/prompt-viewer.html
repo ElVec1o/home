@@ -175,33 +175,34 @@
         }
 
         .code-wrapper {
-            display: flex;
+            display: table;
+            width: 100%;
         }
 
         .line-numbers {
+            display: table-cell;
             background: var(--bg-tertiary);
             padding: 1rem 0;
             text-align: right;
             user-select: none;
             border-right: 1px solid var(--border);
-            min-width: 60px;
-            position: sticky;
-            left: 0;
+            width: 60px;
+            vertical-align: top;
         }
 
         .line-numbers span {
             display: block;
             padding: 0 0.75rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--text-muted);
             line-height: 1.5;
         }
 
         .code-content {
-            flex: 1;
+            display: table-cell;
             padding: 1rem;
-            overflow-x: auto;
+            vertical-align: top;
         }
 
         .code-content pre {
@@ -210,6 +211,7 @@
             line-height: 1.5;
             white-space: pre-wrap;
             word-break: break-word;
+            margin: 0;
         }
 
         /* Syntax highlighting */
