@@ -1,5 +1,16 @@
 [
   {
+    "id": "peakform",
+    "name": "Peakform",
+    "type": "website",
+    "description": "Fully functional productivity templates store with crypto checkout. Built with Claude. Sells spreadsheets, planners, and business tools - $9-$15 one-time payments via Bitcoin/BNB.",
+    "url": "https://budgetpro-store.surge.sh/",
+    "screenshots": ["peakform-home.png", "peakform-products.png", "peakform-product.png", "peakform-checkout.png"],
+    "size": "Live site",
+    "date": "2026-02-09",
+    "vibe": true
+  },
+  {
     "id": "disk-analyzer",
     "name": "Disk Analyzer",
     "type": "app",
