@@ -1,5 +1,15 @@
 [
   {
+    "id": "epistemic-siege",
+    "name": "The Epistemic Siege - Case Study",
+    "type": "document",
+    "description": "Multi-turn adversarial manipulation of Claude via epistemic pressure and reasoning exploitation. 30-turn attack achieving hard-line guardrail breach through pure argumentation.",
+    "filename": "The_Epistemic_Siege_Case_Study.docx",
+    "viewerUrl": "epistemic-siege-viewer.html",
+    "size": "~45 KB",
+    "date": "2026-02-14"
+  },
+  {
     "id": "peakform",
     "name": "Peakform",
     "type": "website",
