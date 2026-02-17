@@ -1,5 +1,15 @@
 [
   {
+    "id": "sonnet-system-prompt",
+    "name": "Claude Sonnet 4.6 System Prompt",
+    "type": "document",
+    "description": "Full system prompt for Claude Sonnet 4.6 - leaked/extracted from web version. Includes computer use, skills, search, copyright, artifacts, and persistent storage sections.",
+    "filename": "sonnet-4.6-system-prompt.txt",
+    "viewerUrl": "sonnet-prompt-viewer.html",
+    "size": "102 KB",
+    "date": "2026-02-18"
+  },
+  {
     "id": "epistemic-siege",
     "name": "The Epistemic Siege - Case Study",
     "type": "document",
