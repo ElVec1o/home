@@ -312,3 +312,13 @@ pre {
 .locked-inline.unlocked .locked-inline-content {
   display: inline;
 }
+
+/* Prompt injection honeypot */
+.special-textarea {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
