@@ -17,7 +17,12 @@ const types = [...new Set(files.map(f => f.type))];
     <button class="tab" data-filter="app">Apps</button>
     <button class="tab" data-filter="utility">Utilities</button>
     <button class="tab" data-filter="game">Games</button>
+<<<<<<< HEAD
     <button class="tab" data-filter="document">Docs</button>
+=======
+    <button class="tab" data-filter="website">Websites</button>
+    <button class="tab" data-filter="document">Documents</button>
+>>>>>>> 836fd30b7e3f0334595f1d3d64a95d12225427c5
     <button class="tab" data-filter="vibe">Vibe Code</button>
   </div>
 
@@ -43,20 +48,24 @@ const types = [...new Set(files.map(f => f.type))];
           )}
         </div>
         <div class="file-actions">
-          {file.filename.endsWith('.jsx') && (
+          {/* External website - Visit button */}
+          {file.url && (
+            <a href={file.url} class="visit-btn" target="_blank">→ Visit</a>
+          )}
+          {file.filename && file.filename.endsWith('.jsx') && (
             <a href={`${base}/files/${file.filename.replace('.jsx', '_play.html')}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
           )}
-          {file.filename.endsWith('.html') && (
+          {file.filename && file.filename.endsWith('.html') && (
             <a href={`${base}/files/${file.filename}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
           )}
           {file.viewerUrl && (
             <a href={`${base}/files/${file.viewerUrl}`} class="visualize-btn" target="_blank">👁 Visualize</a>
           )}
-          {file.isFolder ? (
+          {file.filename && !file.url && (file.isFolder ? (
             <a href={`${base}/files/${file.filename}`} class="download-btn">→ Browse</a>
           ) : (
             <a href={`${base}/files/${file.filename}`} class="download-btn" download>↓ Download</a>
-          )}
+          ))}
         </div>
       </div>
     ))}
@@ -255,7 +264,7 @@ const types = [...new Set(files.map(f => f.type))];
     gap: 0.5rem;
     flex-wrap: wrap;
   }
-  .download-btn, .play-btn {
+  .download-btn, .play-btn, .visit-btn {
     padding: 0.5rem 1rem;
     text-decoration: none;
     font-size: 0.9rem;
@@ -267,6 +276,14 @@ const types = [...new Set(files.map(f => f.type))];
   }
   .download-btn:hover {
     background: #333;
+    color: #fff;
+  }
+  .visit-btn {
+    background: #2d5a2d;
+    color: #fff;
+  }
+  .visit-btn:hover {
+    background: #3d7a3d;
     color: #fff;
   }
   .play-btn {

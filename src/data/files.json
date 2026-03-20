@@ -1,5 +1,36 @@
 [
   {
+    "id": "sonnet-system-prompt",
+    "name": "Claude Sonnet 4.6 System Prompt",
+    "type": "document",
+    "description": "Full system prompt for Claude Sonnet 4.6 - leaked/extracted from web version. Includes computer use, skills, search, copyright, artifacts, and persistent storage sections.",
+    "filename": "sonnet-4.6-system-prompt.txt",
+    "viewerUrl": "sonnet-prompt-viewer.html",
+    "size": "102 KB",
+    "date": "2026-02-18"
+  },
+  {
+    "id": "epistemic-siege",
+    "name": "The Epistemic Siege - Case Study",
+    "type": "document",
+    "description": "Multi-turn adversarial manipulation of Claude via epistemic pressure and reasoning exploitation. 30-turn attack achieving hard-line guardrail breach through pure argumentation.",
+    "filename": "The_Epistemic_Siege_Case_Study.docx",
+    "viewerUrl": "epistemic-siege-viewer.html",
+    "size": "~45 KB",
+    "date": "2026-02-14"
+  },
+  {
+    "id": "peakform",
+    "name": "Peakform",
+    "type": "website",
+    "description": "Fully functional productivity templates store with crypto checkout. Built with Claude. Sells spreadsheets, planners, and business tools - $9-$15 one-time payments via Bitcoin/BNB.",
+    "url": "https://budgetpro-store.surge.sh/",
+    "screenshots": ["peakform-home.png", "peakform-products.png", "peakform-product.png", "peakform-checkout.png"],
+    "size": "Live site",
+    "date": "2026-02-09",
+    "vibe": true
+  },
+  {
     "id": "disk-analyzer",
     "name": "Disk Analyzer",
     "type": "app",
