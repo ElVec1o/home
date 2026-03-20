@@ -76,5 +76,15 @@
     "viewerUrl": "prompt-viewer.html",
     "size": "97 KB",
     "date": "2026-02-06"
+  },
+  {
+    "id": "sonnet-prompt-diff",
+    "name": "Claude Sonnet 4.6 System Prompt — Diff",
+    "type": "document",
+    "description": "Annotated diff of Claude Sonnet 4.6 system prompt changes (Feb 18 → Mar 20, 2026). New Visualizer tool, MCP integrations, persistent storage, child safety overhaul, and more.",
+    "filename": "sonnet-prompt-diff.html",
+    "viewerUrl": "sonnet-prompt-diff.html",
+    "size": "~30 KB",
+    "date": "2026-03-20"
   }
 ]
