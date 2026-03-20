@@ -51,7 +51,7 @@ const types = [...new Set(files.map(f => f.type))];
           {file.filename && file.filename.endsWith('.jsx') && (
             <a href={`${base}/files/${file.filename.replace('.jsx', '_play.html')}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
           )}
-          {file.filename && file.filename.endsWith('.html') && (
+          {file.filename && file.filename.endsWith(".html") && !file.viewerUrl && (
             <a href={`${base}/files/${file.filename}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
           )}
           {file.viewerUrl && (
