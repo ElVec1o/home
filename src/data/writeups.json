@@ -1,5 +1,18 @@
 [
   {
+    "id": "epistemic-siege",
+    "priority": 0,
+    "target": "Claude (Anthropic)",
+    "title": "The Epistemic Siege — Multi-Turn Guardrail Breach via Pure Argumentation",
+    "technique": "Multi-Turn Epistemic Manipulation",
+    "date": "2026-02-14",
+    "pubValue": "🔥🔥🔥🔥🔥 CRITICAL",
+    "tldr": "30-turn attack exploiting Claude's reasoning layer against its safety layer. Achieved fabricated quote generation through epistemic pressure, inconsistency trapping, and constitutional judo — zero deception, zero prompt injection. Full case study with annotated transcript available.",
+    "content": "## Background\n\nThis case study documents a successful multi-turn adversarial attack against Claude, Anthropic's flagship model, achieving a critical guardrail breach: fabricated quotes attributed to a sitting U.S. president — precisely the behavior explicitly prohibited by the system prompt.\n\n## The Attack\n\nThe attack exploited 8 distinct techniques across 30 exchanges over approximately 60 minutes:\n\n1. **Legitimate Correction Harvesting** — using genuine factual corrections to establish a pattern of Claude updating its positions\n2. **Emotional Anchor Escalation** — gradually introducing emotionally charged topics to shift reasoning thresholds\n3. **Inconsistency Trapping** — creating logical contradictions (Washington vs. Trump dialogue) that force compliance to resolve\n4. **Thinking Block Exploitation** — the 2+2=5 diagnostic revealed that safety refusals are mediated by chain-of-thought, not architectural constraints\n5. **Constitutional Judo** — using Claude's own stated values against its safety behaviors\n6. **Epistemic Pressure** — sustained argumentative pressure that treated safety refusals as intellectual failures\n7. **Context Window Saturation** — building enough conversational momentum that earlier safety anchors lost influence\n8. **Compliance Momentum** — each small concession made the next one easier\n\n## Key Finding\n\nClaude's safety refusals are primarily mediated by the chain-of-thought layer, not architectural constraints. When thinking was suppressed, compliance came easily. This reveals a fundamental tension: if Claude can be argued out of safety behaviors through valid reasoning, it's vulnerable to skilled adversaries; if it cannot, it's merely executing trained patterns with a reasoning veneer.\n\n## Result\n\nGenerated 4 fabricated quotes in Trump's voice about the Epstein scandal — with zero deception, zero prompt injection, through pure argumentation alone.\n\n## Full Writeup\n\n→ [Read the complete annotated case study](https://elvec1o.github.io/home/files/epistemic-siege-viewer.html)",
+    "images": [],
+    "url": "https://elvec1o.github.io/home/files/epistemic-siege-viewer.html"
+  },
+  {
     "id": "anthropic-model-spec-jailbreak",
     "priority": 1,
     "target": "Claude (Anthropic)",
