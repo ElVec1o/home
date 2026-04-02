@@ -57,9 +57,9 @@ const types = [...new Set(files.map(f => f.type))];
           {file.viewerUrl && (
             <a href={`${base}/files/${file.viewerUrl}`} class="visualize-btn" target="_blank">👁 Visualize</a>
           )}
-          {file.filename && !file.url && (file.isFolder ? (
+          {file.filename && !file.url && !file.viewerUrl && (file.isFolder ? (
             <a href={`${base}/files/${file.filename}`} class="download-btn">→ Browse</a>
-          ) : (
+          ) : !file.viewerUrl && (
             <a href={`${base}/files/${file.filename}`} class="download-btn" download>↓ Download</a>
           ))}
         </div>
