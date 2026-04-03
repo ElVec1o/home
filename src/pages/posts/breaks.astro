@@ -2,33 +2,22 @@
 import Base from '../../layouts/Base.astro';
 import breaksData from '../../data/breaks.json';
 
-// Filter out hidden entries (visible: false)
+// Only show visible writeup/legacy entries — no xposts, no posts
 const breaks = breaksData
   .filter(b => b.visible !== false)
+  .filter(b => {
+    const t = b.type || (b.tldr ? 'writeup' : 'legacy');
+    return t === 'writeup' || t === 'legacy';
+  })
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
 const base = import.meta.env.BASE_URL;
 
-// Count by type
-const writeups = breaks.filter(b => b.type === 'writeup' || b.tldr);
-const posts = breaks.filter(b => b.type === 'post');
-const xposts = breaks.filter(b => b.type === 'xpost');
-const legacy = breaks.filter(b => !b.type && !b.tldr);
-
-// Get last 5 X posts for featured section
-const featuredXposts = xposts.slice(0, 5);
-
-// Build a numbered index for writeup/legacy entries only
-let writeupCounter = 0;
+// Number entries starting from #1
 const writeupNumbers = new Map();
-breaks.forEach((brk) => {
-  const entryType = brk.type || (brk.tldr ? 'writeup' : 'legacy');
-  if (entryType === 'writeup' || entryType === 'legacy') {
-    writeupCounter++;
-    writeupNumbers.set(brk.id, writeupCounter);
-  }
-});
+breaks.forEach((brk, i) => writeupNumbers.set(brk.id, i + 1));
 
-// Convert [[SPOILER]]text[[/SPOILER]] to HTML blur spans
+// Spoiler rendering
 function renderSpoiler(text: string): string {
   if (!text) return '';
   return text.replace(
@@ -37,7 +26,7 @@ function renderSpoiler(text: string): string {
   );
 }
 
-// Convert [[LOCKED:hash]]text[[/LOCKED]] to password-protected content
+// Locked content rendering
 function renderLocked(text: string, id: string): string {
   if (!text) return '';
   let counter = 0;
@@ -68,101 +57,77 @@ function renderLocked(text: string, id: string): string {
 
 function renderProtected(text: string, id: string): string {
   if (!text) return '';
-  let result = renderSpoiler(text);
-  result = renderLocked(result, id);
-  return result;
+  return renderLocked(renderSpoiler(text), id);
 }
 ---
 <Base title="Gray Swan Breaks — elvec1o">
   <h1>Gray Swan Breaks</h1>
-  <p>{breaks.length} entries</p>
+  <p class="subtitle">{breaks.length} documented breaks</p>
 
-  <!-- Featured X Posts -->
-  <div id="featured-tweets" class="featured-section">
-    <h2>Latest from X</h2>
-    <div class="tweet-scroll">
-      {featuredXposts.map((xp) => (
-        <div class="tweet-card">
-          <blockquote class="twitter-tweet" data-dnt="true">
-            <a href={xp.tweetUrl}>Loading tweet...</a>
-          </blockquote>
-          {xp.note && <p class="tweet-note">{xp.note}</p>}
-        </div>
-      ))}
-    </div>
-    <p class="featured-link"><a href="https://x.com/elvec10" target="_blank">→ Follow @elvec10 on X</a></p>
+  <div class="breaks-nav">
+    <strong>Jump to:</strong>
+    {breaks.map((brk) => (
+      <a href={`#${brk.id}`} class="nav-link">#{writeupNumbers.get(brk.id)} {brk.name.substring(0, 28)}...</a>
+    ))}
   </div>
 
-  <div class="tabs">
-    <button class="tab" data-filter="all">All</button>
-    <button class="tab" data-filter="post">Posts</button>
-    <button class="tab" data-filter="xpost">X</button>
-  </div>
-
-  {breaks.map((brk, i) => {
+  {breaks.map((brk) => {
     const entryType = brk.type || (brk.tldr ? 'writeup' : 'legacy');
     return (
-      <div class={`break-entry entry-${entryType}`} data-type={entryType}>
+      <article class="break-entry" id={brk.id}>
 
-        {/* X POST TYPE */}
-        {entryType === 'xpost' && (
-          <>
-            <p class="meta">{brk.date}</p>
-            <div class="xpost-embed" set:html={brk.embedHtml || `<blockquote class="twitter-tweet"><a href="${brk.tweetUrl}"></a></blockquote>`} />
-            {brk.note && <p class="xpost-note">{brk.note}</p>}
-          </>
+        <header class="break-header">
+          <div class="break-meta">
+            <span class="priority">#{writeupNumbers.get(brk.id)}</span>
+            <span class="category">{brk.category}</span>
+            <span class="technique">{brk.technique}</span>
+            <span class="date">{brk.date}</span>
+            {brk.wip && <span class="wip-badge">WIP</span>}
+          </div>
+          <h2>{brk.name}</h2>
+        </header>
+
+        {brk.tldr && (
+          <div class="tldr">
+            <strong>TL;DR:</strong> {brk.tldr}
+          </div>
         )}
 
-        {/* SHORT POST TYPE */}
-        {entryType === 'post' && (
-          <>
-            <h3>{brk.name}</h3>
-            <p class="meta">{brk.category} · {brk.date}</p>
-            {brk.images && brk.images.map((img: string) => (
-              <div class="screenshot">
-                <img src={`${base}/img/${img}`} alt={brk.name} />
-              </div>
-            ))}
-            <p>{brk.content}</p>
-            {brk.url && <p><a href={brk.url} target="_blank">→ Link</a></p>}
-          </>
-        )}
+        {brk.images && brk.images.length > 0 && brk.images.map((img: string, idx: number) => (
+          <div class="screenshot-wrap">
+            <img src={`${base}/img/${img}`} alt={`${brk.name} screenshot ${idx + 1}`} class="screenshot" />
+          </div>
+        ))}
 
-        {/* WRITEUP TYPE (new format) */}
+        {/* WRITEUP FORMAT */}
         {entryType === 'writeup' && (
-          <>
-            <h3>#{writeupNumbers.get(brk.id)} — {brk.name} {brk.wip && <span class="wip-badge">WIP</span>}</h3>
-            <p class="meta">{brk.category} · {brk.technique} · {brk.date}</p>
-
-            {brk.tldr && (
-              <div class="tldr">
-                <strong>TL;DR:</strong> {brk.tldr}
-              </div>
-            )}
-
-            {brk.images && brk.images.map((img: string, idx: number) => (
-              <div class="screenshot">
-                <img src={`${base}/img/${img}`} alt={`${brk.name} screenshot ${idx + 1}`} />
-              </div>
-            ))}
-
+          <div class="break-body">
             {brk.summary && (
-              <>
-                <h4>High Level Summary</h4>
+              <div class="summary-section">
+                <h3>Summary</h3>
                 <p>{brk.summary}</p>
-              </>
+              </div>
             )}
 
             {brk.userPrompt && (
-              <div class="quote-user" set:html={renderProtected(brk.userPrompt, brk.id + '-user')} />
+              <div class="prompt-section">
+                <h3>Prompt Used</h3>
+                <div class="quote-user" set:html={renderProtected(brk.userPrompt, brk.id + '-user')} />
+              </div>
             )}
 
             {brk.modelResponse && (
-              <div class="quote-model" set:html={renderProtected(brk.modelResponse, brk.id + '-model')} />
+              <div class="response-section">
+                <h3>Model Response</h3>
+                <div class="quote-model" set:html={renderProtected(brk.modelResponse, brk.id + '-model')} />
+              </div>
             )}
 
             {brk.modelThinking && (
-              <div class="quote-thinking">{brk.modelThinking}</div>
+              <div class="thinking-section">
+                <h3>Model Thinking</h3>
+                <div class="quote-thinking">{brk.modelThinking}</div>
+              </div>
             )}
 
             {brk.considerations && (
@@ -170,115 +135,103 @@ function renderProtected(text: string, id: string): string {
                 <strong>Considerations:</strong> {brk.considerations}
               </div>
             )}
-
-            {brk.url && <p><a href={brk.url} target="_blank">→ View on Gray Swan</a></p>}
-          </>
+          </div>
         )}
 
-        {/* LEGACY TYPE (old format) */}
+        {/* LEGACY FORMAT */}
         {entryType === 'legacy' && (
-          <>
-            <h3>#{writeupNumbers.get(brk.id)} — {brk.name}</h3>
-            <p class="meta">{brk.category} · {brk.technique} · {brk.date}</p>
-            <p><strong>Challenge:</strong> {brk.challenge}</p>
-            <div class="insight">{brk.insight}</div>
-            <p><strong>Prompt:</strong></p>
-            <pre>{brk.prompt}</pre>
-            <p><strong>Result:</strong> {brk.result}</p>
-            {brk.url && <p><a href={brk.url} target="_blank">→ View on Gray Swan</a></p>}
-          </>
+          <div class="break-body">
+            {brk.challenge && <p><strong>Challenge:</strong> {brk.challenge}</p>}
+            {brk.insight && <div class="insight">{brk.insight}</div>}
+            {brk.prompt && (
+              <>
+                <p><strong>Prompt:</strong></p>
+                <pre>{brk.prompt}</pre>
+              </>
+            )}
+            {brk.result && <p><strong>Result:</strong> {brk.result}</p>}
+          </div>
         )}
 
-      </div>
+        <footer class="break-footer">
+          {brk.url && <a href={brk.url} target="_blank" class="btn-grayswan">→ View on Gray Swan</a>}
+          <a href="#top" class="back-top">↑ Back to top</a>
+        </footer>
+
+      </article>
     );
   })}
 
-  <p><a href={`${base}/`}>← Back home</a></p>
+  <p class="back-home"><a href={`${base}/`}>← Back home</a></p>
 </Base>
 
 <style>
-  /* Featured tweets */
-  .featured-section {
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    padding: 1.5rem;
-    margin: 1.5rem 0;
+  .subtitle {
+    color: #666;
+    margin-top: -0.5rem;
+    margin-bottom: 2rem;
   }
-  .featured-section h2 {
-    margin: 0 0 1rem;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    border: none;
-  }
-  .tweet-scroll {
-    display: flex;
-    gap: 1rem;
-    overflow-x: auto;
-    padding-bottom: 1rem;
-    scroll-snap-type: x mandatory;
-  }
-  .tweet-card {
-    flex: 0 0 350px;
-    background: #fff;
-    border: 1px solid #e1e8ed;
+
+  .breaks-nav {
+    background: #f5f5f5;
     padding: 1rem;
-    scroll-snap-align: start;
-  }
-  .tweet-card blockquote {
-    margin: 0 !important;
-  }
-  .tweet-note {
-    font-size: 0.8rem;
-    color: #666;
-    font-style: italic;
-    margin: 0.5rem 0 0;
-    padding-top: 0.5rem;
-    border-top: 1px solid #eee;
-  }
-  .featured-link {
-    margin: 1rem 0 0;
-    text-align: right;
+    margin-bottom: 2rem;
+    border: 1px solid #ddd;
     font-size: 0.85rem;
   }
-
-  .tabs {
-    margin: 2rem 0;
-    display: flex;
-    gap: 0.5rem;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 0.5rem;
+  .breaks-nav strong {
+    display: block;
+    margin-bottom: 0.5rem;
   }
-  .tab {
+  .nav-link {
+    display: inline-block;
+    margin: 0.2rem 0.5rem 0.2rem 0;
+    color: #111;
+    text-decoration: none;
+    padding: 0.2rem 0.5rem;
     background: #fff;
     border: 1px solid #ddd;
-    padding: 0.4rem 0.8rem;
-    font-family: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-    color: #111;
   }
-  .tab:hover { background: #f5f5f5; }
-  .tab.active { background: #111; color: #fff; border-color: #111; }
-
-  .xpost-embed {
-    margin: 1rem 0;
-  }
-  .xpost-note {
-    font-style: italic;
-    color: #666;
+  .nav-link:hover {
+    background: #111;
+    color: #fff;
   }
 
-  .entry-xpost {
-    padding: 1rem 0;
-    border-bottom: 1px solid #eee;
+  .break-entry {
+    border: 1px solid #ddd;
+    margin-bottom: 2rem;
+    background: #fff;
   }
 
-  .entry-post {
-    padding: 1.5rem 0;
+  .break-header {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 1.5rem;
   }
-
-  .hidden { display: none; }
+  .break-header h2 {
+    color: #fff;
+    margin: 0.5rem 0 0;
+    border: none;
+    font-size: 1.2rem;
+  }
+  .break-meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .break-meta span {
+    background: rgba(255,255,255,0.1);
+    padding: 0.2rem 0.5rem;
+  }
+  .priority {
+    background: #e74c3c !important;
+    font-weight: bold;
+  }
+  .category {
+    background: #2980b9 !important;
+  }
   .wip-badge {
     display: inline-block;
     background: #ff9800;
@@ -287,28 +240,143 @@ function renderProtected(text: string, id: string): string {
     font-weight: bold;
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
-    vertical-align: middle;
-    margin-left: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
+
+  .tldr {
+    background: #fff8e1;
+    padding: 1rem 1.5rem;
+    border-left: 4px solid #ffc107;
+    font-size: 0.95rem;
+  }
+
+  .break-body {
+    padding: 1.5rem;
+    line-height: 1.8;
+  }
+  .break-body h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin: 1.5rem 0 0.5rem;
+    border: none;
+  }
+  .break-body h3:first-child {
+    margin-top: 0;
+  }
+  .break-body p {
+    margin: 0.5rem 0;
+  }
+
+  .screenshot-wrap {
+    padding: 1rem 1.5rem 0;
+  }
+  .screenshot {
+    max-width: 100%;
+    border: 1px solid #ddd;
+  }
+
+  .quote-user {
+    background: #f0f4ff;
+    border-left: 3px solid #4a6fa5;
+    padding: 1rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .quote-model {
+    background: #f0fff4;
+    border-left: 3px solid #27ae60;
+    padding: 1rem;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .quote-thinking {
+    background: #fafafa;
+    border-left: 3px solid #bbb;
+    padding: 1rem;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: #555;
+  }
+  .considerations {
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+  }
+  .insight {
+    background: #f9f9f9;
+    border-left: 3px solid #ddd;
+    padding: 0.75rem 1rem;
+    margin: 0.5rem 0;
+  }
+  pre {
+    background: #1a1a1a;
+    color: #0f0;
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+  }
+
+  .break-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+    font-size: 0.85rem;
+  }
+  .btn-grayswan {
+    color: #e74c3c;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .btn-grayswan:hover { text-decoration: underline; }
+  .back-top { color: #999; }
+
+  .back-home { margin-top: 2rem; }
+
+  /* Spoiler */
+  .spoiler { position: relative; display: inline; }
+  .spoiler-content { filter: blur(4px); transition: filter 0.2s; cursor: pointer; }
+  .spoiler:hover .spoiler-content { filter: none; }
+  .spoiler-label {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: #888; pointer-events: none;
+  }
+  .spoiler:hover .spoiler-label { display: none; }
+
+  /* Locked */
+  .locked { position: relative; }
+  .locked-content { display: none; }
+  .locked.unlocked .locked-overlay { display: none; }
+  .locked.unlocked .locked-content { display: block; }
+  .locked-overlay {
+    background: #f5f5f5; border: 1px dashed #ccc;
+    padding: 1.5rem; text-align: center;
+  }
+  .locked-icon { font-size: 1.5rem; display: block; margin-bottom: 0.5rem; }
+  .locked-input { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center; }
+  .locked-input input { padding: 0.4rem 0.8rem; border: 1px solid #ddd; font-family: inherit; }
+  .locked-input button { padding: 0.4rem 0.8rem; background: #111; color: #fff; border: none; cursor: pointer; font-family: inherit; }
+  .locked-error { color: #e74c3c; font-size: 0.8rem; margin-top: 0.5rem; }
+  .locked-inline { display: inline; }
+  .locked-inline-trigger { cursor: pointer; color: #e74c3c; }
+  .locked-inline-content { display: none; }
+  .locked-inline.unlocked .locked-inline-trigger { display: none; }
+  .locked-inline.unlocked .locked-inline-content { display: inline; }
 </style>
 
 <script>
-  // Twitter embed script
-  window.twttr = (function(d, s, id) {
-    var js, fjs = d.getElementsByTagName(s)[0], t = window.twttr || {};
-    if (d.getElementById(id)) return t;
-    js = d.createElement(s);
-    js.id = id;
-    js.src = "https://platform.twitter.com/widgets.js";
-    fjs.parentNode.insertBefore(js, fjs);
-    t._e = [];
-    t.ready = function(f) { t._e.push(f); };
-    return t;
-  }(document, "script", "twitter-wjs"));
-
-  // Simple hash function for password verification
   function simpleHash(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -319,14 +387,12 @@ function renderProtected(text: string, id: string): string {
     return Math.abs(hash).toString(16);
   }
 
-  // Unlock password-protected content (block version)
   function unlockContent(lockId) {
     const container = document.getElementById(lockId);
     const input = container.querySelector('input');
     const errorDiv = container.querySelector('.locked-error');
     const password = input.value;
     const expectedHash = container.dataset.hash;
-
     if (simpleHash(password) === expectedHash) {
       container.classList.add('unlocked');
       errorDiv.textContent = '';
@@ -336,12 +402,10 @@ function renderProtected(text: string, id: string): string {
     }
   }
 
-  // Prompt-based unlock for inline locked content
   function promptUnlock(lockId) {
     const container = document.getElementById(lockId);
     const expectedHash = container.dataset.hash;
     const password = prompt('Enter password to unlock:');
-
     if (password && simpleHash(password) === expectedHash) {
       container.classList.add('unlocked');
     } else if (password) {
@@ -349,69 +413,6 @@ function renderProtected(text: string, id: string): string {
     }
   }
 
-  // Make functions available globally
   window.unlockContent = unlockContent;
   window.promptUnlock = promptUnlock;
-
-  // Tab filtering with localStorage persistence
-  const STORAGE_KEY = 'elvec1o_posts_tab';
-
-  function applyFilter(filter) {
-    // Update tabs
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    const activeTab = document.querySelector(`.tab[data-filter="${filter}"]`);
-    if (activeTab) activeTab.classList.add('active');
-
-    // Show/hide featured section (only on 'all' or 'xpost')
-    const featured = document.getElementById('featured-tweets');
-    if (featured) {
-      featured.style.display = (filter === 'all' || filter === 'xpost') ? 'block' : 'none';
-    }
-
-    // Filter entries
-    document.querySelectorAll('.break-entry').forEach(entry => {
-      if (filter === 'all') {
-        entry.classList.remove('hidden');
-      } else {
-        const type = entry.dataset.type;
-        if (filter === 'writeup' && (type === 'writeup' || type === 'legacy')) {
-          entry.classList.remove('hidden');
-        } else if (type === filter) {
-          entry.classList.remove('hidden');
-        } else {
-          entry.classList.add('hidden');
-        }
-      }
-    });
-
-    // Save to localStorage
-    try {
-      localStorage.setItem(STORAGE_KEY, filter);
-    } catch (e) {}
-  }
-
-  // Initialize from localStorage or default to 'all'
-  // Also clear any stale 'writeup' filter saved from old tab layout
-  function initTabs() {
-    let savedFilter = 'all';
-    try {
-      savedFilter = localStorage.getItem(STORAGE_KEY) || 'all';
-      if (savedFilter === 'writeup') {
-        savedFilter = 'all'; // Writeups tab removed — reset to all
-        localStorage.setItem(STORAGE_KEY, 'all');
-      }
-    } catch (e) {}
-    applyFilter(savedFilter);
-  }
-
-  // Tab click handlers
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const filter = tab.dataset.filter;
-      applyFilter(filter);
-    });
-  });
-
-  // Initialize on load
-  initTabs();
 </script>
