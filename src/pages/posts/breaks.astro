@@ -67,7 +67,7 @@ function renderProtected(text: string, id: string): string {
   <div class="breaks-nav">
     <strong>Jump to:</strong>
     {breaks.map((brk) => (
-      <a href={`#${brk.id}`} class="nav-link">#{writeupNumbers.get(brk.id)} {brk.name.substring(0, 28)}...</a>
+      <a href={`#${brk.id}`} class="nav-link">#{writeupNumbers.get(brk.id)} — {brk.name}</a>
     ))}
   </div>
 
@@ -184,13 +184,15 @@ function renderProtected(text: string, id: string): string {
     margin-bottom: 0.5rem;
   }
   .nav-link {
-    display: inline-block;
-    margin: 0.2rem 0.5rem 0.2rem 0;
+    display: block;
+    margin: 0.2rem 0;
     color: #111;
     text-decoration: none;
-    padding: 0.2rem 0.5rem;
+    padding: 0.3rem 0.6rem;
     background: #fff;
     border: 1px solid #ddd;
+    white-space: nowrap;
+    overflow: visible;
   }
   .nav-link:hover {
     background: #111;
