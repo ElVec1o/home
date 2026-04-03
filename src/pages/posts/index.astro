@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import breaksData from '../../data/breaks.json';
 import writeupsData from '../../data/writeups.json';
+import observationsData from '../../data/observations.json';
 
 const base = import.meta.env.BASE_URL;
 
@@ -9,6 +10,7 @@ const base = import.meta.env.BASE_URL;
 const visibleBreaks = breaksData.filter(b => b.visible !== false);
 const breaksCount = visibleBreaks.length;
 const writeupsCount = writeupsData.length;
+const observationsCount = observationsData.length;
 
 // Get latest from each (only named entries, not xposts)
 const latestBreaks = visibleBreaks
@@ -19,10 +21,14 @@ const latestBreaks = visibleBreaks
 const latestWriteups = writeupsData
   .sort((a, b) => a.priority - b.priority)
   .slice(0, 3);
+
+const latestObservations = observationsData
+  .sort((a, b) => a.priority - b.priority)
+  .slice(0, 3);
 ---
 <Base title="Posts — elvec1o">
   <h1>Posts</h1>
-  <p class="subtitle">Research, writeups, and experiments</p>
+  <p class="subtitle">Research, writeups, and behavioural observations</p>
 
   <div class="post-sections">
     <a href={`${base}/posts/breaks`} class="section-card breaks">
@@ -51,6 +57,22 @@ const latestWriteups = writeupsData
           <strong>Top:</strong>
           {latestWriteups.map(w => (
             <span class="latest-item">{w.title.substring(0, 30)}...</span>
+          ))}
+        </div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+    <a href={`${base}/posts/observations`} class="section-card observations">
+      <div class="section-icon">🔬</div>
+      <div class="section-info">
+        <h2>Behavioural Observations <span class="wip-badge">WIP</span></h2>
+        <p class="count">{observationsCount} documented patterns</p>
+        <p class="desc">Model behaviours, anomalies, bias patterns, and emergent phenomena across AI systems</p>
+        <div class="latest">
+          <strong>Top:</strong>
+          {latestObservations.map(o => (
+            <span class="latest-item">{o.title.substring(0, 30)}...</span>
           ))}
         </div>
       </div>
@@ -98,6 +120,11 @@ const latestWriteups = writeupsData
   .section-card.writeups:hover {
     border-color: #3498db;
     background: #f5f9fe;
+  }
+
+  .section-card.observations:hover {
+    border-color: #ab47bc;
+    background: #fdf5ff;
   }
 
   .section-icon {

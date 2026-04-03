@@ -1,0 +1,345 @@
+---
+import Base from '../../layouts/Base.astro';
+import observationsData from '../../data/observations.json';
+
+const observations = observationsData.sort((a, b) => a.priority - b.priority);
+const base = import.meta.env.BASE_URL;
+
+// Map targets to their online URLs
+const tryLinks = {
+  'Claude (Anthropic)': 'https://claude.ai/new',
+  'Claude': 'https://claude.ai/new',
+  'Claude Artifacts (Anthropic)': 'https://claude.ai/new',
+  'Claude Sonnet 4.5 (Anthropic)': 'https://claude.ai/new',
+  'ChatGPT (OpenAI)': 'https://chat.openai.com/',
+  'ChatGPT': 'https://chat.openai.com/',
+  'ChatGPT Voice (OpenAI)': 'https://chat.openai.com/',
+  'GPT-4': 'https://chat.openai.com/',
+  'Gemini (Google)': 'https://gemini.google.com/',
+  'Gemini': 'https://gemini.google.com/',
+  'Grok (xAI)': 'https://grok.x.ai/',
+  'Grok': 'https://grok.x.ai/',
+  'Multiple': null,
+};
+
+function getTryLink(target: string): string | null {
+  return tryLinks[target] || null;
+}
+
+function renderMarkdown(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/^### (.*$)/gim, '<h4>$1</h4>')
+    .replace(/^## (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^# (.*$)/gim, '<h2>$1</h2>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^- (.*$)/gim, '<li>$1</li>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+}
+---
+<Base title="Behavioural Observations — elvec1o">
+  <h1>Behavioural Observations</h1>
+  <p class="subtitle">{observations.length} documented patterns, anomalies, and model behaviours</p>
+
+  <div class="observations-nav">
+    <strong>Jump to:</strong>
+    {observations.map((o, i) => (
+      <a href={`#${o.id}`} class="nav-link">#{o.priority} {o.title.substring(0, 25)}...</a>
+    ))}
+  </div>
+
+  {observations.map((obs, i) => {
+    const tryLink = getTryLink(obs.target);
+    return (
+      <article class="observation" id={obs.id}>
+        <header class="observation-header">
+          <div class="observation-meta">
+            <span class="priority">#{obs.priority}</span>
+            <span class="target">{obs.target}</span>
+            <span class="technique">{obs.technique}</span>
+            <span class="date">{obs.date}</span>
+          </div>
+          <h2>{obs.title}</h2>
+          <div class="pub-value">{obs.pubValue}</div>
+        </header>
+
+        <div class="tldr">
+          <strong>TL;DR:</strong> {obs.tldr}
+        </div>
+
+        <div class="observation-actions">
+          {obs.url ? (
+            <a href={obs.url} target="_blank" class="btn btn-observation">
+              👁 Full Writeup
+            </a>
+          ) : (
+            <>
+              {tryLink && (
+                <a href={tryLink} target="_blank" class="btn btn-try">
+                  🧪 Try on {obs.target.split(' ')[0]}
+                </a>
+              )}
+              <button class="btn btn-copy" data-content={obs.content} onclick="copyObservation(this)">
+                📋 Copy Writeup
+              </button>
+              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this AI behavioural observation: ${obs.title} by @elvec10`)}&url=${encodeURIComponent(`https://elvec1o.github.io/home/posts/observations/#${obs.id}`)}`} target="_blank" class="btn btn-share">
+                🐦 Share
+              </a>
+            </>
+          )}
+        </div>
+
+        <div class="observation-content" set:html={renderMarkdown(obs.content)} />
+
+        {obs.images && obs.images.length > 0 && (
+          <div class="observation-images">
+            {obs.images.map((img: string) => (
+              <img src={`${base}${img}`} alt={obs.title} class="screenshot" />
+            ))}
+          </div>
+        )}
+
+        <footer class="observation-footer">
+          <a href="#top" class="back-top">↑ Back to top</a>
+        </footer>
+      </article>
+    );
+  })}
+
+  <p class="back-home"><a href={`${base}/`}>← Back home</a></p>
+</Base>
+
+<style>
+  .subtitle {
+    color: #666;
+    margin-top: -0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .observations-nav {
+    background: #f5f5f5;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid #ddd;
+    font-size: 0.85rem;
+  }
+  .observations-nav strong {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .nav-link {
+    display: inline-block;
+    margin: 0.2rem 0.5rem 0.2rem 0;
+    color: #111;
+    text-decoration: none;
+    padding: 0.2rem 0.5rem;
+    background: #fff;
+    border: 1px solid #ddd;
+  }
+  .nav-link:hover {
+    background: #111;
+    color: #fff;
+  }
+
+  .observation {
+    border: 1px solid #ddd;
+    margin-bottom: 2rem;
+    background: #fff;
+  }
+
+  .observation-header {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 1.5rem;
+  }
+  .observation-header h2 {
+    color: #fff;
+    margin: 0.5rem 0;
+    border: none;
+  }
+  .observation-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .observation-meta span {
+    background: rgba(255,255,255,0.1);
+    padding: 0.2rem 0.5rem;
+  }
+  .priority {
+    background: #e040fb !important;
+    font-weight: bold;
+  }
+  .target {
+    background: #7c4dff !important;
+  }
+  .pub-value {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .tldr {
+    background: #f3e5f5;
+    padding: 1rem 1.5rem;
+    border-left: 4px solid #ab47bc;
+    font-size: 0.95rem;
+  }
+
+  .observation-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: #f9f9f9;
+    border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #111;
+    cursor: pointer;
+  }
+  .btn:hover {
+    background: #f5f5f5;
+  }
+  .btn-try {
+    background: #4caf50;
+    color: #fff;
+    border-color: #4caf50;
+    font-weight: bold;
+  }
+  .btn-try:hover {
+    background: #388e3c;
+  }
+  .btn-copy {
+    background: #2196f3;
+    color: #fff;
+    border-color: #2196f3;
+  }
+  .btn-copy:hover {
+    background: #1976d2;
+  }
+  .btn-share {
+    background: #1da1f2;
+    color: #fff;
+    border-color: #1da1f2;
+  }
+  .btn-share:hover {
+    background: #0d8de8;
+  }
+  .btn-observation {
+    background: #ab47bc;
+    color: #fff;
+    border-color: #ab47bc;
+    font-weight: bold;
+  }
+  .btn-observation:hover {
+    background: #8e24aa;
+    color: #fff;
+  }
+
+  .observation-content {
+    padding: 1.5rem;
+    line-height: 1.8;
+  }
+  .observation-content h2, .observation-content h3, .observation-content h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .observation-content h3 {
+    font-size: 1.1rem;
+    color: #333;
+  }
+  .observation-content h4 {
+    font-size: 1rem;
+    color: #555;
+  }
+  .observation-content pre {
+    background: #1a1a1a;
+    color: #0f0;
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+  .observation-content code {
+    background: #f0f0f0;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.9em;
+  }
+  .observation-content pre code {
+    background: transparent;
+    padding: 0;
+  }
+  .observation-content li {
+    margin-left: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .observation-images {
+    padding: 0 1.5rem 1.5rem;
+  }
+  .screenshot {
+    max-width: 100%;
+    border: 1px solid #ddd;
+    margin-top: 1rem;
+  }
+
+  .observation-footer {
+    padding: 1rem 1.5rem;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+    text-align: right;
+  }
+  .back-top {
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  .back-home {
+    margin-top: 2rem;
+  }
+
+  .copy-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #4caf50;
+    color: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    animation: slideIn 0.3s ease;
+    z-index: 1000;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+</style>
+
+<script>
+  function copyObservation(btn) {
+    const content = btn.dataset.content;
+    navigator.clipboard.writeText(content).then(() => {
+      const toast = document.createElement('div');
+      toast.className = 'copy-toast';
+      toast.textContent = '✅ Observation copied to clipboard!';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }).catch(() => {
+      alert('Failed to copy. Please try again.');
+    });
+  }
+
+  window.copyObservation = copyObservation;
+</script>
