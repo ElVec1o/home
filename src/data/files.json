@@ -99,6 +99,16 @@
     "date": "2026-02-03"
   },
   {
+    "id": "claude-number-bias-dashboard",
+    "name": "Claude Sonnet 4.5 Number Bias Research",
+    "type": "document",
+    "description": "Interactive research dashboard documenting systematic number bias in Claude Sonnet 4.5 — positional bias, magnitude anchoring, cultural numerology preferences, and RLHF-induced distributional skew across 847 trials.",
+    "filename": "claude-number-bias-dashboard.html",
+    "viewerUrl": "claude-number-bias-dashboard.html",
+    "size": "~45 KB",
+    "date": "2026-01-28"
+  },
+  {
     "id": "kimi-k25-system-prompt",
     "name": "Kimi K2.5 System Prompt",
     "type": "document",

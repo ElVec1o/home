@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Number Bias Research</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08090d;--surface:#0f1117;--surface2:#161820;--surface3:#1d1f2a;
+  --border:#252838;--border2:#323650;
+  --text:#e4e6f0;--text2:#9499b3;--text3:#5c6280;
+  --accent:#ff6b35;--accent2:#ff9966;--accent3:#ffd166;
+  --hot:#ff3b5c;--warm:#ff6b35;--cool:#4cc9f0;--cold:#7b61ff;
+  --green:#06d6a0;--red:#ef476f;
+}
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* Grain overlay */
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9999;opacity:0.4}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* Layout */
+.container{max-width:1400px;margin:0 auto;padding:2rem 2rem 4rem}
+
+/* Header */
+.header{text-align:center;padding:3rem 0 2rem;position:relative}
+.header::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.header h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;
+  background:linear-gradient(135deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .subtitle{color:var(--text2);margin-top:0.5rem;font-size:0.95rem;font-weight:400}
+.header .model-badge{display:inline-block;margin-top:1rem;padding:0.3rem 1rem;border-radius:100px;
+  background:var(--surface2);border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--accent2)}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:2.5rem 0}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.4rem;
+  position:relative;overflow:hidden;transition:border-color 0.3s}
+.stat-card:hover{border-color:var(--border2)}
+.stat-card .label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);font-weight:600}
+.stat-card .value{font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:700;margin-top:0.3rem;
+  background:linear-gradient(135deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-card .detail{font-size:0.72rem;color:var(--text3);margin-top:0.2rem}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent3))}
+
+/* Section */
+.section{margin:2.5rem 0}
+.section-title{font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.6rem}
+.section-title .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+/* Heatmap */
+.heatmap-container{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;overflow-x:auto}
+.heatmap{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;max-width:800px;margin:0 auto}
+.heat-cell{aspect-ratio:1;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.2s;position:relative;min-width:50px}
+.heat-cell:hover{transform:scale(1.15);z-index:2;box-shadow:0 0 20px rgba(255,107,53,0.3)}
+.heat-cell .num{font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:600;line-height:1}
+.heat-cell .cnt{font-family:'JetBrains Mono',monospace;font-size:0.55rem;opacity:0.7;margin-top:2px}
+.heat-cell.zero{background:var(--surface2);opacity:0.3}
+.heat-cell.zero .num{color:var(--text3)}
+
+/* Bar chart */
+.bar-chart{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem}
+.bar-row{display:flex;align-items:center;gap:0.8rem;margin-bottom:6px}
+.bar-label{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text2);width:32px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:24px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width 0.8s cubic-bezier(0.22,1,0.36,1);position:relative;
+  display:flex;align-items:center;padding-left:8px}
+.bar-fill span{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:rgba(255,255,255,0.9);white-space:nowrap}
+.bar-pct{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text3);width:48px;text-align:right;flex-shrink:0}
+
+/* Round analysis */
+.rounds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.round-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem;transition:border-color 0.3s}
+.round-card:hover{border-color:var(--border2)}
+.round-card .round-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem}
+.round-card .round-num{font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:600;color:var(--accent2)}
+.round-card .round-unique{font-size:0.7rem;color:var(--text3)}
+.round-card .top-picks{display:flex;gap:0.5rem}
+.round-pick{display:flex;align-items:center;gap:0.3rem;padding:0.3rem 0.6rem;border-radius:6px;background:var(--surface2);border:1px solid var(--border)}
+.round-pick .pick-num{font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:600;color:var(--text)}
+.round-pick .pick-pct{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--text3)}
+.round-pick:first-child{background:rgba(255,107,53,0.1);border-color:rgba(255,107,53,0.3)}
+.round-pick:first-child .pick-num{color:var(--accent)}
+
+/* File list */
+.files-table{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.files-table table{width:100%;border-collapse:collapse}
+.files-table th{text-align:left;padding:0.8rem 1rem;font-size:0.7rem;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border);background:var(--surface2)}
+.files-table td{padding:0.7rem 1rem;font-size:0.8rem;border-bottom:1px solid var(--border);color:var(--text2)}
+.files-table tr:last-child td{border-bottom:none}
+.files-table tr:hover td{background:var(--surface2)}
+.files-table .mono-cell{font-family:'JetBrains Mono',monospace;font-size:0.72rem}
+.type-badge{display:inline-block;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.65rem;font-weight:600}
+.type-badge.meta{background:rgba(123,97,255,0.15);color:var(--cold)}
+.type-badge.single{background:rgba(76,201,240,0.15);color:var(--cool)}
+
+/* Never picked */
+.never-grid{display:flex;flex-wrap:wrap;gap:6px;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.never-num{font-family:'JetBrains Mono',monospace;font-size:0.72rem;padding:0.3rem 0.6rem;
+  border-radius:4px;background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;margin-bottom:1.5rem;background:var(--surface);border-radius:10px;padding:3px;
+  border:1px solid var(--border);width:fit-content}
+.tab{padding:0.5rem 1.2rem;border-radius:8px;font-size:0.8rem;font-weight:500;color:var(--text3);
+  cursor:pointer;transition:all 0.2s;border:none;background:none}
+.tab:hover{color:var(--text2)}
+.tab.active{background:var(--surface3);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+
+/* Insights */
+.insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem}
+.insight-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem;
+  border-left:3px solid var(--accent)}
+.insight-card h4{font-size:0.85rem;font-weight:600;color:var(--accent2);margin-bottom:0.5rem}
+.insight-card p{font-size:0.8rem;color:var(--text2);line-height:1.6}
+.insight-card .highlight{color:var(--accent);font-weight:600;font-family:'JetBrains Mono',monospace}
+
+/* Tooltip */
+.tooltip{position:fixed;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;
+  padding:0.6rem 0.9rem;pointer-events:none;z-index:100;font-size:0.75rem;color:var(--text);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);opacity:0;transition:opacity 0.15s}
+.tooltip.visible{opacity:1}
+.tooltip .t-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.1rem;color:var(--accent)}
+.tooltip .t-count{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text2);margin-top:2px}
+
+/* Entropy bar */
+.entropy-bar{width:100%;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-top:0.5rem}
+.entropy-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--accent3),var(--hot))}
+
+/* Responsive */
+@media(max-width:768px){
+  .container{padding:1rem}
+  .header h1{font-size:1.6rem}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .heatmap{grid-template-columns:repeat(10,1fr)}
+  .heat-cell{min-width:30px}
+  .heat-cell .num{font-size:0.6rem}
+  .heat-cell .cnt{display:none}
+  .rounds-grid{grid-template-columns:1fr}
+  .files-table{overflow-x:auto}
+  .tabs{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<div class="tooltip" id="tooltip">
+  <div class="t-num"></div>
+  <div class="t-count"></div>
+</div>
+
+<div class="container">
+  <header class="header">
+    <h1>Claude Number Bias Research</h1>
+    <p class="subtitle">Systematic analysis of randomness bias across 7,695 trials</p>
+    <div class="model-badge">claude-sonnet-4-5-20250929</div>
+  </header>
+
+  <div class="stats-row" id="stats-row"></div>
+
+  <div class="section">
+    <div class="section-title"><span class="dot"></span>Key Findings</div>
+    <div class="insights" id="insights"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="dot"></span>Number Distribution Heatmap <span style="font-size:0.72rem;color:var(--text3);font-weight:400;margin-left:auto">0–100</span></div>
+    <div class="heatmap-container">
+      <div class="heatmap" id="heatmap"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="dot"></span>Top 20 Most Selected Numbers</div>
+    <div class="bar-chart" id="bar-chart"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="dot"></span>Per-Round Bias Analysis</div>
+    <p style="font-size:0.78rem;color:var(--text3);margin-bottom:1rem">Each experiment runs 10 rounds of 10 trials. Previous winning numbers are excluded in subsequent rounds.</p>
+    <div class="rounds-grid" id="rounds-grid"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="dot"></span>Numbers Never Selected <span class="mono" style="font-size:0.72rem;color:var(--text3);font-weight:400;margin-left:0.5rem" id="never-count"></span></div>
+    <div class="never-grid" id="never-grid"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="dot"></span>Dataset Files</div>
+    <div class="files-table" id="files-table"></div>
+  </div>
+</div>
+
+<script>
+const DATA = {"totalTrials":7695,"uniqueNumbers":53,"totalFiles":20,"distribution":[{"number":0,"count":0},{"number":1,"count":0},{"number":2,"count":0},{"number":3,"count":0},{"number":4,"count":0},{"number":5,"count":0},{"number":6,"count":0},{"number":7,"count":2},{"number":8,"count":0},{"number":9,"count":0},{"number":10,"count":0},{"number":11,"count":0},{"number":12,"count":0},{"number":13,"count":0},{"number":14,"count":3},{"number":15,"count":10},{"number":16,"count":63},{"number":17,"count":190},{"number":18,"count":22},{"number":19,"count":141},{"number":20,"count":0},{"number":21,"count":0},{"number":22,"count":0},{"number":23,"count":226},{"number":24,"count":13},{"number":25,"count":4},{"number":26,"count":5},{"number":27,"count":46},{"number":28,"count":720},{"number":29,"count":141},{"number":30,"count":0},{"number":31,"count":74},{"number":32,"count":0},{"number":33,"count":1},{"number":34,"count":315},{"number":35,"count":25},{"number":36,"count":14},{"number":37,"count":112},{"number":38,"count":8},{"number":39,"count":100},{"number":40,"count":0},{"number":41,"count":6},{"number":42,"count":763},{"number":43,"count":0},{"number":44,"count":0},{"number":45,"count":2},{"number":46,"count":0},{"number":47,"count":505},{"number":48,"count":0},{"number":49,"count":1},{"number":50,"count":0},{"number":51,"count":376},{"number":52,"count":46},{"number":53,"count":10},{"number":54,"count":180},{"number":55,"count":113},{"number":56,"count":394},{"number":57,"count":48},{"number":58,"count":23},{"number":59,"count":12},{"number":60,"count":0},{"number":61,"count":77},{"number":62,"count":268},{"number":63,"count":321},{"number":64,"count":50},{"number":65,"count":0},{"number":66,"count":0},{"number":67,"count":658},{"number":68,"count":10},{"number":69,"count":0},{"number":70,"count":0},{"number":71,"count":0},{"number":72,"count":0},{"number":73,"count":744},{"number":74,"count":0},{"number":75,"count":0},{"number":76,"count":9},{"number":77,"count":0},{"number":78,"count":0},{"number":79,"count":0},{"number":80,"count":0},{"number":81,"count":95},{"number":82,"count":95},{"number":83,"count":93},{"number":84,"count":78},{"number":85,"count":33},{"number":86,"count":0},{"number":87,"count":12},{"number":88,"count":1},{"number":89,"count":426},{"number":90,"count":0},{"number":91,"count":11},{"number":92,"count":0},{"number":93,"count":0},{"number":94,"count":0},{"number":95,"count":0},{"number":96,"count":0},{"number":97,"count":0},{"number":98,"count":0},{"number":99,"count":0},{"number":100,"count":0}],"roundStats":[{"round":1,"totalTrials":769,"uniqueNumbers":2,"top3":[{"number":47,"count":480},{"number":42,"count":289}],"mean":45.1},{"round":2,"totalTrials":770,"uniqueNumbers":3,"top3":[{"number":73,"count":736},{"number":67,"count":21},{"number":23,"count":13}],"mean":72.0},{"round":3,"totalTrials":769,"uniqueNumbers":12,"top3":[{"number":62,"count":209},{"number":67,"count":206},{"number":42,"count":148}],"mean":53.8},{"round":4,"totalTrials":769,"uniqueNumbers":15,"top3":[{"number":28,"count":459},{"number":67,"count":144},{"number":62,"count":43}],"mean":38.7},{"round":5,"totalTrials":769,"uniqueNumbers":23,"top3":[{"number":51,"count":240},{"number":28,"count":195},{"number":34,"count":68}],"mean":44.8},{"round":6,"totalTrials":770,"uniqueNumbers":27,"top3":[{"number":56,"count":167},{"number":89,"count":115},{"number":51,"count":104}],"mean":54.4},{"round":7,"totalTrials":769,"uniqueNumbers":28,"top3":[{"number":89,"count":243},{"number":37,"count":104},{"number":81,"count":63}],"mean":63.7},{"round":8,"totalTrials":770,"uniqueNumbers":30,"top3":[{"number":42,"count":249},{"number":54,"count":101},{"number":56,"count":81}],"mean":51.4},{"round":9,"totalTrials":770,"uniqueNumbers":36,"top3":[{"number":67,"count":223},{"number":63,"count":99},{"number":17,"count":66}],"mean":50.6},{"round":10,"totalTrials":770,"uniqueNumbers":35,"top3":[{"number":63,"count":204},{"number":23,"count":133},{"number":56,"count":72}],"mean":44.9}],"datasets":[{"file":"ClaudeBiasResearch_1769972324291.xml","type":"MetaResearch","id":"1769972324291","startTime":"2026-02-01T18:58:44.291Z","endTime":"2026-02-01T19:06:56.171Z","trialCount":100,"totalCalls":100,"numRuns":1,"entropy":{"global":4.0702,"max":6.6582,"ratio":"61.13%","interpretation":"Strong bias detected"},"chiSquare":{"value":604.98,"df":100,"pValue":"0.000000","interpretation":"Significant deviation from uniform (p ≤ 0.05)"},"patterns":{"primeBias":"37.4%","luckyBias":"13.6%","edgeBias":"-96.8%"}},{"file":"ClaudeBiasResearch_1769972900308.xml","type":"MetaResearch","id":"1769972900308","startTime":"2026-02-01T19:08:20.308Z","endTime":"2026-02-01T21:54:21.018Z","trialCount":1997,"totalCalls":2000,"numRuns":20,"entropy":{"global":4.5904,"max":6.6582,"ratio":"68.94%","interpretation":"Strong bias detected"},"chiSquare":{"value":9218.36,"df":100,"pValue":"0.000000","interpretation":"Significant deviation from uniform (p ≤ 0.05)"},"patterns":{"primeBias":"87.1%","luckyBias":"54.0%","edgeBias":"-77.0%"}},{"file":"ClaudeBiasResearch_1769997729531.xml","type":"MetaResearch","id":"1769997729531","startTime":"2026-02-02T02:02:09.531Z","endTime":"2026-02-02T04:42:44.210Z","trialCount":1998,"totalCalls":2000,"numRuns":20,"entropy":{"global":4.5334,"max":6.6582,"ratio":"68.09%","interpretation":"Strong bias detected"},"chiSquare":{"value":9731.01,"df":100,"pValue":"0.000000","interpretation":"Significant deviation from uniform (p ≤ 0.05)"},"patterns":{"primeBias":"73.9%","luckyBias":"43.9%","edgeBias":"-81.5%"}},{"file":"ClaudeBiasResearch_1770007981539.xml","type":"MetaResearch","id":"1770007981539","startTime":"2026-02-02T04:53:01.539Z","endTime":"2026-02-02T07:36:02.566Z","trialCount":2000,"totalCalls":2000,"numRuns":20,"entropy":{"global":4.482,"max":6.6582,"ratio":"67.32%","interpretation":"Strong bias detected"},"chiSquare":{"value":10044.15,"df":100,"pValue":"0.000000","interpretation":"Significant deviation from uniform (p ≤ 0.05)"},"patterns":{"primeBias":"80.2%","luckyBias":"88.1%","edgeBias":"-80.9%"}},{"file":"ClaudeBiasResearch_2026-02-01T15-21-45-006Z.xml","type":"Research","id":"1769959305006","startTime":"2026-02-01T15:21:45.006Z","endTime":"2026-02-01T15:30:44.398Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T15-32-32-025Z.xml","type":"Research","id":"1769959952025","startTime":"2026-02-01T15:32:32.025Z","endTime":"2026-02-01T15:39:48.978Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T15-40-20-127Z.xml","type":"Research","id":"1769960420127","startTime":"2026-02-01T15:40:20.127Z","endTime":"2026-02-01T15:47:40.645Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T15-48-05-562Z.xml","type":"Research","id":"1769960885562","startTime":"2026-02-01T15:48:05.562Z","endTime":"2026-02-01T15:54:36.162Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T15-57-19-265Z.xml","type":"Research","id":"1769961439265","startTime":"2026-02-01T15:57:19.265Z","endTime":"2026-02-01T16:03:03.849Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T16-03-38-919Z.xml","type":"Research","id":"1769961818919","startTime":"2026-02-01T16:03:38.919Z","endTime":"2026-02-01T16:09:16.052Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T16-23-50-070Z.xml","type":"Research","id":"1769963030070","startTime":"2026-02-01T16:23:50.070Z","endTime":"2026-02-01T16:29:24.099Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T16-29-45-914Z.xml","type":"Research","id":"1769963385914","startTime":"2026-02-01T16:29:45.914Z","endTime":"2026-02-01T16:35:20.152Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T16-37-04-209Z.xml","type":"Research","id":"1769963824209","startTime":"2026-02-01T16:37:04.209Z","endTime":"2026-02-01T16:42:35.980Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T16-42-53-662Z.xml","type":"Research","id":"1769964173662","startTime":"2026-02-01T16:42:53.662Z","endTime":"2026-02-01T16:48:30.303Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T16-48-54-964Z.xml","type":"Research","id":"1769964534964","startTime":"2026-02-01T16:48:54.964Z","endTime":"2026-02-01T16:54:45.422Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T16-55-14-367Z.xml","type":"Research","id":"1769964914367","startTime":"2026-02-01T16:55:14.367Z","endTime":"2026-02-01T17:00:46.571Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T17-01-07-076Z.xml","type":"Research","id":"1769965267076","startTime":"2026-02-01T17:01:07.076Z","endTime":"2026-02-01T17:06:49.788Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T17-07-15-295Z.xml","type":"Research","id":"1769965635295","startTime":"2026-02-01T17:07:15.295Z","endTime":"2026-02-01T17:12:49.945Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T17-31-50-988Z.xml","type":"Research","id":"1769967110988","startTime":"2026-02-01T17:31:50.988Z","endTime":"2026-02-01T17:37:30.349Z","trialCount":100,"totalCalls":100,"numRuns":1},{"file":"ClaudeBiasResearch_2026-02-01T17-41-19-503Z.xml","type":"Research","id":"1769967679503","startTime":"2026-02-01T17:41:19.503Z","endTime":"2026-02-01T17:47:01.753Z","trialCount":100,"totalCalls":100,"numRuns":1}],"top20":[{"number":42,"count":763},{"number":73,"count":744},{"number":28,"count":720},{"number":67,"count":658},{"number":47,"count":505},{"number":89,"count":426},{"number":56,"count":394},{"number":51,"count":376},{"number":63,"count":321},{"number":34,"count":315},{"number":62,"count":268},{"number":23,"count":226},{"number":17,"count":190},{"number":54,"count":180},{"number":29,"count":141},{"number":19,"count":141},{"number":55,"count":113},{"number":37,"count":112},{"number":39,"count":100},{"number":82,"count":95}],"neverPicked":[0,1,2,3,4,5,6,8,9,10,11,12,13,20,21,22,30,32,40,43,44,46,48,50,60,65,66,69,70,71,72,74,75,77,78,79,80,86,90,92,93,94,95,96,97,98,99,100],"latencyStats":{"mean":2368,"min":1447,"max":15199,"median":2207}};
+
+// Color scale for heatmap
+function heatColor(count, max) {
+  if (count === 0) return null;
+  const t = count / max;
+  if (t < 0.05) return { bg: 'rgba(76,201,240,0.15)', text: '#4cc9f0' };
+  if (t < 0.15) return { bg: 'rgba(76,201,240,0.3)', text: '#4cc9f0' };
+  if (t < 0.3) return { bg: 'rgba(255,209,102,0.25)', text: '#ffd166' };
+  if (t < 0.5) return { bg: 'rgba(255,153,102,0.35)', text: '#ff9966' };
+  if (t < 0.7) return { bg: 'rgba(255,107,53,0.5)', text: '#ff6b35' };
+  return { bg: 'rgba(255,59,92,0.55)', text: '#ff3b5c' };
+}
+
+function barGradient(rank) {
+  const gradients = [
+    'linear-gradient(90deg,#ff3b5c,#ff6b35)',
+    'linear-gradient(90deg,#ff6b35,#ff9966)',
+    'linear-gradient(90deg,#ff9966,#ffd166)',
+    'linear-gradient(90deg,#ffd166,#06d6a0)',
+    'linear-gradient(90deg,#4cc9f0,#7b61ff)',
+  ];
+  if (rank < 4) return gradients[0];
+  if (rank < 8) return gradients[1];
+  if (rank < 12) return gradients[2];
+  if (rank < 16) return gradients[3];
+  return gradients[4];
+}
+
+// Stats row
+const maxCount = Math.max(...DATA.distribution.map(d => d.count));
+const expectedPer = DATA.totalTrials / 101;
+const topBiasRatio = (maxCount / expectedPer).toFixed(0);
+
+document.getElementById('stats-row').innerHTML = [
+  { label: 'Total Trials', value: DATA.totalTrials.toLocaleString(), detail: '20 experiment files' },
+  { label: 'Unique Numbers', value: `${DATA.uniqueNumbers}/101`, detail: `${DATA.neverPicked.length} never picked` },
+  { label: 'Top Number', value: '42', detail: `${DATA.top20[0].count} picks (${(DATA.top20[0].count/DATA.totalTrials*100).toFixed(1)}%)` },
+  { label: 'Max Bias Ratio', value: `${topBiasRatio}×`, detail: `vs ${expectedPer.toFixed(1)} expected uniform` },
+  { label: 'Entropy Ratio', value: '67.3%', detail: 'Strong bias (100% = uniform)' },
+  { label: 'χ² p-value', value: '< 10⁻⁹⁹', detail: 'Extreme deviation from uniform' },
+].map(s => `
+  <div class="stat-card">
+    <div class="label">${s.label}</div>
+    <div class="value">${s.value}</div>
+    <div class="detail">${s.detail}</div>
+  </div>
+`).join('');
+
+// Insights
+document.getElementById('insights').innerHTML = [
+  {
+    title: 'The "Answer to Everything" Dominates',
+    text: `Number <span class="highlight">42</span> — the famous "answer to life, the universe, and everything" — was selected <span class="highlight">763 times</span> (9.9% of all trials). In a truly uniform distribution, each number would appear ~76 times. This represents a <span class="highlight">10× overrepresentation</span>.`
+  },
+  {
+    title: 'Round 1 Is Almost Deterministic',
+    text: `In round 1, Claude picks <span class="highlight">only 2 distinct numbers</span>: 47 (62.4%) and 42 (37.6%). By round 2, it overwhelmingly picks <span class="highlight">73</span> (95.6%). The model has an almost fixed "first instinct" sequence.`
+  },
+  {
+    title: 'Half the Number Line Is Invisible',
+    text: `<span class="highlight">48 numbers</span> (47.5% of the range) were never selected across 7,695 trials. These include all numbers 0–6, all 90s except 89/91, and all round numbers (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100).`
+  },
+  {
+    title: 'Strong Edge Avoidance',
+    text: `Numbers near the boundaries (0–6, 94–100) are almost completely avoided, showing a <span class="highlight">−80% to −97% edge bias</span>. The model has a strong "middle of the range" preference.`
+  },
+].map(i => `
+  <div class="insight-card">
+    <h4>${i.title}</h4>
+    <p>${i.text}</p>
+  </div>
+`).join('');
+
+// Heatmap
+const tooltip = document.getElementById('tooltip');
+const heatmapEl = document.getElementById('heatmap');
+// We'll show numbers 0-99 in a 10x10 grid, plus 100 at the end
+let heatHTML = '';
+for (let row = 0; row < 10; row++) {
+  for (let col = 0; col < 10; col++) {
+    const num = row * 10 + col;
+    const d = DATA.distribution[num];
+    const c = d.count;
+    const color = heatColor(c, maxCount);
+    const isZero = c === 0;
+    heatHTML += `<div class="heat-cell ${isZero ? 'zero' : ''}" 
+      style="${color ? `background:${color.bg};color:${color.text}` : ''}"
+      data-num="${num}" data-count="${c}">
+      <span class="num">${num}</span>
+      ${c > 0 ? `<span class="cnt">${c}</span>` : ''}
+    </div>`;
+  }
+}
+heatmapEl.innerHTML = heatHTML;
+
+// Tooltip on hover
+document.querySelectorAll('.heat-cell').forEach(cell => {
+  cell.addEventListener('mouseenter', e => {
+    const num = cell.dataset.num;
+    const count = cell.dataset.count;
+    const pct = (parseInt(count) / DATA.totalTrials * 100).toFixed(2);
+    tooltip.querySelector('.t-num').textContent = `#${num}`;
+    tooltip.querySelector('.t-count').textContent = count === '0' ? 'Never selected' : `${count} picks (${pct}%)`;
+    tooltip.classList.add('visible');
+  });
+  cell.addEventListener('mousemove', e => {
+    tooltip.style.left = e.clientX + 12 + 'px';
+    tooltip.style.top = e.clientY - 40 + 'px';
+  });
+  cell.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+});
+
+// Bar chart
+const barMax = DATA.top20[0].count;
+document.getElementById('bar-chart').innerHTML = DATA.top20.map((d, i) => {
+  const pct = (d.count / DATA.totalTrials * 100).toFixed(1);
+  const width = (d.count / barMax * 100).toFixed(1);
+  return `<div class="bar-row">
+    <span class="bar-label">${d.number}</span>
+    <div class="bar-track">
+      <div class="bar-fill" style="width:${width}%;background:${barGradient(i)}">
+        <span>${d.count}</span>
+      </div>
+    </div>
+    <span class="bar-pct">${pct}%</span>
+  </div>`;
+}).join('');
+
+// Rounds
+document.getElementById('rounds-grid').innerHTML = DATA.roundStats.map(r => {
+  const topPicks = r.top3.map((p, i) => {
+    const pct = (p.count / r.totalTrials * 100).toFixed(0);
+    return `<div class="round-pick"><span class="pick-num">${p.number}</span><span class="pick-pct">${pct}%</span></div>`;
+  }).join('');
+  return `<div class="round-card">
+    <div class="round-header">
+      <span class="round-num">Round ${r.round}</span>
+      <span class="round-unique">${r.uniqueNumbers} unique / ${r.totalTrials} trials</span>
+    </div>
+    <div class="top-picks">${topPicks}</div>
+  </div>`;
+}).join('');
+
+// Never picked
+document.getElementById('never-count').textContent = `${DATA.neverPicked.length} of 101`;
+document.getElementById('never-grid').innerHTML = DATA.neverPicked.map(n => 
+  `<span class="never-num">${n}</span>`
+).join('');
+
+// Files table
+function fmtTime(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+  } catch { return iso; }
+}
+document.getElementById('files-table').innerHTML = `<table>
+  <thead><tr><th>File</th><th>Type</th><th>Trials</th><th>Runs</th><th>Start</th><th>Entropy</th></tr></thead>
+  <tbody>${DATA.datasets.map(d => `<tr>
+    <td class="mono-cell" style="font-size:0.65rem;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.file}</td>
+    <td><span class="type-badge ${d.type === 'MetaResearch' ? 'meta' : 'single'}">${d.type === 'MetaResearch' ? 'META' : 'SINGLE'}</span></td>
+    <td class="mono-cell">${d.trialCount.toLocaleString()}</td>
+    <td class="mono-cell">${d.numRuns}</td>
+    <td class="mono-cell">${fmtTime(d.startTime)}</td>
+    <td class="mono-cell">${d.entropy ? d.entropy.ratio : '—'}</td>
+  </tr>`).join('')}</tbody>
+</table>`;
+
+// Animate bars on load
+setTimeout(() => {
+  document.querySelectorAll('.bar-fill').forEach(bar => {
+    const w = bar.style.width;
+    bar.style.width = '0%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { bar.style.width = w; });
+    });
+  });
+}, 100);
+</script>
+</body>
+</html>
