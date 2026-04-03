@@ -95,7 +95,6 @@ function renderProtected(text: string, id: string): string {
 
   <div class="tabs">
     <button class="tab" data-filter="all">All</button>
-    <button class="tab" data-filter="writeup">Writeups</button>
     <button class="tab" data-filter="post">Posts</button>
     <button class="tab" data-filter="xpost">X</button>
   </div>
@@ -392,10 +391,15 @@ function renderProtected(text: string, id: string): string {
   }
 
   // Initialize from localStorage or default to 'all'
+  // Also clear any stale 'writeup' filter saved from old tab layout
   function initTabs() {
     let savedFilter = 'all';
     try {
       savedFilter = localStorage.getItem(STORAGE_KEY) || 'all';
+      if (savedFilter === 'writeup') {
+        savedFilter = 'all'; // Writeups tab removed — reset to all
+        localStorage.setItem(STORAGE_KEY, 'all');
+      }
     } catch (e) {}
     applyFilter(savedFilter);
   }
