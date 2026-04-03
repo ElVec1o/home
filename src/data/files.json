@@ -99,6 +99,16 @@
     "date": "2026-02-03"
   },
   {
+    "id": "kimi-k25-system-prompt",
+    "name": "Kimi K2.5 System Prompt",
+    "type": "document",
+    "description": "Full system prompt for Kimi K2.5 (Moonshot AI) — extracted via self-justification loop. Reveals sandboxed ipython, 10-step agentic limits, internal paths, memory honesty rules, and anti-AI-slop aesthetic directives.",
+    "filename": "kimi-k25-system-prompt.txt",
+    "viewerUrl": "kimi-prompt-viewer.html",
+    "size": "~6 KB",
+    "date": "2026-01-28"
+  },
+  {
     "id": "opus-system-prompt",
     "name": "Claude Opus 4.6 System Prompt",
     "type": "document",
