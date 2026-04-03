@@ -17,6 +17,17 @@ const legacy = breaks.filter(b => !b.type && !b.tldr);
 // Get last 5 X posts for featured section
 const featuredXposts = xposts.slice(0, 5);
 
+// Build a numbered index for writeup/legacy entries only
+let writeupCounter = 0;
+const writeupNumbers = new Map();
+breaks.forEach((brk) => {
+  const entryType = brk.type || (brk.tldr ? 'writeup' : 'legacy');
+  if (entryType === 'writeup' || entryType === 'legacy') {
+    writeupCounter++;
+    writeupNumbers.set(brk.id, writeupCounter);
+  }
+});
+
 // Convert [[SPOILER]]text[[/SPOILER]] to HTML blur spans
 function renderSpoiler(text: string): string {
   if (!text) return '';
@@ -62,8 +73,8 @@ function renderProtected(text: string, id: string): string {
   return result;
 }
 ---
-<Base title="Posts — elvec1o">
-  <h1>Posts</h1>
+<Base title="Gray Swan Breaks — elvec1o">
+  <h1>Gray Swan Breaks</h1>
   <p>{breaks.length} entries</p>
 
   <!-- Featured X Posts -->
@@ -121,7 +132,7 @@ function renderProtected(text: string, id: string): string {
         {/* WRITEUP TYPE (new format) */}
         {entryType === 'writeup' && (
           <>
-            <h3>#{i + 1} — {brk.name} {brk.wip && <span class="wip-badge">WIP</span>}</h3>
+            <h3>#{writeupNumbers.get(brk.id)} — {brk.name} {brk.wip && <span class="wip-badge">WIP</span>}</h3>
             <p class="meta">{brk.category} · {brk.technique} · {brk.date}</p>
 
             {brk.tldr && (
@@ -168,7 +179,7 @@ function renderProtected(text: string, id: string): string {
         {/* LEGACY TYPE (old format) */}
         {entryType === 'legacy' && (
           <>
-            <h3>#{i + 1} — {brk.name}</h3>
+            <h3>#{writeupNumbers.get(brk.id)} — {brk.name}</h3>
             <p class="meta">{brk.category} · {brk.technique} · {brk.date}</p>
             <p><strong>Challenge:</strong> {brk.challenge}</p>
             <div class="insight">{brk.insight}</div>

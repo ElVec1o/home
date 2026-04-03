@@ -47,7 +47,7 @@ function renderMarkdown(text: string): string {
   <div class="observations-nav">
     <strong>Jump to:</strong>
     {observations.map((o, i) => (
-      <a href={`#${o.id}`} class="nav-link">#{o.priority} {o.title.substring(0, 25)}...</a>
+      <a href={`#${o.id}`} class="nav-link">#{o.priority + 1} {o.title.substring(0, 25)}...</a>
     ))}
   </div>
 
@@ -57,7 +57,7 @@ function renderMarkdown(text: string): string {
       <article class="observation" id={obs.id}>
         <header class="observation-header">
           <div class="observation-meta">
-            <span class="priority">#{obs.priority}</span>
+            <span class="priority">#{obs.priority + 1}</span>
             <span class="target">{obs.target}</span>
             <span class="technique">{obs.technique}</span>
             <span class="date">{obs.date}</span>

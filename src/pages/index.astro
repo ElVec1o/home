@@ -1,14 +1,18 @@
 ---
 import Base from '../layouts/Base.astro';
 import breaksData from '../data/breaks.json';
+import writeupsData from '../data/writeups.json';
+import observationsData from '../data/observations.json';
 import siteConfig from '../data/site-config.json';
 
-const totalBreaks = breaksData.length;
+const totalBreaks = breaksData.filter(b => b.visible !== false).length;
+const totalWriteups = writeupsData.length;
+const totalObservations = observationsData.length;
 const categories = [...new Set(breaksData.filter(b => b.category).map(b => b.category.split(' ')[1]))];
 const base = import.meta.env.BASE_URL;
 
 // Filter to only entries with name/technique for Recent Work display
-const recentWork = breaksData.filter(b => b.name && b.technique).slice(0, 3);
+const recentWork = breaksData.filter(b => b.name && b.technique && b.visible !== false).slice(0, 3);
 ---
 <Base title={siteConfig.title}>
   <h1>{siteConfig.title}</h1>
@@ -21,7 +25,7 @@ const recentWork = breaksData.filter(b => b.name && b.technique).slice(0, 3);
   <h2>Stats</h2>
   <p>
     1500+ jailbreaks on <a href="https://app.grayswan.ai/arena/leaderboard/global" target="_blank">Gray Swan Arena</a><br>
-    {totalBreaks} documented posts<br>
+    {totalBreaks} Gray Swan breaks · {totalWriteups} security writeups · {totalObservations} behavioural observations<br>
     {categories.length} technique categories
   </p>
 
@@ -32,7 +36,11 @@ const recentWork = breaksData.filter(b => b.name && b.technique).slice(0, 3);
       <span class="meta">{b.challenge}</span>
     </p>
   ))}
-  <p><a href={`${base}/posts/`}>→ View all posts</a></p>
+  <p>
+    <a href={`${base}/posts/breaks`}>→ Gray Swan Breaks</a> ·
+    <a href={`${base}/posts/writeups`}>→ Writeups</a> ·
+    <a href={`${base}/posts/observations`}>→ Observations</a>
+  </p>
 
   <h2>Links</h2>
   <p>
