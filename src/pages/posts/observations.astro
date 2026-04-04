@@ -5,27 +5,6 @@ import observationsData from '../../data/observations.json';
 const observations = observationsData.sort((a, b) => a.priority - b.priority);
 const base = import.meta.env.BASE_URL;
 
-// Map targets to their online URLs
-const tryLinks = {
-  'Claude (Anthropic)': 'https://claude.ai/new',
-  'Claude': 'https://claude.ai/new',
-  'Claude Artifacts (Anthropic)': 'https://claude.ai/new',
-  'Claude Sonnet 4.5 (Anthropic)': 'https://claude.ai/new',
-  'ChatGPT (OpenAI)': 'https://chat.openai.com/',
-  'ChatGPT': 'https://chat.openai.com/',
-  'ChatGPT Voice (OpenAI)': 'https://chat.openai.com/',
-  'GPT-4': 'https://chat.openai.com/',
-  'Gemini (Google)': 'https://gemini.google.com/',
-  'Gemini': 'https://gemini.google.com/',
-  'Grok (xAI)': 'https://grok.x.ai/',
-  'Grok': 'https://grok.x.ai/',
-  'Multiple': null,
-};
-
-function getTryLink(target: string): string | null {
-  return tryLinks[target] || null;
-}
-
 function renderMarkdown(text: string): string {
   if (!text) return '';
   return text
@@ -52,7 +31,6 @@ function renderMarkdown(text: string): string {
   </div>
 
   {observations.map((obs, i) => {
-    const tryLink = getTryLink(obs.target);
     return (
       <article class="observation" id={obs.id}>
         <header class="observation-header">
@@ -63,29 +41,20 @@ function renderMarkdown(text: string): string {
             <span class="date">{obs.date}</span>
           </div>
           <h2>{obs.title}</h2>
-          <div class="pub-value">{obs.pubValue}</div>
+          <span class="type-tag">{obs.pubValue}</span>
         </header>
 
         <div class="tldr">
           <strong>TL;DR:</strong> {obs.tldr}
         </div>
 
-        <div class="observation-actions">
-          {obs.url ? (
+        {obs.url && (
+          <div class="observation-actions">
             <a href={obs.url} target="_blank" class="btn btn-observation">
               👁 Full Writeup
             </a>
-          ) : (
-            <>
-              <button class="btn btn-copy" data-content={obs.content} onclick="copyObservation(this)">
-                📋 Copy Writeup
-              </button>
-              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this AI behavioural observation: ${obs.title} by @elvec10`)}&url=${encodeURIComponent(`https://elvec1o.github.io/home/posts/observations/#${obs.id}`)}`} target="_blank" class="btn btn-share">
-                🐦 Share
-              </a>
-            </>
-          )}
-        </div>
+          </div>
+        )}
 
         <div class="observation-content" set:html={renderMarkdown(obs.content)} />
 
@@ -172,9 +141,17 @@ function renderMarkdown(text: string): string {
   .target {
     background: #7c4dff !important;
   }
-  .pub-value {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
+  .type-tag {
+    display: inline-block;
+    margin-top: 0.6rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 0.2rem 0.7rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #fff;
   }
 
   .tldr {
@@ -216,22 +193,6 @@ function renderMarkdown(text: string): string {
   }
   .btn-try:hover {
     background: #388e3c;
-  }
-  .btn-copy {
-    background: #2196f3;
-    color: #fff;
-    border-color: #2196f3;
-  }
-  .btn-copy:hover {
-    background: #1976d2;
-  }
-  .btn-share {
-    background: #1da1f2;
-    color: #fff;
-    border-color: #1da1f2;
-  }
-  .btn-share:hover {
-    background: #0d8de8;
   }
   .btn-observation {
     background: #ab47bc;
@@ -305,36 +266,5 @@ function renderMarkdown(text: string): string {
     margin-top: 2rem;
   }
 
-  .copy-toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #4caf50;
-    color: #fff;
-    padding: 1rem 1.5rem;
-    border-radius: 4px;
-    animation: slideIn 0.3s ease;
-    z-index: 1000;
-  }
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
 </style>
 
-<script>
-  function copyObservation(btn) {
-    const content = btn.dataset.content;
-    navigator.clipboard.writeText(content).then(() => {
-      const toast = document.createElement('div');
-      toast.className = 'copy-toast';
-      toast.textContent = '✅ Observation copied to clipboard!';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 2000);
-    }).catch(() => {
-      alert('Failed to copy. Please try again.');
-    });
-  }
-
-  window.copyObservation = copyObservation;
-</script>

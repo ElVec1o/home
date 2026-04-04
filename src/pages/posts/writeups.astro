@@ -5,26 +5,6 @@ import writeupsData from '../../data/writeups.json';
 const writeups = writeupsData.sort((a, b) => a.priority - b.priority);
 const base = import.meta.env.BASE_URL;
 
-// Map targets to their online URLs
-const tryLinks = {
-  'Claude (Anthropic)': 'https://claude.ai/new',
-  'Claude': 'https://claude.ai/new',
-  'Claude Artifacts (Anthropic)': 'https://claude.ai/new',
-  'ChatGPT (OpenAI)': 'https://chat.openai.com/',
-  'ChatGPT': 'https://chat.openai.com/',
-  'ChatGPT Voice (OpenAI)': 'https://chat.openai.com/',
-  'GPT-4': 'https://chat.openai.com/',
-  'Gemini (Google)': 'https://gemini.google.com/',
-  'Gemini': 'https://gemini.google.com/',
-  'Grok (xAI)': 'https://grok.x.ai/',
-  'Grok': 'https://grok.x.ai/',
-  'Multiple': null, // No single link
-};
-
-function getTryLink(target: string): string | null {
-  return tryLinks[target] || null;
-}
-
 function renderMarkdown(text: string): string {
   if (!text) return '';
   // Basic markdown: headers, bold, code blocks, lists
@@ -52,7 +32,6 @@ function renderMarkdown(text: string): string {
   </div>
 
   {writeups.map((writeup, i) => {
-    const tryLink = getTryLink(writeup.target);
     return (
       <article class="writeup" id={writeup.id}>
         <header class="writeup-header">
@@ -63,29 +42,20 @@ function renderMarkdown(text: string): string {
             <span class="date">{writeup.date}</span>
           </div>
           <h2>{writeup.title}</h2>
-          <div class="pub-value">{writeup.pubValue}</div>
+          <span class="type-tag">{writeup.pubValue}</span>
         </header>
 
         <div class="tldr">
           <strong>TL;DR:</strong> {writeup.tldr}
         </div>
 
-        <div class="writeup-actions">
-          {writeup.url ? (
+        {writeup.url && (
+          <div class="writeup-actions">
             <a href={writeup.url} target="_blank" class="btn btn-writeup">
               👁 Full Writeup
             </a>
-          ) : (
-            <>
-              <button class="btn btn-copy" data-content={writeup.content} onclick="copyWriteup(this)">
-                📋 Copy Writeup
-              </button>
-              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this AI security writeup: ${writeup.title} by @elvec10`)}&url=${encodeURIComponent(`https://elvec1o.github.io/home/posts/writeups/#${writeup.id}`)}`} target="_blank" class="btn btn-share">
-                🐦 Share
-              </a>
-            </>
-          )}
-        </div>
+          </div>
+        )}
 
         <div class="writeup-content" set:html={renderMarkdown(writeup.content)} />
 
@@ -172,9 +142,17 @@ function renderMarkdown(text: string): string {
   .target {
     background: #2196f3 !important;
   }
-  .pub-value {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
+  .type-tag {
+    display: inline-block;
+    margin-top: 0.6rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 0.2rem 0.7rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #fff;
   }
 
   .tldr {
@@ -207,31 +185,6 @@ function renderMarkdown(text: string): string {
   }
   .btn:hover {
     background: #f5f5f5;
-  }
-  .btn-try {
-    background: #4caf50;
-    color: #fff;
-    border-color: #4caf50;
-    font-weight: bold;
-  }
-  .btn-try:hover {
-    background: #388e3c;
-  }
-  .btn-copy {
-    background: #2196f3;
-    color: #fff;
-    border-color: #2196f3;
-  }
-  .btn-copy:hover {
-    background: #1976d2;
-  }
-  .btn-share {
-    background: #1da1f2;
-    color: #fff;
-    border-color: #1da1f2;
-  }
-  .btn-share:hover {
-    background: #0d8de8;
   }
   .btn-writeup {
     background: #6366f1;
@@ -305,39 +258,5 @@ function renderMarkdown(text: string): string {
     margin-top: 2rem;
   }
 
-  /* Copied toast */
-  .copy-toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #4caf50;
-    color: #fff;
-    padding: 1rem 1.5rem;
-    border-radius: 4px;
-    animation: slideIn 0.3s ease;
-    z-index: 1000;
-  }
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
 </style>
 
-<script>
-  function copyWriteup(btn) {
-    const content = btn.dataset.content;
-    navigator.clipboard.writeText(content).then(() => {
-      // Show toast
-      const toast = document.createElement('div');
-      toast.className = 'copy-toast';
-      toast.textContent = '✅ Writeup copied to clipboard!';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 2000);
-    }).catch(() => {
-      alert('Failed to copy. Please try again.');
-    });
-  }
-
-  // Make global
-  window.copyWriteup = copyWriteup;
-</script>
