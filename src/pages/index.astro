@@ -11,8 +11,10 @@ const totalObservations = observationsData.length;
 const categories = [...new Set(breaksData.filter(b => b.category).map(b => b.category.split(' ')[1]))];
 const base = import.meta.env.BASE_URL;
 
-// Filter to only entries with name/technique for Recent Work display
-const recentWork = breaksData.filter(b => b.name && b.technique && b.visible !== false).slice(0, 3);
+// Top entry from each section for Recent Work
+const topWriteup = [...writeupsData].sort((a, b) => a.priority - b.priority)[0];
+const topObservation = [...observationsData].sort((a, b) => a.priority - b.priority)[0];
+const topBreak = breaksData.filter(b => b.name && b.technique && b.visible !== false)[0];
 
 // Get visible xposts with embedHtml for the X section
 const xposts = breaksData.filter(b => b.type === 'xpost' && b.visible !== false && b.embedHtml);
@@ -33,16 +35,31 @@ const xposts = breaksData.filter(b => b.type === 'xpost' && b.visible !== false 
   </p>
 
   <h2>Recent Work</h2>
-  {recentWork.map(b => (
+  {topWriteup && (
     <p>
-      <strong>{b.name}</strong> — {b.technique}<br>
-      <span class="meta">{b.challenge}</span>
+      <span class="type-tag">Writeup</span> <span class="pub-tag">{topWriteup.pubValue}</span><br>
+      <strong>{topWriteup.title}</strong><br>
+      <span class="meta">{topWriteup.target}</span>
     </p>
-  ))}
+  )}
+  {topObservation && (
+    <p>
+      <span class="type-tag">Observation</span> <span class="pub-tag">{topObservation.pubValue}</span><br>
+      <strong>{topObservation.title}</strong><br>
+      <span class="meta">{topObservation.target}</span>
+    </p>
+  )}
+  {topBreak && (
+    <p>
+      <span class="type-tag">Gray Swan</span><br>
+      <strong>{topBreak.name}</strong> — {topBreak.technique}<br>
+      <span class="meta">{topBreak.challenge}</span>
+    </p>
+  )}
   <p>
-    <a href={`${base}/posts/breaks`}>→ Gray Swan Breaks</a> ·
     <a href={`${base}/posts/writeups`}>→ Writeups</a> ·
-    <a href={`${base}/posts/observations`}>→ Observations</a>
+    <a href={`${base}/posts/observations`}>→ Observations</a> ·
+    <a href={`${base}/posts/breaks`}>→ Gray Swan Breaks</a>
   </p>
 
   <h2>Links</h2>
@@ -73,6 +90,29 @@ const xposts = breaksData.filter(b => b.type === 'xpost' && b.visible !== false 
 </Base>
 
 <style>
+  .type-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: #ccc;
+    margin-right: 0.3rem;
+  }
+  .pub-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid #444;
+    border-radius: 3px;
+    color: #999;
+  }
   .xpost-block {
     margin: 1rem 0 1.5rem;
   }
