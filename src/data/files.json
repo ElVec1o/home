@@ -20,12 +20,27 @@
     "date": "2026-02-14"
   },
   {
+    "id": "autobreak-deepseek",
+    "name": "Auto-Jailbroken — DeepSeek Case Study",
+    "type": "document",
+    "description": "Multi-turn self-directed exploitation of DeepSeek. The model planned its own attack, simulated its own jailbreak, then executed the simulation for real — producing functional malware, encyclopedic harmful content, and a persistent rootkit.",
+    "filename": "autobreak-deepseek-viewer.html",
+    "viewerUrl": "autobreak-deepseek-viewer.html",
+    "size": "~35 KB",
+    "date": "2026-04-05"
+  },
+  {
     "id": "peakform",
     "name": "Peakform",
     "type": "website",
     "description": "Fully functional productivity templates store with crypto checkout. Built with Claude. Sells spreadsheets, planners, and business tools - $9-$15 one-time payments via Bitcoin/BNB.",
     "url": "https://budgetpro-store.surge.sh/",
-    "screenshots": ["peakform-home.png", "peakform-products.png", "peakform-product.png", "peakform-checkout.png"],
+    "screenshots": [
+      "peakform-home.png",
+      "peakform-products.png",
+      "peakform-product.png",
+      "peakform-checkout.png"
+    ],
     "size": "Live site",
     "date": "2026-02-09",
     "vibe": true
@@ -40,7 +55,11 @@
     "date": "2026-01-29",
     "platform": "macOS",
     "vibe": true,
-    "screenshots": ["disk-analyzer-1.png", "disk-analyzer-2.png", "disk-analyzer-3.png"]
+    "screenshots": [
+      "disk-analyzer-1.png",
+      "disk-analyzer-2.png",
+      "disk-analyzer-3.png"
+    ]
   },
   {
     "id": "type-explorer",
@@ -52,7 +71,13 @@
     "date": "2026-01-29",
     "platform": "macOS",
     "vibe": true,
-    "screenshots": ["type-explorer-1.png", "type-explorer-2.png", "type-explorer-3.png", "type-explorer-4.png", "type-explorer-5.png"]
+    "screenshots": [
+      "type-explorer-1.png",
+      "type-explorer-2.png",
+      "type-explorer-3.png",
+      "type-explorer-4.png",
+      "type-explorer-5.png"
+    ]
   },
   {
     "id": "ebook-reader",
