@@ -162,5 +162,15 @@
     "viewerUrl": "sonnet-prompt-diff.html",
     "size": "~30 KB",
     "date": "2026-03-20"
+  },
+  {
+    "id": "opus-prompt-diff",
+    "name": "Claude Opus 4.7 System Prompt — Diff",
+    "type": "document",
+    "description": "Annotated diff of Claude system prompt changes across the Sonnet 4.6 → Opus 4.7 model family transition (Mar 20 → Apr 17, 2026). 17 sections added, 2 removed. New model identity, search-first directive, user preferences/settings system, and prompt reorganisation.",
+    "filename": "opus-prompt-diff.html",
+    "viewerUrl": "opus-prompt-diff.html",
+    "size": "~35 KB",
+    "date": "2026-04-17"
   }
 ]
