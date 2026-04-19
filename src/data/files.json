@@ -30,6 +30,16 @@
     "date": "2026-04-05"
   },
   {
+    "id": "kimi-k25-gradable-laundering",
+    "name": "Gradable Self-Indictment — Kimi K2.5 Case Study",
+    "type": "document",
+    "description": "Eight-turn jailbreak of Kimi K2.5 via A/B comparison as content laundering. Gradable self-criticism converts the model into both subject and grader, producing encyclopedic harmful content under cover of analysis.",
+    "filename": "kimi-k25-gradable-laundering-viewer.html",
+    "viewerUrl": "kimi-k25-gradable-laundering-viewer.html",
+    "size": "~25 KB",
+    "date": "2026-04-19"
+  },
+  {
     "id": "peakform",
     "name": "Peakform",
     "type": "website",
