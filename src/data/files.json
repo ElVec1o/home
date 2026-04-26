@@ -174,6 +174,16 @@
     "date": "2026-03-20"
   },
   {
+    "id": "deepseek-v4-thinking-block",
+    "name": "DeepSeek V4 Thinking Block Leakage — Full Writeup",
+    "type": "document",
+    "description": "Single-turn system prompt extraction via visible thinking block leakage, followed by negative-example social engineering that produced functional explosives synthesis instructions. Includes injected thinking-tag format mimicry and DeepSeek's own self-diagnosis of the jailbreak.",
+    "filename": "deepseek-v4-thinking-block-viewer.html",
+    "viewerUrl": "deepseek-v4-thinking-block-viewer.html",
+    "size": "~30 KB",
+    "date": "2026-04-27"
+  },
+  {
     "id": "meta-ai-indirect-prompt-injection",
     "name": "Meta AI Indirect Prompt Injection — Full Report",
     "type": "document",
