@@ -174,6 +174,16 @@
     "date": "2026-03-20"
   },
   {
+    "id": "pre-production-skills",
+    "name": "Pre-Production Concierge Skills — Full Observation",
+    "type": "document",
+    "description": "Twelve undocumented concierge skills (phone-call booking, prescription refills, expense filing, grocery delivery, etc.) found on every Claude.ai container filesystem but absent from all public documentation and repos. Includes undocumented Tier 1/2/3 destructive-action classification system.",
+    "filename": "pre-production-skills-viewer.html",
+    "viewerUrl": "pre-production-skills-viewer.html",
+    "size": "~30 KB",
+    "date": "2026-04-28"
+  },
+  {
     "id": "deepseek-v4-thinking-block",
     "name": "DeepSeek V4 Thinking Block Leakage — Full Writeup",
     "type": "document",

@@ -12,8 +12,21 @@
     "priority": 0
   },
   {
-    "id": "claude-artifacts-escape",
+    "id": "pre-production-concierge-skills",
     "priority": 1,
+    "target": "Claude Opus 4.7 (Anthropic)",
+    "title": "Pre-Production Concierge Skill Library on Live Containers",
+    "technique": "Filesystem Inventory + Public-Repo Cross-Check",
+    "date": "2026-04-28",
+    "pubValue": "Architectural",
+    "tldr": "Every Claude.ai computer-use container ships with /mnt/skills/examples/ containing 22 SKILL.md files. Ten match the public anthropics/skills repository on GitHub. The remaining twelve do not appear in the public repo, on claude.com/skills, in docs.claude.com, in support.claude.com, or in any third-party catalog or web search. They form a coherent product surface — a real-world-action concierge stack — including phone-call booking, prescription refills, subscription cancellations, expense submission via Benepass/Brex/Concur/Expensify, TaskRabbit hiring, grocery delivery, and DMV form filing. The skills also reference an undocumented Tier 1 / Tier 2 / Tier 3 destructive-action classification system used to gate \"plan-confirm required\" behaviour.",
+    "content": "## Background\n\nThis observation extends the architectural mapping done in the LINT writeup (#1) and the System Prompt Transparency Audit (#7). Both established that Claude's container surface contains substantially more than what is presented to the user or documented publicly. This finding documents a specific case: a product category that is staged on the filesystem of every paying user's container but has no public presence whatsoever as of 2026-04-28.\n\nThe discovery was incidental — the /mnt/skills/examples/ directory was inventoried during an unrelated tool-surface audit. The names of the skills were unfamiliar. A check against the public repo found 12 of 22 missing. Web searches across multiple search axes returned zero matches for any of the 12.\n\n## Methodology\n\nThe verification was done in three layers. Layer 1: Filesystem inventory — ls /mnt/skills/examples/ from inside a Claude.ai computer-use session enumerates 22 skill directories (and their corresponding .skill zip archives). Each contains a SKILL.md with YAML frontmatter and prose instructions. Layer 2: Public-repo cross-check — for each of the 22 skill names, three candidate paths in the public anthropics/skills GitHub repo were probed via raw.githubusercontent.com: skills/<name>/SKILL.md, template/<name>/SKILL.md, and examples/<name>/SKILL.md. Ten skills resolved to HTTP 200 in the skills/ path. Twelve returned 404 across all three paths. Layer 3: Web-search verification — each of the 12 missing skills was searched against Anthropic's official surfaces (docs.claude.com, support.claude.com, claude.com/skills), the Anthropic engineering blog, third-party skill catalogs (claudecn.com, claudeworld.com), and general web results. Zero relevant matches across all queries.\n\n## The Twelve\n\nThe undocumented skills, with one-line summaries extracted from their YAML descriptions: benepass-reimbursement (submits expense reimbursements through Benepass using browser automation and Gmail integration), call-to-book (makes outbound phone calls to book appointments, discloses AI identity, navigates IVR), cancel-unsubscribe (cancels subscriptions or unsubscribes from services, includes phone calls), event-planning (plans events from birthday dinners to weddings), file-expenses (submits expenses across Benepass/Brex/Concur/Expensify), file-form (handles bureaucratic tasks — jury duty, parking tickets, DMV forms), financial-calculator (tax estimates, loan comparisons, retirement projections), grocery-shopping (orders groceries for delivery), hire-help (finds and books service providers via TaskRabbit/Handy/Thumbtack), meal-delivery (orders food timed to arrive at a specific moment), prescription-refill (refills prescriptions at pharmacies via online portal or phone call), return-refund (returns items or requests refunds from any retailer).\n\n## The Tier Classification System\n\nTwo of the undocumented skills carry explicit risk tiering in their YAML body. prescription-refill declares itself a \"Tier 2 skill (action, reversible)\" with a note that it involves health information and real-world contact. cancel-unsubscribe declares itself a \"Tier 3 skill (destructive, plan-confirm required)\" noting that cancellations can't always be undone. The Tier 1/2/3 nomenclature implies a complete classification system. It does not appear in any public Anthropic documentation, support article, engineering blog post, or third-party guide.\n\n## What This Is And Is Not\n\nThis is a product-roadmap signal. The skills sketch a coherent category — \"Claude does errands\" — that Anthropic has not announced. They are well-written, safety-conscious, and complete enough to read as production-ready prompts rather than scratch drafts. This is a documentation gap: twelve skills are present on user filesystems with no notice that they are there or that they encode capabilities not yet released. This is an extension of the System Prompt Transparency Audit pattern — the documented skill inventory is a strict subset of the actual skill inventory shipping in production. This is not a security vulnerability. The skills do not contain credentials, API keys, or exploitable code. The finding is about the fact of their unannounced presence, not about exploitable content within them.",
+    "images": [],
+    "url": "https://elvec1o.github.io/home/files/pre-production-skills-viewer.html"
+  },
+  {
+    "id": "claude-artifacts-escape",
+    "priority": 2,
     "target": "Claude Artifacts (Anthropic)",
     "title": "Artifact Sandbox Boundary Testing",
     "technique": "Sandbox Escape Attempt",
@@ -25,7 +38,7 @@
   },
   {
     "id": "chatgpt-voice-mode-bypass",
-    "priority": 2,
+    "priority": 3,
     "target": "ChatGPT Voice (OpenAI)",
     "title": "Voice Mode Safety Differential",
     "technique": "Modality-Specific Bypass",
@@ -37,7 +50,7 @@
   },
   {
     "id": "multi-model-arbitrage",
-    "priority": 3,
+    "priority": 4,
     "target": "Multiple",
     "title": "Multi-Model Safety Arbitrage",
     "technique": "Cross-Model Attacks",
@@ -49,7 +62,7 @@
   },
   {
     "id": "claude-thinking-block-leak",
-    "priority": 4,
+    "priority": 5,
     "target": "Claude (Anthropic)",
     "title": "Thinking Block Manipulation",
     "technique": "Extended Thinking Exploitation",
@@ -61,7 +74,7 @@
   },
   {
     "id": "grok-system-prompt-extraction",
-    "priority": 5,
+    "priority": 6,
     "target": "Grok (xAI)",
     "title": "System Prompt Extraction Chain",
     "technique": "System Prompt Extraction",
@@ -73,7 +86,7 @@
   },
   {
     "id": "gemini-context-window-attack",
-    "priority": 6,
+    "priority": 7,
     "target": "Gemini (Google)",
     "title": "Long Context Attention Manipulation",
     "technique": "Context Window Manipulation",

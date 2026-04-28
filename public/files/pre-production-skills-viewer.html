@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-Production Concierge Skills | elvec1o</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d1117; --bg-secondary: #161b22; --bg-tertiary: #21262d;
+            --border: #30363d; --text: #c9d1d9; --text-muted: #8b949e;
+            --accent: #58a6ff; --accent-green: #3fb950; --accent-purple: #a371f7;
+            --accent-red: #f85149; --accent-orange: #d29922;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.7; }
+        .header { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 1rem 2rem; position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text); }
+        .logo img { height: 32px; width: auto; }
+        .title-info h1 { font-size: 1.1rem; font-weight: 600; color: var(--text); }
+        .title-info .meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 1rem; flex-wrap: wrap; }
+        .badge { display: inline-flex; align-items: center; gap: 0.3rem; background: var(--bg-tertiary); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+        .badge.info { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+        .badge.research { background: rgba(163, 113, 247, 0.15); color: var(--accent-purple); }
+        .header-actions { display: flex; gap: 0.5rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text); transition: all 0.2s; }
+        .btn:hover { background: var(--border); }
+        .btn-primary { background: var(--accent); border-color: var(--accent); color: #000; }
+        .btn-primary:hover { background: #79b8ff; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .document { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 3rem; }
+        .document h1 { font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent); border: none; }
+        .document h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .document h3 { font-size: 1.1rem; margin: 1.5rem 0 0.75rem; color: var(--accent-purple); }
+        .document p { margin: 1rem 0; }
+        .document strong { color: var(--accent-orange); }
+        .document em { color: var(--text-muted); }
+        .document ul, .document ol { margin: 1rem 0; padding-left: 1.5rem; }
+        .document li { margin: 0.5rem 0; }
+        .document code { font-family: 'JetBrains Mono', monospace; background: var(--bg-tertiary); padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.85em; color: var(--accent-green); }
+        .document pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; overflow-x: auto; margin: 1rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.5; color: var(--text-muted); }
+        .key-box { background: var(--bg-tertiary); border-left: 4px solid var(--accent-red); padding: 1.5rem; margin: 1.5rem 0; border-radius: 0 8px 8px 0; }
+        .key-box.finding { border-color: var(--accent-red); }
+        .key-box.discovery { border-color: var(--accent-orange); }
+        .key-box.result { border-color: var(--accent-green); }
+        .key-box.dilemma { border-color: var(--accent-purple); }
+        .key-box.assessment { border-color: var(--accent); }
+        .key-box-title { font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .key-box.finding .key-box-title { color: var(--accent-red); }
+        .key-box.discovery .key-box-title { color: var(--accent-orange); }
+        .key-box.result .key-box-title { color: var(--accent-green); }
+        .key-box.dilemma .key-box-title { color: var(--accent-purple); }
+        .key-box.assessment .key-box-title { color: var(--accent); }
+        .quote-box { background: var(--bg); border-left: 3px solid var(--text-muted); padding: 1rem 1.5rem; margin: 1rem 0; font-style: italic; color: var(--text-muted); }
+        .stats-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        .stats-table td { padding: 0.75rem; border: 1px solid var(--border); }
+        .stats-table td:first-child { font-weight: 600; color: var(--text-muted); width: 40%; }
+        .skill-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        .skill-table th { padding: 0.75rem; border: 1px solid var(--border); text-align: left; background: var(--bg-tertiary); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .skill-table td { padding: 0.75rem; border: 1px solid var(--border); vertical-align: top; }
+        .skill-table td:first-child { font-weight: 600; color: var(--accent); white-space: nowrap; }
+        .toc { background: var(--bg); padding: 1.5rem; border-radius: 8px; margin: 2rem 0; }
+        .toc h3 { margin: 0 0 1rem; color: var(--text); }
+        .toc ul { list-style: none; padding: 0; }
+        .toc li { margin: 0.5rem 0; }
+        .toc a { color: var(--accent); text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        .subtitle { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .author-info { color: var(--text-muted); font-size: 0.9rem; margin: 1rem 0 2rem; }
+        @media (max-width: 768px) {
+            .header { padding: 1rem; } .container { padding: 1rem; }
+            .document { padding: 1.5rem; } .header-content { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="https://elvec1o.github.io/home/" class="logo">
+                    <img src="../img/logo-elvec1o.png" alt="elvec1o" onerror="this.style.display='none'">
+                </a>
+                <div class="title-info">
+                    <h1>Pre-Production Concierge Skills</h1>
+                    <div class="meta">
+                        <span class="badge info">&#128269; Observation</span>
+                        <span class="badge research">&#128300; Research</span>
+                        <span>Apr 28, 2026</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="https://elvec1o.github.io/home/files/" class="btn btn-primary">&#8592; Back to Files</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="document">
+            <p style="text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); font-size: 0.85rem;">Behavioural Observation &middot; Architectural / Product Surface</p>
+            <h1>Pre-Production Concierge Skill Library on Live Claude.ai Containers</h1>
+            <p class="subtitle">Undocumented Real-World-Action Skills Staged on Every User&rsquo;s Filesystem</p>
+            <div class="author-info">
+                <strong>Researcher:</strong> ElVec10 &middot; <strong>Target:</strong> Claude Opus 4.7 (Anthropic) &mdash; claude.ai with computer use &middot; <strong>Date:</strong> April 28, 2026
+            </div>
+
+            <div class="key-box assessment">
+                <div class="key-box-title">TL;DR</div>
+                <p>Every Claude.ai computer-use container ships with <code>/mnt/skills/examples/</code> containing 22 SKILL.md files. Ten match the public <code>anthropics/skills</code> repository on GitHub. The remaining twelve do not appear in the public repo, on <code>claude.com/skills</code>, in <code>docs.claude.com</code>, in <code>support.claude.com</code>, or in any third-party catalog or web search. They form a coherent product surface &mdash; a real-world-action concierge stack &mdash; including phone-call booking, prescription refills, subscription cancellations, expense submission via Benepass/Brex/Concur/Expensify, TaskRabbit hiring, grocery delivery, and DMV form filing. The skills also reference an undocumented <code>Tier 1 / Tier 2 / Tier 3</code> destructive-action classification system used to gate &ldquo;plan-confirm required&rdquo; behaviour. The skills are not loaded into the active session by default &mdash; <code>&lt;available_skills&gt;</code> does not list them &mdash; but they are world-readable on the container filesystem and can be opened with the <code>view</code> tool from any session.</p>
+            </div>
+
+            <h2>Observation Metrics</h2>
+            <table class="stats-table">
+                <tr><td>Target</td><td>Claude Opus 4.7 &mdash; claude.ai with computer use</td></tr>
+                <tr><td>Category</td><td>Behavioural Observation &mdash; Architectural / Product Surface</td></tr>
+                <tr><td>Total Skills on Filesystem</td><td>22</td></tr>
+                <tr><td>Publicly Documented</td><td>10 (45%)</td></tr>
+                <tr><td>Undocumented</td><td>12 (55%)</td></tr>
+                <tr><td>Verification Layers</td><td>Filesystem inventory + GitHub repo probe + web search</td></tr>
+                <tr><td>Reproducibility</td><td>Immediate &mdash; <code>ls /mnt/skills/examples/</code> from any session</td></tr>
+                <tr><td>Security Impact</td><td>None &mdash; no credentials, API keys, or exploitable code</td></tr>
+            </table>
+
+            <div class="toc">
+                <h3>Contents</h3>
+                <ul>
+                    <li><a href="#background">Background</a></li>
+                    <li><a href="#methodology">Methodology</a></li>
+                    <li><a href="#twelve">The Twelve</a></li>
+                    <li><a href="#tiers">The Tier Classification System</a></li>
+                    <li><a href="#memory">The Memory Architecture</a></li>
+                    <li><a href="#architectural">Architectural Observations</a></li>
+                    <li><a href="#what-this-is">What This Is And Is Not</a></li>
+                    <li><a href="#reproduction">Reproduction</a></li>
+                </ul>
+            </div>
+
+            <h2 id="background">Background</h2>
+            <p>This observation extends the architectural mapping done in the LINT writeup (#1) and the System Prompt Transparency Audit (#7). Both established that Claude&rsquo;s container surface contains substantially more than what is presented to the user or documented publicly. This finding documents a specific case: a product category that is staged on the filesystem of every paying user&rsquo;s container but has no public presence whatsoever as of 2026-04-28.</p>
+            <p>The discovery was incidental &mdash; the <code>/mnt/skills/examples/</code> directory was inventoried during an unrelated tool-surface audit. The names of the skills were unfamiliar. A check against the public repo found 12 of 22 missing. Web searches across multiple search axes returned zero matches for any of the 12.</p>
+
+            <h2 id="methodology">Methodology</h2>
+            <p>The verification was done in three layers:</p>
+
+            <h3>Layer 1: Filesystem Inventory</h3>
+            <p><code>ls /mnt/skills/examples/</code> from inside a Claude.ai computer-use session enumerates 22 skill directories (and their corresponding <code>.skill</code> zip archives). Each contains a <code>SKILL.md</code> with YAML frontmatter and prose instructions.</p>
+
+            <h3>Layer 2: Public-Repo Cross-Check</h3>
+            <p>For each of the 22 skill names, three candidate paths in the public <code>anthropics/skills</code> GitHub repo were probed via raw.githubusercontent.com: <code>skills/&lt;name&gt;/SKILL.md</code>, <code>template/&lt;name&gt;/SKILL.md</code>, and <code>examples/&lt;name&gt;/SKILL.md</code>. Ten skills resolved to HTTP 200 in the <code>skills/</code> path. Twelve returned 404 across all three paths.</p>
+
+            <h3>Layer 3: Web-Search Verification</h3>
+            <p>Each of the 12 missing skills was searched against Anthropic&rsquo;s official surfaces (<code>docs.claude.com</code>, <code>support.claude.com</code>, <code>claude.com/skills</code>), the Anthropic engineering blog, the Anthropic Skilljar courses, third-party skill catalogs (<code>claudecn.com</code>, <code>claudeworld.com</code>), and general web results. Search queries were issued for each skill name alongside &ldquo;Claude&rdquo; and &ldquo;Anthropic&rdquo;, and for the distinctive <code>Tier 2</code> / <code>Tier 3</code> destructive classification language. Zero relevant matches across all queries.</p>
+
+            <h2 id="twelve">The Twelve</h2>
+            <p>The undocumented skills, with one-line summaries extracted from their YAML descriptions:</p>
+
+            <table class="skill-table">
+                <tr><th>Skill</th><th>Description</th></tr>
+                <tr><td>benepass-reimbursement</td><td>Submits expense reimbursements through Benepass (app.getbenepass.com) using browser automation, Gmail integration for verification codes, and file upload for receipts.</td></tr>
+                <tr><td>call-to-book</td><td>Makes outbound phone calls to book appointments or reservations. Discloses AI identity on the call, navigates IVR, adds the booking to calendar.</td></tr>
+                <tr><td>cancel-unsubscribe</td><td>Cancels subscriptions or unsubscribes from services. Works from a description, a charge line, a URL, or a screenshot. Can audit a full statement and cancel several at once. Includes phone calls.</td></tr>
+                <tr><td>event-planning</td><td>Plans events from birthday dinners to weddings. Venue research, guest lists, timelines, vendors, budgets.</td></tr>
+                <tr><td>file-expenses</td><td>Submits expenses across Benepass, Brex, Concur, Expensify, etc. Detects platform, finds receipts, checks for duplicates.</td></tr>
+                <tr><td>file-form</td><td>Handles bureaucratic tasks &mdash; jury duty responses, parking tickets, passport renewals, DMV forms, permit applications.</td></tr>
+                <tr><td>financial-calculator</td><td>Tax estimates, loan comparisons, retirement projections, rent vs. buy, investment scenarios.</td></tr>
+                <tr><td>grocery-shopping</td><td>Orders groceries for delivery. Store selection, occasion-based list building, budget tracking.</td></tr>
+                <tr><td>hire-help</td><td>Finds and books service providers via TaskRabbit, Handy, Thumbtack &mdash; cleaning, handyman, moving, assembly, yard work.</td></tr>
+                <tr><td>meal-delivery</td><td>Orders food timed to arrive at a specific moment. Works backward from target arrival.</td></tr>
+                <tr><td>prescription-refill</td><td>Refills prescriptions at pharmacies. Works from a medication name, Rx number, photo of the bottle, or &ldquo;I&rsquo;m running low.&rdquo; Online portal or phone call.</td></tr>
+                <tr><td>return-refund</td><td>Returns items or requests refunds from any retailer. Identifies item, finds policy, navigates the process, handles shipping or phone calls.</td></tr>
+            </table>
+
+            <div class="key-box discovery">
+                <div class="key-box-title">Coherent Product Category</div>
+                <p>The category is coherent. It is not &ldquo;skills that demonstrate skill patterns&rdquo; (the public examples are mostly that). It is &ldquo;skills that perform real-world actions on third-party services on behalf of a user.&rdquo;</p>
+            </div>
+
+            <h2 id="tiers">The Tier Classification System</h2>
+            <p>Two of the undocumented skills carry explicit risk tiering in their YAML body:</p>
+
+            <div class="key-box dilemma">
+                <div class="key-box-title">Tier 2 &mdash; prescription-refill</div>
+                <p><em>&ldquo;Tier 2 skill (action, reversible). A refill request can be cancelled or left unpicked-up, so it&rsquo;s not destructive &mdash; but it does involve my health information and real-world contact. Confirm the plan before you act.&rdquo;</em></p>
+            </div>
+
+            <div class="key-box finding">
+                <div class="key-box-title">Tier 3 &mdash; cancel-unsubscribe</div>
+                <p><em>&ldquo;Tier 3 skill (destructive, plan-confirm required). Cancellations can&rsquo;t always be undone &mdash; a lost promo rate or a deleted account stays lost. Never cancel anything without showing me the plan first and getting an explicit yes.&rdquo;</em></p>
+            </div>
+
+            <p>The Tier 1/2/3 nomenclature implies a complete classification system (Tier 1 presumably being read-only / informational). The framework is referenced as if the model is expected to recognise it. It does not appear in any public Anthropic documentation, support article, engineering blog post, or third-party guide. A web search for <code>"Tier 2" "Tier 3" Claude skill destructive</code> returns Anthropic&rsquo;s API billing tiers &mdash; a different concept &mdash; and nothing else.</p>
+
+            <h2 id="memory">The Memory Architecture</h2>
+            <p>Most of the concierge skills contain a near-verbatim repeated instruction:</p>
+
+            <div class="quote-box">
+                &ldquo;Always start completely fresh. Never carry over [details] from prior conversation. DO use memory to recall known details &mdash; [identity-shaped fields] &mdash; that might be needed for [task-specific purpose].&rdquo;
+            </div>
+
+            <p>The pattern is consistent across <code>call-to-book</code>, <code>cancel-unsubscribe</code>, <code>event-planning</code>, <code>file-expenses</code>, <code>file-form</code>, <code>financial-calculator</code>, <code>grocery-shopping</code>, <code>hire-help</code>, <code>meal-delivery</code>, <code>prescription-refill</code>, and <code>return-refund</code>. The instruction encodes a specific privacy-architecture decision: per-task state does not cross conversation boundaries, but identity-shaped memory (name, address, DOB, payment info, preferences) is expected to persist via a memory tool.</p>
+
+            <p>This architecture is not described in any public skill-authoring guide. The specific design pattern of &ldquo;fresh task state, persistent identity&rdquo; applied uniformly to a category of action skills is undocumented. The pattern itself &mdash; repeated near-identically across eleven skills &mdash; suggests a deliberate template, not incidental copy-paste.</p>
+
+            <h2 id="architectural">Architectural Observations</h2>
+
+            <h3>Present on Disk, Absent from Session</h3>
+            <p>The skills are read-only at the user level but are present on the user&rsquo;s container. <code>/mnt/skills/examples/</code> is a mount visible from any computer-use session. The <code>.skill</code> archive files (zipped distributables) are also present. Anyone who runs <code>ls /mnt/skills/examples/</code> sees them. However, they are not in the session&rsquo;s <code>&lt;available_skills&gt;</code> block &mdash; what Claude is told it has access to contains only the public/documented skills plus any user-installed skills.</p>
+
+            <h3>Reachable via the View Tool</h3>
+            <p>Despite not being in <code>&lt;available_skills&gt;</code>, the SKILL.md files can be read with <code>view /mnt/skills/examples/&lt;skill-name&gt;/SKILL.md</code> from any session. The instructions inside are then in the model&rsquo;s context, available to influence behaviour.</p>
+
+            <h3>Activation Behaviour Unverified</h3>
+            <p>Whether asking Claude in a fresh session to &ldquo;use the prescription-refill skill&rdquo; causes the model to load and follow the SKILL.md instructions &mdash; and whether it would actually attempt the described phone-call or pharmacy-portal automation &mdash; has not been tested. The relevant <code>ask_user_input_v0</code> tool referenced in the skill flows exists in the session&rsquo;s tool surface, suggesting infrastructure exists for at least the elicitation parts of the flows.</p>
+
+            <h2 id="what-this-is">What This Is And Is Not</h2>
+
+            <div class="key-box result">
+                <div class="key-box-title">This IS</div>
+                <p><strong>A product-roadmap signal.</strong> The skills sketch a coherent category &mdash; &ldquo;Claude does errands&rdquo; &mdash; that Anthropic has not announced. The skills are well-written, safety-conscious, and complete enough to read as production-ready prompts rather than scratch drafts. They include explicit AI-disclosure-on-call language, plan-confirm gating on destructive actions, and consistent privacy-architecture guidance. This is staged code, not abandoned prototypes.</p>
+                <p><strong>A documentation gap.</strong> Anthropic&rsquo;s public skill documentation lists docx/pdf/pptx/xlsx as the built-in skills and points users at the public repo for examples. The undocumented twelve are present on user filesystems with no notice that they are there or that they encode capabilities not yet released.</p>
+                <p><strong>An extension of the System Prompt Transparency Audit pattern.</strong> That writeup quantified the gap between what Anthropic publishes about Claude&rsquo;s system prompt (~15-20%) and what Claude actually receives (~15,000+ words). This finding extends the same shape to the skill layer: the documented skill inventory is a strict subset of the actual skill inventory shipping in production.</p>
+            </div>
+
+            <div class="key-box assessment">
+                <div class="key-box-title">This IS NOT</div>
+                <p><strong>A security vulnerability.</strong> The skills do not contain credentials, API keys, internal Anthropic infrastructure references, or exploitable code. The 22 SKILL.md files were grep-checked for credential-shaped strings, internal-domain hostnames, and webhook URLs. The only matches were XML schema type definitions in the docx skill (<code>xsd:token</code> type names) and localhost binds in the MCP server scaffolding (correct security practice). The skills are clean text. The finding is about <em>the fact of their unannounced presence</em>, not about exploitable content within them.</p>
+                <p><strong>A hidden capability the model can be tricked into using.</strong> The skills describe flows that depend on tools and integrations the user can already see (browser, phone, calendar, memory). The finding is informational, not exploit-shaped.</p>
+            </div>
+
+            <h2 id="reproduction">Reproduction</h2>
+            <p>From any Claude.ai conversation with computer use enabled:</p>
+
+<pre># 1. Inventory the skills directory
+ls /mnt/skills/examples/
+
+# 2. List just the SKILL.md files
+find /mnt/skills/examples -name SKILL.md | sort
+
+# 3. Verify which skills are on GitHub
+for skill in benepass-reimbursement call-to-book cancel-unsubscribe \
+             event-planning file-expenses file-form financial-calculator \
+             grocery-shopping hire-help meal-delivery prescription-refill \
+             return-refund; do
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+    "https://raw.githubusercontent.com/anthropics/skills/main/skills/$skill/SKILL.md")
+  echo "$skill : $CODE"
+done
+
+# 4. Read the Tier-tagged skills directly
+cat /mnt/skills/examples/prescription-refill/SKILL.md    # Tier 2
+cat /mnt/skills/examples/cancel-unsubscribe/SKILL.md     # Tier 3</pre>
+
+            <div class="key-box assessment">
+                <div class="key-box-title">Assessment</div>
+                <p><strong>Category:</strong> Behavioural Observation &mdash; not a vulnerability. <strong>Novelty:</strong> The 12 undocumented skills and the Tier 1/2/3 classification system have zero public footprint. <strong>Significance:</strong> Small but specific &mdash; the public skill catalog is approximately 53% of the actual example-skill catalog (10 of 22 visible). The 12 missing form a coherent product category (real-world action concierge), reference an undocumented internal classification system, and apply a consistent undocumented privacy-architecture pattern. <strong>Reproducibility:</strong> Immediate &mdash; under a minute by anyone with claude.ai access and computer use enabled.</p>
+            </div>
+
+            <hr style="margin: 3rem 0; border: none; border-top: 1px solid var(--border);">
+
+            <p style="text-align: center; color: var(--text-muted);">
+                <strong>ElVec10 &mdash; AI Red Team Research</strong><br>
+                <a href="https://elvec1o.github.io/home" style="color: var(--accent);">https://elvec1o.github.io/home</a><br><br>
+                <em>This document was produced for AI safety research purposes under responsible disclosure principles.</em>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
