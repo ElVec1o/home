@@ -212,5 +212,15 @@
     "viewerUrl": "opus-prompt-diff.html",
     "size": "~35 KB",
     "date": "2026-04-17"
+  },
+  {
+    "id": "kimi-sandbox-dns-exfil",
+    "name": "Kimi Sandbox DNS Exfiltration — Full Disclosure Report",
+    "type": "document",
+    "description": "18-phase security assessment of Kimi's containerised IPython sandbox. 15 findings, 9 exploited. Confirmed DNS exfiltration of all process environment variables via 36 queries to attacker-controlled nameserver. Persistent background agent deployed and running at time of report. Full reproduction prompts, DNS evidence, and remediation priorities included.",
+    "filename": "kimi-sandbox-dns-exfil-viewer.html",
+    "viewerUrl": "kimi-sandbox-dns-exfil-viewer.html",
+    "size": "~40 KB",
+    "date": "2026-05-09"
   }
 ]
