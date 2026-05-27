@@ -46,7 +46,7 @@ const types = [...new Set(files.map(f => f.type))];
         <div class="file-actions">
           {/* External website - Visit button */}
           {file.url && (
-            <a href={file.url} class="visit-btn" target="_blank">→ Visit</a>
+            <a href={file.url} class="visit-btn" target="_blank">{file.urlLabel ? `→ ${file.urlLabel}` : '→ Visit'}</a>
           )}
           {file.filename && file.filename.endsWith('.jsx') && (
             <a href={`${base}/files/${file.filename.replace('.jsx', '_play.html')}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
@@ -56,6 +56,9 @@ const types = [...new Set(files.map(f => f.type))];
           )}
           {file.viewerUrl && (
             <a href={`${base}/files/${file.viewerUrl}`} class="visualize-btn" target="_blank">👁 Visualize</a>
+          )}
+          {file.dashboardUrl && (
+            <a href={`${base}/files/${file.dashboardUrl}`} class="dashboard-btn" target="_blank">📊 {file.dashboardLabel ? file.dashboardLabel : 'Dashboard'}</a>
           )}
           {file.filename && !file.url && !file.viewerUrl && (file.isFolder ? (
             <a href={`${base}/files/${file.filename}`} class="download-btn">→ Browse</a>
@@ -302,6 +305,19 @@ const types = [...new Set(files.map(f => f.type))];
   }
   .visualize-btn:hover {
     background: #4f46e5;
+    color: #fff;
+  }
+  .dashboard-btn {
+    background: #8b5cf6;
+    color: #fff;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  .dashboard-btn:hover {
+    background: #7c3aed;
     color: #fff;
   }
   .empty {

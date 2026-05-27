@@ -232,6 +232,8 @@
     "viewerUrl": "gbf-viewer.html",
     "dashboardUrl": "gbf-dashboard.html",
     "url": "https://github.com/ElVec1o/GBF-NEON",
+    "urlLabel": "GitHub Repo",
+    "dashboardLabel": "Dashboard",
     "size": "~50 KB",
     "date": "2026-05-26"
   }
