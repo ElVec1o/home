@@ -5,510 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stratum — Streaming Primitives on Top of Classical Math | elvec1o</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #1a1a1a; }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #1a1a1a;
-            background: #fafafa;
+        .hero {
+            background: #0a0a0a;
+            color: #fff;
+            padding: 3rem 1rem;
+            border-bottom: 1px solid #333;
         }
+        .hero-content { max-width: 800px; margin: 0 auto; }
+        .hero-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+        .hero-logo { width: 48px; height: 48px; }
+        .hero-title h1 { font-size: 2rem; font-weight: 700; }
+        .hero-meta { color: #aaa; font-size: 0.9rem; margin-top: 0.5rem; }
+        .hero-nav { margin-top: 1.5rem; }
+        .hero-nav a { color: #0a9dff; font-size: 0.9rem; }
 
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
+        main { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+        .breadcrumb { font-size: 0.9rem; margin-bottom: 1.5rem; color: #666; }
 
-        a:hover {
-            text-decoration: underline;
-        }
+        h2 { font-size: 1.4rem; margin: 2rem 0 1rem; font-weight: 600; }
+        h3 { font-size: 1.1rem; margin: 1.5rem 0 0.8rem; font-weight: 600; }
+        p { margin-bottom: 1rem; }
+        pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 0.9rem; margin: 1rem 0; }
+        code { font-family: monospace; background: #f5f5f5; padding: 0.2rem 0.4rem; border-radius: 2px; font-size: 0.9em; }
+        pre code { background: none; padding: 0; }
 
-        header {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 1rem 0;
-            margin-bottom: 2rem;
-        }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { border: 1px solid #e0e0e0; padding: 0.75rem; text-align: left; }
+        th { background: #f5f5f5; font-weight: 600; }
+        tr:nth-child(even) { background: #fafafa; }
 
-        .header-content {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+        ul, ol { margin: 1rem 0 1rem 2rem; }
+        li { margin-bottom: 0.5rem; }
 
-        .logo {
-            width: 32px;
-            height: 32px;
-        }
-
-        .header-nav {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.9rem;
-        }
-
-        main {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 1rem 2rem;
-        }
-
-        .breadcrumb {
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-            color: #666;
-        }
-
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-
-        h2 {
-            font-size: 1.4rem;
-            margin: 2rem 0 1rem;
-            font-weight: 600;
-        }
-
-        h3 {
-            font-size: 1.1rem;
-            margin: 1.5rem 0 0.8rem;
-            font-weight: 600;
-        }
-
-        h4 {
-            font-size: 1rem;
-            margin: 1.2rem 0 0.6rem;
-            font-weight: 600;
-        }
-
-        p {
-            margin-bottom: 1rem;
-        }
-
-        pre {
-            background: #f5f5f5;
-            padding: 1rem;
-            border-radius: 4px;
-            overflow-x: auto;
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 0.9rem;
-            margin: 1rem 0;
-            line-height: 1.4;
-        }
-
-        code {
-            font-family: 'Monaco', 'Courier New', monospace;
-            background: #f5f5f5;
-            padding: 0.2rem 0.4rem;
-            border-radius: 2px;
-            font-size: 0.9em;
-        }
-
-        pre code {
-            background: none;
-            padding: 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-
-        th, td {
-            border: 1px solid #e0e0e0;
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        th {
-            background: #f5f5f5;
-            font-weight: 600;
-        }
-
-        tr:nth-child(even) {
-            background: #fafafa;
-        }
-
-        blockquote {
-            border-left: 3px solid #ddd;
-            padding-left: 1rem;
-            margin: 1rem 0;
-            color: #666;
-            font-style: italic;
-        }
-
-        ul, ol {
-            margin: 1rem 0 1rem 2rem;
-        }
-
-        li {
-            margin-bottom: 0.5rem;
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: #666;
-            font-size: 0.9rem;
-            border-top: 1px solid #e0e0e0;
-            margin-top: 3rem;
-        }
-
-        .buttons {
-            display: flex;
-            gap: 1rem;
-            margin: 2rem 0;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 0.6rem 1.2rem;
-            border: 1px solid #0066cc;
-            border-radius: 4px;
-            background: white;
-            color: #0066cc;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .button:hover {
-            background: #0066cc;
-            color: white;
-            text-decoration: none;
-        }
-
-        .button.primary {
-            background: #0066cc;
-            color: white;
-        }
-
-        .button.primary:hover {
-            background: #0052a3;
-        }
-
-        .button.secondary {
-            background: #8b5cf6;
-            color: white;
-            border-color: #8b5cf6;
-        }
-
-        .button.secondary:hover {
-            background: #7c3aed;
-            border-color: #7c3aed;
-        }
+        footer { text-align: center; padding: 2rem 1rem; color: #666; font-size: 0.9rem; border-top: 1px solid #e0e0e0; margin-top: 3rem; }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <a href="https://elvec1o.github.io/home/" style="display: flex; align-items: center; gap: 0.5rem;">
-                <img src="https://elvec1o.github.io/home/img/logo-elvec1o.png" alt="elvec1o" class="logo">
-            </a>
-            <nav class="header-nav">
-                <a href="https://elvec1o.github.io/home/">home</a>
-                <a href="https://elvec1o.github.io/home/files/">files</a>
-            </nav>
+    <div class="hero">
+        <div class="hero-content">
+            <div class="hero-header">
+                <a href="https://elvec1o.github.io/home/">
+                    <img src="https://elvec1o.github.io/home/img/logo-elvec1o.png" alt="elvec1o" class="hero-logo">
+                </a>
+                <div style="flex: 1;">
+                    <h1>Stratum — Streaming Primitives on Top of Classical Math</h1>
+                    <div class="hero-meta">Week-long project · May 2026</div>
+                </div>
+                <div style="text-align: right;">
+                    <a href="https://elvec1o.github.io/home/files/" style="color: #0a9dff; font-weight: 600;">← Files</a>
+                </div>
+            </div>
+            <div class="hero-nav">
+                <a href="https://github.com/ElVec1o/Stratum" target="_blank">→ GitHub Repo</a>
+            </div>
         </div>
-    </header>
+    </div>
 
     <main>
-        <div class="breadcrumb"><a href="https://elvec1o.github.io/home/files/">← Files</a></div>
-
-        <h1>Stratum — Streaming Primitives on Top of Classical Math</h1>
-
-        <div class="buttons">
-            <a href="https://github.com/ElVec1o/Stratum" class="button primary">→ GitHub Repo</a>
-            <a href="stratum-viewer.html" class="button">👁 Visualize</a>
-        </div>
-        <div class="buttons">
-            <a href="stratum-dashboard.html" class="button secondary">📊 Dashboard</a>
-        </div>
-
         <h2>Overview</h2>
         <p>A week of trying to build a streaming-analytics library that wins on the tail-latency axis where heapq and Redis lose, without giving up the ergonomics that make those tools popular. I ended up with four primitives (Top-K, heavy hitters, distinct count, set membership), a Python API with two backends, a Rust crate, an Apache Arrow bridge into any SQL engine, and a single-binary HTTP dashboard. None of the algorithms are novel — every primitive has a 1980s–2010s paper behind it. The interesting work is the composition: noticing that mergeable summaries is a single property that simultaneously gives you persistence, distribution, and time-window rollups for free, and that Apache Arrow is the right boundary between a streaming primitive and a SQL engine — so you don't have to write your own query language.</p>
 
         <h2>Final Results (Apple M-series, single thread)</h2>
         <table>
-            <tr>
-                <th>Primitive</th>
-                <th>Hot-path cost</th>
-                <th>State size</th>
-                <th>Classical source</th>
-            </tr>
-            <tr>
-                <td>EVT membrane Top-K</td>
-                <td>0.26 ns / event</td>
-                <td>O(K)</td>
-                <td>extreme value theory</td>
-            </tr>
-            <tr>
-                <td>Galois bipartite filter</td>
-                <td>5.94 ns / contains()</td>
-                <td>~10 bits/key</td>
-                <td>Ribbon Filter family (Dillinger & Walzer 2021)</td>
-            </tr>
-            <tr>
-                <td>Misra-Gries heavy hitters</td>
-                <td>~10 ns / event</td>
-                <td>O(K)</td>
-                <td>Misra & Gries 1982</td>
-            </tr>
-            <tr>
-                <td>HyperLogLog cardinality</td>
-                <td>~12 ns / event</td>
-                <td>16 KB</td>
-                <td>Flajolet et al. 2007; Heule et al. 2013</td>
-            </tr>
+            <tr><th>Primitive</th><th>Hot-path cost</th><th>State size</th><th>Classical source</th></tr>
+            <tr><td>EVT membrane Top-K</td><td>0.26 ns / event</td><td>O(K)</td><td>extreme value theory</td></tr>
+            <tr><td>Galois bipartite filter</td><td>5.94 ns / contains()</td><td>~10 bits/key</td><td>Ribbon Filter family (Dillinger & Walzer 2021)</td></tr>
+            <tr><td>Misra-Gries heavy hitters</td><td>~10 ns / event</td><td>O(K)</td><td>Misra & Gries 1982</td></tr>
+            <tr><td>HyperLogLog cardinality</td><td>~12 ns / event</td><td>16 KB</td><td>Flajolet et al. 2007; Heule et al. 2013</td></tr>
         </table>
 
         <h3>Against the canonical Python solution at K=100, N=2M random uint64:</h3>
         <table>
-            <tr>
-                <th>Approach</th>
-                <th>Throughput</th>
-                <th>Memory</th>
-                <th>p99.99</th>
-            </tr>
-            <tr>
-                <td>Python heapq min-heap</td>
-                <td>12.0 M ev/s</td>
-                <td>3,720 B</td>
-                <td>7.3 µs (GC pauses)</td>
-            </tr>
-            <tr>
-                <td>Stratum (python backend)</td>
-                <td>191.3 M ev/s</td>
-                <td>800 B</td>
-                <td>~150 ns</td>
-            </tr>
-            <tr>
-                <td>Stratum (native backend)</td>
-                <td>25.5 M ev/s*</td>
-                <td>3,200 B</td>
-                <td>5.94 ns</td>
-            </tr>
+            <tr><th>Approach</th><th>Throughput</th><th>Memory</th><th>p99.99</th></tr>
+            <tr><td>Python heapq min-heap</td><td>12.0 M ev/s</td><td>3,720 B</td><td>7.3 µs (GC pauses)</td></tr>
+            <tr><td>Stratum (python backend)</td><td>191.3 M ev/s</td><td>800 B</td><td>~150 ns</td></tr>
+            <tr><td>Stratum (native backend)</td><td>25.5 M ev/s*</td><td>3,200 B</td><td>5.94 ns</td></tr>
         </table>
         <p><em>* per-event Python→C FFI overhead dominates the one-shot bulk case. For streaming where the tail matters, integrate from C++ / Rust directly; that's where 0.26 ns / 5.94 ns become visible.</em></p>
 
         <h2>The Brief</h2>
-        <blockquote>
+        <blockquote style="border-left: 3px solid #ddd; padding-left: 1rem; margin: 1rem 0; color: #666; font-style: italic;">
             "Take the lock-free streaming-analytics code that we have and turn it into a real product. Beat std::priority_queue and std::unordered_set in HFT-style hot paths. Keep p99.99 in nanoseconds. Pure C++17. Ship it with bindings, ship it with benchmarks against the obvious alternatives, ship it with honest documentation about what's borrowed math vs what's engineering."
         </blockquote>
 
         <h2>Development Journey</h2>
 
         <h3>v0.1 → v0.2 — Production hardening</h3>
-        <p>The handoff code worked but was a sketch. I added:</p>
-        <ul>
-            <li>An mmap-backed arena allocator so the Galois filter can be loaded from a file with zero copy, and shared across processes via MAP_SHARED.</li>
-            <li>A C ABI so Python and Rust can bind without writing C++.</li>
-            <li>A ctypes-based Python package with numpy zero-copy bulk ingest.</li>
-            <li>CMake, unit tests, a microbench, and a global merger thread that periodically aggregates per-shard Top-Ks into a final snapshot.</li>
-        </ul>
+        <p>The handoff code worked but was a sketch. I added: mmap-backed arena allocator, C ABI for Python/Rust bindings, ctypes-based Python package with numpy zero-copy bulk ingest, CMake/tests/microbench, and a global merger thread for shard aggregation.</p>
 
         <h3>v0.3 — The math actually works</h3>
-        <p>Replaced the lossy placer with a real two-step Gaussian-elimination Cuckoo builder:</p>
-        <ul>
-            <li><strong>Two-choice load balancing:</strong> each key has two candidate blocks (h1, h2); assign it to whichever is less loaded. Standard power-of-two-choices result.</li>
-            <li><strong>Per-block GF(2) solve:</strong> for each block, set up the linear system V · P_j = F_j over 8 right-hand sides at once (share the elimination across columns). Solve via standard row reduction. If inconsistent, increment the seed and retry. 256 seeds is enough that build failure probability is astronomically small.</li>
-        </ul>
-        <p>Also shipped: AVX-512 VPOPCNTDQ filter path (compile-time gated), SSTable format with magic+version header, Rust crate.</p>
+        <p>Replaced the lossy placer with a real two-step Gaussian-elimination Cuckoo builder with two-choice load balancing and per-block GF(2) solve. Also shipped: AVX-512 VPOPCNTDQ filter path, SSTable format with magic+version header, Rust crate.</p>
 
         <h3>v0.4 — See it run</h3>
-        <p>Wanted a way to demo the engine without making people read a Python script. Built a single-binary HTTP/1.1 + SSE server in ~400 lines of C++ (hand-rolled parser, no httplib, no Boost). Endpoints: /, /topk, /ingest, /stream, /metrics, /healthz. Browser dashboard in vanilla JS with no build step.</p>
-        <p>The SSE stream is delta-encoded — every tick, the server diffs the current sorted Top-K against the previous one and emits only the items that entered or exited. Steady-state bandwidth is ~30 bytes per event. Side effect: the rate of delta events itself doubles as a distribution-drift signal.</p>
+        <p>Built a single-binary HTTP/1.1 + SSE server in ~400 lines of C++ (hand-rolled parser, no httplib, no Boost) with browser dashboard in vanilla JS.</p>
 
         <h3>v0.5 — heapq is shockingly fast (and a real bug)</h3>
-        <p>Wrote an honest side-by-side benchmark against the canonical Python solution (heapq.heappush + set). Expected Stratum to win comfortably. It didn't, for two reasons:</p>
-        <ul>
-            <li><strong>heapq is C-implemented</strong> under a Python for loop. The inner loop is tight, allocations are amortized, GC barely triggers. At small/medium scale it's hard to beat by more than a small constant.</li>
-            <li><strong>17/100 correctness mismatch.</strong> The AsyncTopK keeps a partial "active" buffer and only flushes to the merger when the buffer fills. With a finite stream that ends mid-buffer, the last ~few-hundred events per shard never reach the merger. Some of those were the actual top values.</li>
-        </ul>
-        <p>Fixes: added a request_flush() flag, and built a dual-backend pattern instead — same Python API, two implementations: numpy.argpartition backend wins ~16× over heapq for one-shot bulk; native backend keeps the 5.94 ns story for per-event streaming.</p>
+        <p>Wrote honest side-by-side benchmark. Found 17/100 correctness mismatch and realized heapq's C implementation is genuinely hard to beat. Built dual-backend pattern: numpy.argpartition backend wins ~16× for bulk operations; native backend keeps 5.94 ns story for per-event streaming.</p>
 
         <h3>v0.6 — Mergeable summaries (one math idea, three properties)</h3>
-        <p>Noticed the same idea solves three separate problems: mergeable summaries. A summary S is mergeable iff there exists a deterministic associative commutative ⊕ such that:</p>
-        <pre>S(stream_a) ⊕ S(stream_b) == S(stream_a ++ stream_b)</pre>
-        <p>When your primitive is mergeable, three operational properties fall out for free:</p>
-        <ul>
-            <li><strong>Persistence without a write-ahead log.</strong> snapshot = save(summary) on a cadence you pick. Recovery = merge(load(snapshot), in_memory). Loss bound: bounded by the gap between snapshots.</li>
-            <li><strong>Distributed views without consensus.</strong> Each node builds its own summary. Periodically gossip and merge. The global view is exact without Raft or Paxos.</li>
-            <li><strong>Time-window rollups without rescanning.</strong> Build one summary per minute. The summary for an hour is the merge of 60 of them.</li>
-        </ul>
-        <p>Shipped Misra-Gries (1982) for frequency-tracking — four pages, beats most modern sketches, mergeable, ~10 ns per add via open-addressing hash table.</p>
+        <p>Noticed the same idea solves three separate problems: persistence without write-ahead log, distributed views without consensus, time-window rollups without rescanning. Shipped Misra-Gries (1982) for frequency-tracking. Also shipped: HyperLogLog for cardinality at 16 KB state.</p>
 
         <h3>v0.7 — The SQL bridge (without writing a query engine)</h3>
-        <p>The wrong answer: build a query engine inside Stratum. The right answer: make the primitives queryable by every SQL engine that already exists via Apache Arrow.</p>
-        <pre>import duckdb, stratum
-hh = stratum.HeavyHitters(k=32, backend="native")
-hh.add_many(user_ids)
-con = duckdb.connect()
-stratum.sql.register(con, "hh", hh)
-con.sql("""
-    SELECT h.key, h.count, u.name, u.status
-    FROM hh h LEFT JOIN users u ON h.key = u.id
-    ORDER BY h.count DESC LIMIT 10
-""")</pre>
-        <p>Also shipped: HyperLogLog (Flajolet 2007, Heule 2013) as another mergeable primitive. Maps to SQL's COUNT(DISTINCT) at 16 KB of state.</p>
-
-        <h2>The Stratum ↔ SQL Dictionary</h2>
-        <table>
-            <tr>
-                <th>Primitive</th>
-                <th>SQL pattern</th>
-            </tr>
-            <tr>
-                <td>TopK</td>
-                <td>ORDER BY x DESC LIMIT K</td>
-            </tr>
-            <tr>
-                <td>HeavyHitters</td>
-                <td>GROUP BY x ORDER BY COUNT(*) DESC LIMIT K</td>
-            </tr>
-            <tr>
-                <td>Cardinality (HLL)</td>
-                <td>COUNT(DISTINCT x)</td>
-            </tr>
-            <tr>
-                <td>Filter (Galois)</td>
-                <td>WHERE x IN (set)</td>
-            </tr>
-            <tr>
-                <td>merge() of summaries</td>
-                <td>UNION ALL + re-aggregate, without re-scanning</td>
-            </tr>
-        </table>
+        <p>Made primitives queryable by existing SQL engines via Apache Arrow. Now any modern analytics engine (DuckDB, Polars, DataFusion, ClickHouse, Velox) can accept Arrow tables as virtual tables in zero-copy.</p>
 
         <h2>What I Learned</h2>
+        <p><strong>The cross-disciplinary borrow that worked:</strong> Noticing that "mergeable summary" from streaming-algorithms, "CRDT" from distributed-systems, and "commutative monoid" from algebra are all the same thing. Once I saw it, three operational properties collapsed into one property.</p>
 
-        <h3>The cross-disciplinary borrow that worked</h3>
-        <p>The most useful insight wasn't a clever algorithm — it was noticing that "mergeable summary" from streaming-algorithms, "CRDT" from distributed-systems, and "commutative monoid" from algebra are all the same thing. Once I saw it, three operational properties collapsed into one property.</p>
+        <p><strong>Don't fight the FFI boundary:</strong> Python→C FFI has ~600 ns of overhead per call. The right move was to admit it, build a parallel pure-Python backend that uses numpy.argpartition, and reserve the native backend for streams that actually care about per-event tail latency.</p>
 
-        <h3>Don't fight the FFI boundary</h3>
-        <p>I lost hours assuming Stratum's native backend had to win on raw throughput vs heapq at every scale. It doesn't, and shouldn't. Python→C FFI has ~600 ns of overhead per call. The right move was to admit it, build a parallel pure-Python backend that uses numpy.argpartition, and reserve the native backend for streams that actually care about per-event tail latency.</p>
+        <p><strong>The bug that took an hour:</strong> The 17/100 correctness mismatch was the most embarrassing moment. The pipeline had been "working" for days; what had actually been working was the throughput. Lesson: every streaming primitive needs a single test where it has to match a known-correct reference.</p>
 
-        <h3>The bug that took an hour</h3>
-        <p>The 17/100 correctness mismatch was the most embarrassing moment of the week. The pipeline had been "working" for days; what had actually been working was the throughput. Lesson: every streaming primitive needs a single test where it has to match a known-correct reference on the same input. End-of-stream behavior is the most common bug.</p>
-
-        <h3>Composition beats invention</h3>
-        <p>None of the four primitives shipped here are new. The interesting work was making them fit: same architectural shape, same API surface, same dual backend, same Arrow representation. The fit is the product.</p>
-
-        <h2>What I Will NOT Claim</h2>
-        <ul>
-            <li>None of the algorithms are novel. EVT-membrane Top-K, Galois bipartite filter, Misra-Gries, and HyperLogLog all have 1980s–2010s papers.</li>
-            <li>All numbers are Apple M-series. The AVX-512 VPOPCNTDQ filter path compiles but I have not measured it on real hardware.</li>
-            <li>Streaming add() from Python is FFI-bound, not nanosecond. The 0.26 ns and 5.94 ns numbers are the C-side hot path. From Python, per-call overhead is ~600 ns; use add_many with chunks of 1k+.</li>
-            <li>This is not a database. No transactions, no streaming joins, no late-data handling, no SQL of its own.</li>
-            <li>Persistence is bounded-loss, not durable. Loses at most the events between the last snapshot and the crash.</li>
-            <li>This took a week of wall-clock — heavily AI-assisted (Claude wrote most of the C++ under my direction). It is what one person + a strong LLM can produce when the problem decomposes cleanly into small primitives.</li>
-        </ul>
+        <p><strong>Composition beats invention:</strong> None of the four primitives are new. The interesting work was making them fit: same architectural shape, same API surface, same dual backend, same Arrow representation. The fit is the product.</p>
 
         <h2>Final Metrics</h2>
         <table>
-            <tr>
-                <th>Metric</th>
-                <th>Value</th>
-            </tr>
-            <tr>
-                <td>EVT membrane check</td>
-                <td>0.26 ns</td>
-            </tr>
-            <tr>
-                <td>Galois filter contains()</td>
-                <td>5.94 ns</td>
-            </tr>
-            <tr>
-                <td>Filter build</td>
-                <td>4.1 M keys/sec</td>
-            </tr>
-            <tr>
-                <td>Bits/key (default load_factor=50)</td>
-                <td>10.41</td>
-            </tr>
-            <tr>
-                <td>Bits/key (asymptotic, load_factor=60)</td>
-                <td>8.67</td>
-            </tr>
-            <tr>
-                <td>Filter FP rate (measured)</td>
-                <td>0.76% (predicted 0.78%)</td>
-            </tr>
-            <tr>
-                <td>HLL accuracy at precision=14</td>
-                <td>0.03% over 1M keys</td>
-            </tr>
-            <tr>
-                <td>HLL merge accuracy</td>
-                <td>1.36% over 750k union</td>
-            </tr>
-            <tr>
-                <td>Pipeline aggregate (4 cores)</td>
-                <td>322 M ops/sec</td>
-            </tr>
-            <tr>
-                <td>Misra-Gries snapshot size</td>
-                <td>416 bytes for K=32</td>
-            </tr>
-        </table>
-
-        <h2>Numbers I Will Defend</h2>
-        <table>
-            <tr>
-                <th>Claim</th>
-                <th>Where to verify</th>
-            </tr>
-            <tr>
-                <td>0.26 ns EVT membrane check on M-series</td>
-                <td>code/build/bench_micro</td>
-            </tr>
-            <tr>
-                <td>5.94 ns Galois contains() on M-series</td>
-                <td>code/build/bench_micro</td>
-            </tr>
-            <tr>
-                <td>0 false negatives on 5,000 Galois-filter keys</td>
-                <td>code/build/test_basic</td>
-            </tr>
-            <tr>
-                <td>0.76% Galois FP rate, predicted 0.78%</td>
-                <td>code/build/test_basic output</td>
-            </tr>
-            <tr>
-                <td>100/100 Top-K match against heapq</td>
-                <td>./scripts/run_explainer.sh</td>
-            </tr>
-            <tr>
-                <td>8/8 Misra-Gries heavy hitters caught when above threshold</td>
-                <td>python demo/06_mergeable.py</td>
-            </tr>
-            <tr>
-                <td>HLL 0.03% error on 1M cardinality</td>
-                <td>code/build/test_basic</td>
-            </tr>
-            <tr>
-                <td>Arrow → DuckDB JOIN works end-to-end</td>
-                <td>python demo/07_sql_bridge.py</td>
-            </tr>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>EVT membrane check</td><td>0.26 ns</td></tr>
+            <tr><td>Galois filter contains()</td><td>5.94 ns</td></tr>
+            <tr><td>Filter build</td><td>4.1 M keys/sec</td></tr>
+            <tr><td>Bits/key (default)</td><td>10.41</td></tr>
+            <tr><td>Filter FP rate</td><td>0.76%</td></tr>
+            <tr><td>HLL accuracy (1M keys)</td><td>0.03%</td></tr>
+            <tr><td>Pipeline aggregate (4 cores)</td><td>322 M ops/sec</td></tr>
+            <tr><td>Misra-Gries snapshot (K=32)</td><td>416 bytes</td></tr>
         </table>
 
         <h2>Meta</h2>
-        <p>Built over a week in May 2026, on a single Mac mini M-series, with one person and one LLM. The math is from Misra & Gries (1982), Flajolet et al. (2007), Heule et al. (2013), Dillinger & Walzer (2021), Agarwal et al. (2013), and the extreme-value-theory literature. The engineering, the benchmarks, the bugs, the failures, and this writeup are mine.</p>
-
-        <p><strong>License:</strong> MIT</p>
+        <p>Built over a week in May 2026, on a single Mac mini M-series, with one person and one LLM. The math is from Misra & Gries (1982), Flajolet et al. (2007), Heule et al. (2013), Dillinger & Walzer (2021), Agarwal et al. (2013). The engineering, the benchmarks, the bugs, and this writeup are mine. License: MIT</p>
     </main>
 
     <footer>
