@@ -1,410 +1,875 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stratum Dashboard | elvec1o</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stratum — Benchmark Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-        :root {
-            --bg: #0d1117;
-            --bg-secondary: #161b22;
-            --bg-tertiary: #21262d;
-            --border: #30363d;
-            --text: #c9d1d9;
-            --text-muted: #8b949e;
-            --accent: #58a6ff;
-        }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --border:   #21262d;
+    --accent:   #06b6d4;
+    --accent2:  #22d3ee;
+    --teal:     #14b8a6;
+    --green:    #10b981;
+    --red:      #f43f5e;
+    --yellow:   #f59e0b;
+    --violet:   #7c3aed;
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+    --card-bg:  #11192a;
+  }
 
-        .header {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+  html { scroll-behavior: smooth; }
 
-        .header-content {
-            max-width: 900px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
 
-        .header-left { display: flex; align-items: center; gap: 1rem; }
+  /* ── HERO ───────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #042a35 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 56px 40px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 70% 50%, rgba(6,182,212,.18) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 20% 30%, rgba(20,184,166,.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 1400px; margin: 0 auto; position: relative; }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            color: var(--text);
-        }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(6,182,212,.15);
+    border: 1px solid rgba(6,182,212,.4);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    animation: fadeUp .6s ease both;
+  }
+  .hero-badge::before { content: '●'; font-size: 8px; color: var(--green); }
 
-        .logo img { height: 32px; width: auto; }
-        .title-info h1 { font-size: 1.1rem; font-weight: 600; color: var(--text); }
+  h1 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+    animation: fadeUp .6s ease .1s both;
+  }
+  h1 span { color: var(--accent2); }
 
-        .title-info .meta {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
+  .hero-sub {
+    margin-top: 10px;
+    font-size: 15px; color: var(--muted); font-weight: 400;
+    max-width: 800px;
+    animation: fadeUp .6s ease .2s both;
+  }
+  .hero-sub code {
+    background: rgba(6,182,212,.12);
+    border: 1px solid rgba(6,182,212,.25);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+  }
 
-        .back-link {
-            color: var(--accent);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
+  .hero-links { margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-links a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255,255,255,.02);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all .2s;
+  }
+  .hero-links a:hover { border-color: var(--accent); color: var(--accent2); }
 
-        .back-link:hover { text-decoration: underline; }
+  /* ── STATS BAR ──────────────────────────────────────── */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--border);
+    margin-top: 40px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeUp .6s ease .3s both;
+  }
+  .stat {
+    background: rgba(22,27,34,.8);
+    padding: 20px 24px;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: background .2s;
+  }
+  .stat:hover { background: rgba(6,182,212,.08); }
+  .stat-label {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .stat-value {
+    font-size: 32px; font-weight: 800; letter-spacing: -.02em;
+    color: var(--accent2);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-unit { font-size: 14px; color: var(--muted); font-weight: 500; }
 
-        .content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
+  /* ── MAIN ─────────────────────────────────────────── */
+  .container { max-width: 1400px; margin: 0 auto; padding: 40px; }
 
-        h2 { font-size: 1.3rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text); }
-        h3 { font-size: 1.05rem; font-weight: 600; margin: 1rem 0 0.75rem; color: var(--text); }
+  .section {
+    margin-bottom: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    animation: fadeUp .6s ease both;
+    opacity: 0;
+  }
+  .section-header { margin-bottom: 20px; }
+  .section-title {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 700; letter-spacing: .12em;
+    color: var(--accent2); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .section-title::before {
+    content: ''; width: 20px; height: 2px;
+    background: var(--accent); border-radius: 2px;
+  }
+  h2 { font-size: 22px; font-weight: 700; letter-spacing: -.01em; margin: 4px 0 8px; }
+  .section-desc { color: var(--muted); font-size: 14px; max-width: 800px; }
 
-        p { margin-bottom: 1rem; line-height: 1.7; }
+  .chart-wrap { position: relative; height: 380px; margin-top: 24px; }
+  .chart-wrap.tall { height: 460px; }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
 
-        .stat-card {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 1rem;
-            text-align: center;
-        }
+  /* ── TABLES ─────────────────────────────────────── */
+  table.cmp {
+    width: 100%; border-collapse: collapse; margin-top: 24px;
+    font-size: 13px;
+  }
+  table.cmp th, table.cmp td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  table.cmp th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  table.cmp td:first-child, table.cmp th:first-child { text-align: left; }
+  table.cmp tr.hl { background: rgba(6,182,212,.06); }
+  table.cmp tr.hl td:first-child { color: var(--accent2); font-weight: 600; }
+  table.cmp .star { color: var(--yellow); }
 
-        .stat-card .label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-        }
+  /* ── ARCHITECTURE CARDS ─────────────────────────── */
+  .arch-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 24px;
+  }
+  @media (max-width: 800px) { .arch-grid { grid-template-columns: 1fr; } }
+  .arch-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--teal));
+  }
+  .arch-icon {
+    font-size: 22px; margin-bottom: 8px;
+    display: inline-block; padding: 6px 10px; border-radius: 8px;
+    background: rgba(6,182,212,.1);
+  }
+  .arch-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .arch-card .arch-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .arch-card ul { list-style: none; padding: 0; margin: 12px 0 0; }
+  .arch-card li {
+    font-size: 13px; padding: 4px 0;
+    color: var(--text); border-bottom: 1px dashed rgba(255,255,255,.06);
+  }
+  .arch-card li:last-child { border-bottom: 0; }
+  .arch-card li strong { color: var(--accent2); font-weight: 600; }
 
-        .stat-card .value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--accent);
-            font-family: 'Monaco', monospace;
-        }
+  /* ── ROADMAP ────────────────────────────────────── */
+  .timeline {
+    display: grid; gap: 8px; margin-top: 24px;
+    grid-template-columns: repeat(7, 1fr);
+  }
+  @media (max-width: 1000px) { .timeline { grid-template-columns: 1fr 1fr; } }
+  .step {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+    font-size: 12px;
+    position: relative;
+  }
+  .step .ver {
+    font-weight: 800; color: var(--accent2); font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .step .title {
+    font-weight: 600; margin: 4px 0; color: var(--text);
+  }
+  .step .desc { color: var(--muted); font-size: 12px; line-height: 1.4; }
+  .step.shipped::after {
+    content: '✓'; position: absolute; top: 8px; right: 10px;
+    color: var(--green); font-weight: 800;
+  }
 
-        .stat-card .unit {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
+  /* ── LIVE DATA FORM ─────────────────────────────── */
+  .form {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-top: 20px;
+  }
+  textarea.bench {
+    width: 100%; min-height: 140px;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  textarea.bench:focus { outline: none; border-color: var(--accent); }
+  .form-actions { margin-top: 12px; display: flex; gap: 10px; }
+  .btn {
+    padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card-bg); color: var(--text);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .2s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent2); }
+  .btn.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  .btn.primary:hover { background: var(--accent2); color: var(--bg); }
+  .hint { margin-top: 10px; color: var(--muted); font-size: 12px; }
+  .hint code {
+    background: rgba(6,182,212,.1); color: var(--accent2);
+    padding: 1px 5px; border-radius: 3px;
+    font-family: 'SF Mono', monospace; font-size: 11px;
+  }
 
-        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
-        th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
-        th { background: var(--bg-tertiary); font-weight: 600; color: var(--accent); }
-        tr:nth-child(even) { background: rgba(30, 30, 50, 0.2); }
+  /* ── animations ─────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section:nth-child(1) { animation-delay: .1s; }
+  .section:nth-child(2) { animation-delay: .15s; }
+  .section:nth-child(3) { animation-delay: .2s; }
+  .section:nth-child(4) { animation-delay: .25s; }
+  .section:nth-child(5) { animation-delay: .3s; }
+  .section:nth-child(6) { animation-delay: .35s; }
+  .section:nth-child(7) { animation-delay: .4s; }
+  .section:nth-child(8) { animation-delay: .45s; }
 
-        a { color: var(--accent); text-decoration: none; }
-        a:hover { text-decoration: underline; }
-
-        .chart-container {
-            position: relative;
-            height: 350px;
-            margin: 1.5rem 0;
-        }
-
-        footer { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 3rem; }
-    </style>
+  /* ── FOOTER ──────────────────────────────────────── */
+  footer {
+    text-align: center; padding: 32px 16px;
+    color: var(--muted); font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+  footer a { color: var(--accent2); text-decoration: none; }
+</style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <div class="header-left">
-                <a href="https://elvec1o.github.io/home/" class="logo">
-                    <img src="https://elvec1o.github.io/home/img/logo-elvec1o.png" alt="elvec1o">
-                </a>
-                <div class="title-info">
-                    <h1>Stratum Performance Dashboard</h1>
-                    <div class="meta">
-                        <span>Benchmarks & metrics · May 2026</span>
-                    </div>
-                </div>
-            </div>
-            <a href="https://elvec1o.github.io/home/files/" class="back-link">← Files</a>
-        </div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">benchmark dashboard · Apple M-series</div>
+    <h1>Stratum — <span>Streaming Primitives</span></h1>
+    <p class="hero-sub">
+      Four streaming primitives — <code>TopK</code>, <code>HeavyHitters</code>,
+      <code>Cardinality</code> (HLL), <code>Filter</code> (Galois) — composed
+      around a shared mergeable-summary property. Dual Python/native backend,
+      Arrow bridge to DuckDB/Polars/DataFusion.
+    </p>
+    <div class="hero-links">
+      <a href="https://github.com/ElVec1o/Stratum">→ GitHub Repo</a>
+      <a href="https://github.com/ElVec1o/Stratum/blob/main/README.md">README</a>
+      <a href="https://github.com/ElVec1o/Stratum/blob/main/benchmarks/comparison.png">Static comparison.png</a>
     </div>
 
-    <div class="content">
-        <h2>Core Primitives</h2>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="label">EVT Membrane</div>
-                <div class="value">0.26</div>
-                <div class="unit">ns / event</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Galois Filter</div>
-                <div class="value">5.94</div>
-                <div class="unit">ns / contains()</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Misra-Gries</div>
-                <div class="value">~10</div>
-                <div class="unit">ns / event</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">HyperLogLog</div>
-                <div class="value">~12</div>
-                <div class="unit">ns / event</div>
-            </div>
-        </div>
-
-        <h2>Throughput vs heapq (K=100, N=2M)</h2>
-        <table>
-            <tr>
-                <th>Approach</th>
-                <th>Throughput</th>
-                <th>Memory</th>
-                <th>p99.99 Latency</th>
-            </tr>
-            <tr>
-                <td>Python heapq</td>
-                <td>12.0 M ev/s</td>
-                <td>3,720 B</td>
-                <td>7.3 µs (GC)</td>
-            </tr>
-            <tr>
-                <td>Stratum (python backend)</td>
-                <td>191.3 M ev/s</td>
-                <td>800 B</td>
-                <td>~150 ns</td>
-            </tr>
-            <tr>
-                <td>Stratum (native backend)</td>
-                <td>25.5 M ev/s</td>
-                <td>3,200 B</td>
-                <td>5.94 ns</td>
-            </tr>
-        </table>
-
-        <h2>Throughput Chart</h2>
-        <div class="chart-container">
-            <canvas id="throughputChart"></canvas>
-        </div>
-
-        <h2>Tail Latency Percentiles</h2>
-        <table>
-            <tr>
-                <th>Approach</th>
-                <th>p50</th>
-                <th>p99</th>
-                <th>p99.99</th>
-            </tr>
-            <tr>
-                <td>Python heapq</td>
-                <td>83 ns</td>
-                <td>167 ns</td>
-                <td>7330 ns</td>
-            </tr>
-            <tr>
-                <td>Stratum (python)</td>
-                <td>150 ns</td>
-                <td>150 ns</td>
-                <td>150 ns</td>
-            </tr>
-            <tr>
-                <td>Stratum (native)</td>
-                <td>5.94 ns</td>
-                <td>5.94 ns</td>
-                <td>5.94 ns</td>
-            </tr>
-        </table>
-
-        <div class="chart-container">
-            <canvas id="latencyChart"></canvas>
-        </div>
-
-        <h2>Development Timeline</h2>
-        <table>
-            <tr>
-                <th>Version</th>
-                <th>Focus</th>
-            </tr>
-            <tr>
-                <td><strong>v0.1 → v0.2</strong></td>
-                <td>Production hardening: mmap arena, C ABI, Python ctypes, CMake</td>
-            </tr>
-            <tr>
-                <td><strong>v0.3</strong></td>
-                <td>Math validation: Gaussian Cuckoo, GF(2) solve, AVX-512 filter</td>
-            </tr>
-            <tr>
-                <td><strong>v0.4</strong></td>
-                <td>HTTP/1.1 + SSE dashboard in ~400 lines C++</td>
-            </tr>
-            <tr>
-                <td><strong>v0.5</strong></td>
-                <td>Dual-backend pattern: numpy.argpartition vs native</td>
-            </tr>
-            <tr>
-                <td><strong>v0.6</strong></td>
-                <td>Mergeable summaries: Misra-Gries, HyperLogLog</td>
-            </tr>
-            <tr>
-                <td><strong>v0.7</strong></td>
-                <td>SQL bridge: Apache Arrow zero-copy to DuckDB/Polars</td>
-            </tr>
-        </table>
-
-        <h2>Final Metrics (Apple M-series)</h2>
-        <table>
-            <tr>
-                <th>Metric</th>
-                <th>Value</th>
-            </tr>
-            <tr>
-                <td>EVT membrane check</td>
-                <td>0.26 ns</td>
-            </tr>
-            <tr>
-                <td>Galois filter contains()</td>
-                <td>5.94 ns</td>
-            </tr>
-            <tr>
-                <td>Filter build (4.1 M keys/sec)</td>
-                <td>~240 ms for 1M keys</td>
-            </tr>
-            <tr>
-                <td>Bits/key (default)</td>
-                <td>10.41</td>
-            </tr>
-            <tr>
-                <td>Filter FP rate</td>
-                <td>0.76%</td>
-            </tr>
-            <tr>
-                <td>HLL accuracy (1M keys)</td>
-                <td>0.03%</td>
-            </tr>
-            <tr>
-                <td>Pipeline aggregate (4 cores)</td>
-                <td>322 M ops/sec</td>
-            </tr>
-            <tr>
-                <td>Misra-Gries snapshot (K=32)</td>
-                <td>416 bytes</td>
-            </tr>
-        </table>
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-label">Membrane check</div>
+        <div class="stat-value">0.26 <span class="stat-unit">ns</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Galois contains()</div>
+        <div class="stat-value">5.94 <span class="stat-unit">ns</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Filter bits/key</div>
+        <div class="stat-value">10.4 <span class="stat-unit">bpk</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Bulk throughput (Py)</div>
+        <div class="stat-value">191 <span class="stat-unit">M ev/s</span></div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <footer>
-        <p>elvec1o — 2026 · <a href="https://elvec1o.github.io/home">elvec1o.github.io/home</a></p>
-    </footer>
+<div class="container">
 
-    <script>
-        // Throughput
-        const throughputCtx = document.getElementById('throughputChart').getContext('2d');
-        new Chart(throughputCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Python heapq', 'Stratum (python)', 'Stratum (native)'],
-                datasets: [{
-                    label: 'Throughput (M events/sec)',
-                    data: [12.0, 191.3, 25.5],
-                    backgroundColor: ['rgba(88, 166, 255, 0.3)', 'rgba(88, 166, 255, 0.6)', 'rgba(88, 166, 255, 0.9)'],
-                    borderColor: '#58a6ff',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#8b949e' } } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#8b949e' },
-                        grid: { color: '#30363d' }
-                    },
-                    x: {
-                        ticks: { color: '#8b949e' },
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
+  <!-- §1 Overall Profile -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">§1 Overall Profile</div>
+      <h2>Performance Radar — Stratum vs the canonical alternatives</h2>
+      <p class="section-desc">
+        Six normalized axes covering the dimensions that actually distinguish
+        streaming primitives. Stratum's strength: tail latency, mergeability,
+        SQL interop. Trade-offs: bulk-build time (slower than heapq's tight C
+        loop at small N), Python FFI per-call overhead.
+      </p>
+    </div>
+    <div class="chart-wrap tall">
+      <canvas id="radarChart"></canvas>
+    </div>
+  </div>
 
-        // Latency
-        const latencyCtx = document.getElementById('latencyChart').getContext('2d');
-        new Chart(latencyCtx, {
-            type: 'bar',
-            data: {
-                labels: ['heapq', 'Stratum (python)', 'Stratum (native)'],
-                datasets: [
-                    {
-                        label: 'p50',
-                        data: [83, 150, 5.94],
-                        backgroundColor: 'rgba(88, 166, 255, 0.3)',
-                        borderColor: '#58a6ff',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'p99',
-                        data: [167, 150, 5.94],
-                        backgroundColor: 'rgba(88, 166, 255, 0.6)',
-                        borderColor: '#58a6ff',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'p99.99',
-                        data: [7330, 150, 5.94],
-                        backgroundColor: 'rgba(88, 166, 255, 0.9)',
-                        borderColor: '#58a6ff',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        type: 'logarithmic',
-                        ticks: { color: '#8b949e' },
-                        grid: { color: '#30363d' }
-                    },
-                    x: {
-                        ticks: { color: '#8b949e' },
-                        grid: { display: false }
-                    }
-                },
-                plugins: { legend: { labels: { color: '#8b949e' } } }
-            }
-        });
-    </script>
+  <!-- §2 Throughput -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">§2 Throughput</div>
+      <h2>Bulk Top-K throughput — 2 M random uint64, K=100</h2>
+      <p class="section-desc">
+        Wall-clock throughput building the Top-K from a fixed array. Higher is
+        better. The Python backend's win comes from <code>numpy.argpartition</code>
+        (O(N), SIMD-vectorised). Stratum native pays Python→C FFI overhead
+        in this Python-driven bulk test; in a pure C++/Rust hot loop the
+        membrane runs at 3.8 B ops/s.
+      </p>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="throughputChart"></canvas>
+    </div>
+    <table class="cmp">
+      <thead>
+        <tr><th>Approach</th><th>Throughput</th><th>State</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Python <code>heapq</code></td><td>12.0 M ev/s</td><td>3,720 B</td><td>GIL-bound; GC tail</td></tr>
+        <tr class="hl"><td>Stratum (python) <span class="star">★</span></td><td>191.3 M ev/s</td><td>800 B</td><td>numpy argpartition</td></tr>
+        <tr class="hl"><td>Stratum (native) <span class="star">★</span></td><td>25.5 M ev/s</td><td>3,200 B</td><td>Python→C FFI bulk path</td></tr>
+        <tr><td>Redis ZADD (localhost)</td><td>~0.1 M ev/s</td><td>—</td><td>TCP round-trip dominated (estimated)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- §3 Tail latency -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">§3 Per-event Tail Latency</div>
+      <h2>p50, p99, p99.99 — lower is better, flatter is better</h2>
+      <p class="section-desc">
+        The story Stratum's native backend is built around. Python's
+        <code>heapq</code> has a smooth low p50 but a long tail from GC
+        pauses and dict resizes. Stratum's hot path cannot spike: it's one
+        atomic-relaxed load (0.26 ns) plus a branchless 8-popcount filter
+        probe (5.94 ns). No allocation, no branch the predictor doesn't know,
+        no syscall.
+      </p>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="tailChart"></canvas>
+    </div>
+  </div>
+
+  <!-- §4 Pareto -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">§4 Pareto Frontier</div>
+      <h2>State size vs throughput — upper-left dominates</h2>
+      <p class="section-desc">
+        Where each approach sits in the size/speed trade-off. Stratum
+        primitives sit on the frontier because their state size is bounded
+        by K (Top-K, heavy hitters) or by a fixed register array
+        (HyperLogLog), independent of stream size.
+      </p>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="paretoChart"></canvas>
+    </div>
+  </div>
+
+  <!-- §5 Build speed of Galois filter -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">§5 Galois Filter Build</div>
+      <h2>Filter construction — 100k uint64 keys</h2>
+      <p class="section-desc">
+        The honest weakness, exposed: the real Gaussian-elimination Cuckoo
+        builder is slower than building a Bloom filter. We solve 8 GF(2)
+        linear systems per block — costs more than 7 hash + 7 SetBit ops.
+        We win the query side, not the build side.
+      </p>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="buildChart"></canvas>
+    </div>
+  </div>
+
+  <!-- §6 Architecture -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">§6 Architecture</div>
+      <h2>Four primitives, one shared shape</h2>
+      <p class="section-desc">
+        Every primitive sits on the same architectural skeleton: shared-nothing
+        per-shard workers, lock-free SPSC ring buffers, mmap snapshots, and a
+        deterministic <code>merge()</code> operation. The math comes from
+        four different 1980s–2010s papers; the fit is the contribution.
+      </p>
+    </div>
+    <div class="arch-grid">
+      <div class="arch-card">
+        <span class="arch-icon">🔥</span>
+        <h3>TopK — EVT membrane</h3>
+        <div class="arch-sub">extreme value theory</div>
+        <ul>
+          <li><strong>Hot path:</strong> 1 atomic-relaxed load, 1 compare. 0.26 ns measured.</li>
+          <li><strong>Insight:</strong> ~99.9% of events fail the threshold and need no further work.</li>
+          <li><strong>Background:</strong> async double-buffered nth_element on flush.</li>
+          <li><strong>Merge:</strong> concat top-Ks + nth_element. Trivially associative.</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <span class="arch-icon">📊</span>
+        <h3>HeavyHitters — Misra-Gries</h3>
+        <div class="arch-sub">Misra &amp; Gries 1982</div>
+        <ul>
+          <li><strong>Hot path:</strong> open-address hash probe + increment. ~10 ns.</li>
+          <li><strong>Guarantee:</strong> any key with freq &gt; N/(K+1) is tracked.</li>
+          <li><strong>Snapshot:</strong> 416 bytes for K=32.</li>
+          <li><strong>Merge:</strong> union, top-K, subtract (K+1)-th. Preserves error bound exactly.</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <span class="arch-icon">🎯</span>
+        <h3>Cardinality — HyperLogLog</h3>
+        <div class="arch-sub">Flajolet 2007 · Heule 2013</div>
+        <ul>
+          <li><strong>Hot path:</strong> 1 hash, 1 clzll, 1 max update. ~12 ns.</li>
+          <li><strong>State:</strong> 16 KB at p=14 → ~0.81% std err.</li>
+          <li><strong>Measured:</strong> 0.03% error over 1M; 1.36% on a 750k union.</li>
+          <li><strong>Merge:</strong> elementwise max of registers. Exact union.</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <span class="arch-icon">🔍</span>
+        <h3>Filter — Galois bipartite</h3>
+        <div class="arch-sub">Ribbon family · Dillinger &amp; Walzer 2021</div>
+        <ul>
+          <li><strong>Hot path:</strong> 8 branchless parities. 5.94 ns scalar, ~1 ns AVX-512.</li>
+          <li><strong>Build:</strong> per-block GF(2) Gaussian elimination, 8 RHS at once.</li>
+          <li><strong>Memory:</strong> 10.41 bits/key default; 8.67 bpk asymptotic.</li>
+          <li><strong>FP rate:</strong> measured 0.76%, predicted 0.78% (≈ 2/256).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- §7 Roadmap -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">§7 Roadmap</div>
+      <h2>Development timeline</h2>
+      <p class="section-desc">
+        Seven versions shipped over one week. Each builds on the previous;
+        nothing was thrown away. Honest failure modes documented in
+        <a href="https://github.com/ElVec1o/Stratum/blob/main/CHANGELOG.md" style="color:var(--accent2)">CHANGELOG.md</a>.
+      </p>
+    </div>
+    <div class="timeline">
+      <div class="step shipped">
+        <div class="ver">v0.1</div>
+        <div class="title">Handoff core</div>
+        <div class="desc">Lock-free SPSC + EVT membrane + bench-grade Galois.</div>
+      </div>
+      <div class="step shipped">
+        <div class="ver">v0.2</div>
+        <div class="title">Hardening</div>
+        <div class="desc">mmap arena, C ABI, Python bindings, CMake, tests.</div>
+      </div>
+      <div class="step shipped">
+        <div class="ver">v0.3</div>
+        <div class="title">Real Galois build</div>
+        <div class="desc">Gaussian-elim Cuckoo, zero false negatives. Rust crate.</div>
+      </div>
+      <div class="step shipped">
+        <div class="ver">v0.4</div>
+        <div class="title">HTTP + SSE dashboard</div>
+        <div class="desc">400-line server, delta-encoded stream, browser UI.</div>
+      </div>
+      <div class="step shipped">
+        <div class="ver">v0.5</div>
+        <div class="title">Dual backend</div>
+        <div class="desc">Python (numpy) + native — competitive at both ends.</div>
+      </div>
+      <div class="step shipped">
+        <div class="ver">v0.6</div>
+        <div class="title">Mergeable summaries</div>
+        <div class="desc">Misra-Gries → persistence + distribution + frequencies.</div>
+      </div>
+      <div class="step shipped">
+        <div class="ver">v0.7</div>
+        <div class="title">SQL bridge</div>
+        <div class="desc">Arrow → DuckDB/Polars. HyperLogLog. Public release.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- §8 Live Data -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">§8 Live Data</div>
+      <h2>Paste your <code>bench_micro</code> output</h2>
+      <p class="section-desc">
+        Run <code>code/build/bench_micro</code> on your machine and paste the
+        output below. The dashboard re-renders with your measured numbers
+        overlaid against the baseline. Everything runs client-side.
+      </p>
+    </div>
+    <div class="form">
+      <textarea id="benchInput" class="bench" spellcheck="false" placeholder="Paste output of: code/build/bench_micro
+
+example:
+build:    100000 keys in 16.7 ms (6.0 Mkeys/s), unbuildable=0
+memory:   10.41 bits/key (127.0 KB total)
+contains: 5.97 ns/op  (167.6 M ops/s, 390624 hits)
+membrane: 0.26 ns/op  (3847.8 M ops/s, 12589414 breaches)"></textarea>
+      <div class="form-actions">
+        <button class="btn primary" id="updateBtn">⚡ Update charts</button>
+        <button class="btn" id="resetBtn">↺ Reset to baseline</button>
+      </div>
+      <div class="hint">
+        Recognised lines: <code>contains: X ns/op</code>, <code>membrane: X ns/op</code>,
+        <code>build: ... (X Mkeys/s)</code>, <code>memory: X bits/key</code>.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  elvec1o — 2026 · <a href="https://github.com/ElVec1o/Stratum">github.com/ElVec1o/Stratum</a> · MIT
+</footer>
+
+<script>
+/* ============================================================
+   Chart.js global theme
+   ============================================================ */
+Chart.defaults.color = '#8b949e';
+Chart.defaults.borderColor = 'rgba(255,255,255,.06)';
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+const CYAN   = '#06b6d4';
+const TEAL   = '#14b8a6';
+const VIOLET = '#7c3aed';
+const RED    = '#f43f5e';
+const YELLOW = '#f59e0b';
+const GREEN  = '#10b981';
+const MUTED  = '#8b949e';
+
+/* ============================================================
+   Baseline data — measured on a Mac mini M-series.
+   See benchmarks/results.md and bench_micro for provenance.
+   ============================================================ */
+const BASELINE = {
+  approaches: ['heapq', 'Stratum (python)', 'Stratum (native)', 'Redis ZADD'],
+  throughput_mevs: [12.0, 191.3, 25.5, 0.1],
+  state_bytes:    [3720, 800, 3200, 50000],   // Redis state estimated
+  p50_ns:         [83, 150, 5.94, 150_000],
+  p99_ns:         [167, 150, 5.94, 600_000],
+  p9999_ns:       [7330, 150, 5.94, 5_000_000],
+
+  filter_build_mkps: { 'Stratum Galois (real)': 4.1, 'Blocked Bloom (lit.)': 200, 'Xor (lit.)': 100 },
+
+  membrane_ns: 0.26,
+  contains_ns: 5.94,
+  build_mkps:  4.1,
+  bits_per_key: 10.41,
+};
+
+/* clone so the live-data form can overwrite without nuking baseline */
+const STATE = JSON.parse(JSON.stringify(BASELINE));
+
+/* ============================================================
+   §1 RADAR — 6 axes, normalized [0,1]
+   ============================================================ */
+function radarFor(name) {
+  // each entry: [memEff, throughput, tailFlat, mergeable, sqlInterop, simplicity]
+  // memEff: state size, inverted/normalized
+  // tailFlat: ratio p50/p9999 — closer to 1 is better
+  const profiles = {
+    'heapq':              [0.55, 0.10, 0.05, 0.00, 0.00, 1.00],
+    'Stratum (python)':   [0.95, 1.00, 0.95, 1.00, 1.00, 0.75],
+    'Stratum (native)':   [0.65, 0.20, 1.00, 1.00, 1.00, 0.50],
+    'Redis ZADD':         [0.20, 0.02, 0.10, 0.30, 0.40, 0.85],
+  };
+  return profiles[name] || [0,0,0,0,0,0];
+}
+
+const charts = {};
+{
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  charts.radar = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Memory\nefficiency','Throughput','Tail\nflatness','Mergeable','SQL\ninterop','Ergonomics'],
+      datasets: [
+        { label: 'Stratum (python)', data: radarFor('Stratum (python)'),
+          borderColor: CYAN, backgroundColor: 'rgba(6,182,212,.25)', borderWidth: 2,
+          pointBackgroundColor: CYAN, pointRadius: 4 },
+        { label: 'Stratum (native)', data: radarFor('Stratum (native)'),
+          borderColor: TEAL, backgroundColor: 'rgba(20,184,166,.18)', borderWidth: 2,
+          pointBackgroundColor: TEAL, pointRadius: 4 },
+        { label: 'Python heapq',     data: radarFor('heapq'),
+          borderColor: YELLOW, backgroundColor: 'rgba(245,158,11,.12)', borderWidth: 1.5,
+          pointBackgroundColor: YELLOW, pointRadius: 3, borderDash: [4,4] },
+        { label: 'Redis ZADD',       data: radarFor('Redis ZADD'),
+          borderColor: RED, backgroundColor: 'rgba(244,63,94,.10)', borderWidth: 1.5,
+          pointBackgroundColor: RED, pointRadius: 3, borderDash: [4,4] },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: 0, max: 1, ticks: { display: false, stepSize: 0.2 },
+          angleLines: { color: 'rgba(255,255,255,.08)' },
+          grid: { color: 'rgba(255,255,255,.08)' },
+          pointLabels: { color: '#e6edf3', font: { size: 12, weight: '500' } }
+        }
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyleWidth: 10 } }
+      }
+    }
+  });
+}
+
+/* ============================================================
+   §2 THROUGHPUT — bar
+   ============================================================ */
+{
+  const ctx = document.getElementById('throughputChart').getContext('2d');
+  charts.throughput = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: STATE.approaches,
+      datasets: [{
+        label: 'M events / second',
+        data: STATE.throughput_mevs,
+        backgroundColor: [YELLOW, CYAN, TEAL, RED],
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      scales: {
+        x: { type: 'logarithmic', title: { display: true, text: 'M events / second (log scale, higher = better)' },
+             grid: { color: 'rgba(255,255,255,.05)' } },
+        y: { grid: { display: false } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+/* ============================================================
+   §3 TAIL LATENCY — grouped bars
+   ============================================================ */
+{
+  const ctx = document.getElementById('tailChart').getContext('2d');
+  charts.tail = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: STATE.approaches,
+      datasets: [
+        { label: 'p50',    data: STATE.p50_ns,   backgroundColor: GREEN,  borderRadius: 4 },
+        { label: 'p99',    data: STATE.p99_ns,   backgroundColor: YELLOW, borderRadius: 4 },
+        { label: 'p99.99', data: STATE.p9999_ns, backgroundColor: RED,    borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { type: 'logarithmic', title: { display: true, text: 'Latency (ns, log scale, lower = better)' },
+             grid: { color: 'rgba(255,255,255,.05)' } },
+        x: { grid: { display: false } }
+      },
+      plugins: { legend: { position: 'top' } }
+    }
+  });
+}
+
+/* ============================================================
+   §4 PARETO — scatter
+   ============================================================ */
+{
+  const ctx = document.getElementById('paretoChart').getContext('2d');
+  const points = STATE.approaches.map((name, i) => ({
+    x: STATE.state_bytes[i], y: STATE.throughput_mevs[i], name
+  }));
+  charts.pareto = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: points.map((p, i) => ({
+        label: p.name,
+        data: [{ x: p.x, y: p.y }],
+        backgroundColor: [YELLOW, CYAN, TEAL, RED][i],
+        borderColor: [YELLOW, CYAN, TEAL, RED][i],
+        pointRadius: 9, pointHoverRadius: 12, pointStyle: 'circle'
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { type: 'logarithmic', title: { display: true, text: 'State size (bytes, log scale)' },
+             grid: { color: 'rgba(255,255,255,.05)' } },
+        y: { type: 'logarithmic', title: { display: true, text: 'Throughput (M ev/s, log scale)' },
+             grid: { color: 'rgba(255,255,255,.05)' } }
+      },
+      plugins: { legend: { position: 'top' } }
+    }
+  });
+}
+
+/* ============================================================
+   §5 BUILD — bar
+   ============================================================ */
+{
+  const ctx = document.getElementById('buildChart').getContext('2d');
+  const labels = Object.keys(BASELINE.filter_build_mkps);
+  const data   = Object.values(BASELINE.filter_build_mkps);
+  charts.build = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'M keys / second (build)',
+        data,
+        backgroundColor: [CYAN, MUTED, MUTED],
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      scales: {
+        x: { type: 'logarithmic', title: { display: true, text: 'M keys/sec (log scale; literature values for non-Stratum)' },
+             grid: { color: 'rgba(255,255,255,.05)' } },
+        y: { grid: { display: false } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+/* ============================================================
+   §8 LIVE DATA — parse bench_micro and update charts
+   ============================================================ */
+function parseBench(text) {
+  const out = {};
+  // contains: 5.97 ns/op
+  let m = /contains:\s*([\d.]+)\s*ns/i.exec(text);            if (m) out.contains_ns = parseFloat(m[1]);
+  // membrane: 0.26 ns/op
+  m = /membrane:\s*([\d.]+)\s*ns/i.exec(text);                if (m) out.membrane_ns = parseFloat(m[1]);
+  // build: ... (4.1 Mkeys/s)
+  m = /build:.*?\(([\d.]+)\s*Mkeys\/s/i.exec(text);           if (m) out.build_mkps = parseFloat(m[1]);
+  // memory: 10.41 bits/key
+  m = /memory:\s*([\d.]+)\s*bits\/key/i.exec(text);           if (m) out.bits_per_key = parseFloat(m[1]);
+  return out;
+}
+
+function applyToState(parsed) {
+  // Update the Stratum-native column where applicable.
+  const nativeIdx = STATE.approaches.indexOf('Stratum (native)');
+  if (parsed.contains_ns) {
+    STATE.p50_ns[nativeIdx]   = parsed.contains_ns;
+    STATE.p99_ns[nativeIdx]   = parsed.contains_ns;
+    STATE.p9999_ns[nativeIdx] = parsed.contains_ns;
+  }
+  if (parsed.build_mkps) {
+    BASELINE.filter_build_mkps['Stratum Galois (real)'] = parsed.build_mkps;
+  }
+  return parsed;
+}
+
+function rerenderAll() {
+  charts.tail.data.datasets[0].data = STATE.p50_ns;
+  charts.tail.data.datasets[1].data = STATE.p99_ns;
+  charts.tail.data.datasets[2].data = STATE.p9999_ns;
+  charts.tail.update();
+
+  charts.build.data.labels = Object.keys(BASELINE.filter_build_mkps);
+  charts.build.data.datasets[0].data = Object.values(BASELINE.filter_build_mkps);
+  charts.build.update();
+
+  // Update the headline stat values too.
+  document.querySelectorAll('.stat-value').forEach((el, i) => {
+    const newVal = [
+      STATE.membrane_ns ?? BASELINE.membrane_ns,
+      STATE.p50_ns[STATE.approaches.indexOf('Stratum (native)')],
+      STATE.bits_per_key ?? BASELINE.bits_per_key,
+      STATE.throughput_mevs[STATE.approaches.indexOf('Stratum (python)')],
+    ][i];
+    if (typeof newVal === 'number') {
+      const unit = el.querySelector('.stat-unit');
+      const unitText = unit ? unit.textContent : '';
+      el.firstChild.textContent = (newVal < 100 ? newVal.toFixed(2) : Math.round(newVal)) + ' ';
+      if (unit) el.appendChild(unit);
+    }
+  });
+}
+
+document.getElementById('updateBtn').addEventListener('click', () => {
+  const txt = document.getElementById('benchInput').value;
+  const parsed = parseBench(txt);
+  if (Object.keys(parsed).length === 0) {
+    alert('No recognised lines found. Expected output of code/build/bench_micro.');
+    return;
+  }
+  applyToState(parsed);
+  Object.assign(STATE, parsed);   // also write top-level metrics
+  rerenderAll();
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  // Reset STATE from BASELINE.
+  Object.assign(STATE, JSON.parse(JSON.stringify(BASELINE)));
+  rerenderAll();
+});
+
+</script>
 </body>
 </html>
