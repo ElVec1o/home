@@ -230,6 +230,7 @@
     "description": "Weekend project building a membership filter that beats industry-standard Bloom and Xor filters in C++. 8 ideas, 7 failed, 1 shipped. Final numbers: 8.52 bits/key, 8.4ns query latency, 0.78% FP rate. 2× faster than Blocked Bloom at near-equal memory, with 3.7× better false-positive rate.",
     "filename": "gbf-viewer.html",
     "viewerUrl": "gbf-viewer.html",
+    "dashboardUrl": "gbf-dashboard.html",
     "url": "https://github.com/ElVec1o/GBF-NEON",
     "size": "~50 KB",
     "date": "2026-05-26"
