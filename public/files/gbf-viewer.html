@@ -4,339 +4,330 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GBF — Beating Bloom Filters in 24 Hours | elvec1o</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --bg: #0d1117;
-            --bg-secondary: #161b22;
-            --bg-tertiary: #21262d;
-            --border: #30363d;
-            --text: #c9d1d9;
-            --text-muted: #8b949e;
-            --accent: #58a6ff;
-            --accent-green: #3fb950;
-            --accent-orange: #d29922;
-        }
-
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            line-height: 1.7;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #fafafa;
         }
-
-        .header {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            max-width: 900px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .header-left { display: flex; align-items: center; gap: 1rem; }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            color: var(--text);
-        }
-
-        .logo img { height: 32px; width: auto; }
-        .title-info h1 { font-size: 1.1rem; font-weight: 600; color: var(--text); }
-
-        .title-info .meta {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .back-link {
-            color: var(--accent);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .back-link:hover { text-decoration: underline; }
-
-        .content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        h2 { font-size: 1.3rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text); }
-        h3 { font-size: 1.05rem; font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--text); }
-        h4 { font-size: 0.95rem; font-weight: 600; margin: 1rem 0 0.5rem; color: var(--text); }
-
-        p { margin-bottom: 1rem; line-height: 1.7; }
-
-        a { color: var(--accent); text-decoration: none; }
+        a { color: #0066cc; text-decoration: none; }
         a:hover { text-decoration: underline; }
-
-        code { background: var(--bg-tertiary); padding: 0.2rem 0.4rem; border-radius: 2px; font-family: 'Monaco', monospace; font-size: 0.9em; }
-        pre { background: var(--bg-tertiary); padding: 1rem; border-radius: 4px; overflow-x: auto; font-family: 'Monaco', monospace; font-size: 0.85rem; margin: 1rem 0; border: 1px solid var(--border); }
+        header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .header-nav { display: flex; gap: 1rem; font-size: 0.9rem; }
+        main { max-width: 800px; margin: 0 auto; padding: 0 1rem 2rem; }
+        .breadcrumb { font-size: 0.9rem; margin-bottom: 1.5rem; color: #666; }
+        h1 { font-size: 2rem; margin-bottom: 1rem; font-weight: 600; }
+        h2 { font-size: 1.4rem; margin: 2rem 0 1rem; font-weight: 600; }
+        h3 { font-size: 1.1rem; margin: 1.5rem 0 0.8rem; font-weight: 600; }
+        h4 { font-size: 1rem; margin: 1.2rem 0 0.6rem; font-weight: 600; }
+        p { margin-bottom: 1rem; }
+        pre {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+            line-height: 1.4;
+        }
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 2px;
+            font-size: 0.9em;
+        }
         pre code { background: none; padding: 0; }
-
-        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
-        th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
-        th { background: var(--bg-tertiary); font-weight: 600; color: var(--accent); }
-        tr:nth-child(even) { background: rgba(30, 30, 50, 0.2); }
-
-        blockquote { border-left: 3px solid var(--accent); padding-left: 1rem; margin: 1.5rem 0; color: var(--text-muted); font-style: italic; }
-
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        th { background: #f5f5f5; font-weight: 600; }
+        tr:nth-child(even) { background: #fafafa; }
+        .metric-table th { text-align: right; }
+        .metric-table td:first-child { font-weight: 500; }
+        blockquote {
+            border-left: 3px solid #ddd;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #666;
+            font-style: italic;
+        }
         ul, ol { margin: 1rem 0 1rem 2rem; }
         li { margin-bottom: 0.5rem; }
-
-        footer { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 3rem; }
+        .section { margin: 2rem 0; }
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 3rem;
+        }
+        .buttons { display: flex; gap: 1rem; margin: 2rem 0; flex-wrap: wrap; }
+        .button {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            border: 1px solid #0066cc;
+            border-radius: 4px;
+            background: white;
+            color: #0066cc;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .button:hover { background: #0066cc; color: white; text-decoration: none; }
+        .button.primary { background: #0066cc; color: white; }
+        figure { margin: 1.5rem 0; }
+        figure img { width: 100%; border: 1px solid #e0e0e0; border-radius: 4px; }
+        figcaption { font-size: 0.85rem; color: #666; margin-top: 0.5rem; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <div class="header-left">
-                <a href="https://elvec1o.github.io/home/" class="logo">
-                    <img src="https://elvec1o.github.io/home/img/logo-elvec1o.png" alt="elvec1o">
-                </a>
-                <div class="title-info">
-                    <h1>GBF — Beating Bloom Filters in 24 Hours</h1>
-                    <div class="meta">
-                        <span>Weekend project · May 2026</span>
-                        <span><a href="https://github.com/ElVec1o/GBF-NEON" target="_blank">GitHub Repo</a></span>
-                    </div>
-                </div>
-            </div>
-            <a href="https://elvec1o.github.io/home/files/" class="back-link">← Files</a>
-        </div>
+<header>
+    <div class="header-content">
+        <a href="https://elvec1o.github.io/home/">home</a>
+        <span style="color:#999">·</span>
+        <a href="https://elvec1o.github.io/home/files/">files</a>
+    </div>
+</header>
+
+<main>
+    <div class="breadcrumb"><a href="https://elvec1o.github.io/home/files/">← Files</a></div>
+
+    <h1>GBF — Beating Bloom Filters in 24 Hours</h1>
+
+    <div class="buttons">
+        <a class="button primary" href="https://github.com/ElVec1o/GBF-NEON">→ GitHub Repo</a>
+        <a class="button" href="https://elvec1o.github.io/home/files/gbf-dashboard.html">📊 Dashboard</a>
     </div>
 
-    <div class="content">
-        <h2>Overview</h2>
-        <p>I spent one weekend trying to build a membership filter that beats Bloom and Xor at their own game in C++. I ended up with something that genuinely does, on the machine I had to test on. This is what actually happened — eight ideas, seven of them failed, one of them shipped, and the path between them turned out to be the interesting part.</p>
+    <h2>Overview</h2>
+    <p>I spent one weekend trying to build a membership filter that beats Bloom and Xor at their own game in C++. I ended up with something that genuinely does, on the machine I had to test on. This is what actually happened — eight ideas, seven of them failed, one of them shipped, and the path between them turned out to be the interesting part.</p>
 
-        <h3>Final Results (Apple M2, 1M random keys)</h3>
-        <table>
-            <tr>
-                <th>Filter</th>
-                <th>bits/key</th>
-                <th>build (ms)</th>
-                <th>query (ns)</th>
-                <th>FP rate</th>
-            </tr>
-            <tr>
-                <td><strong>GBF v1.0 (this work)</strong></td>
-                <td>8.520</td>
-                <td>30</td>
-                <td>8.4</td>
-                <td>0.78%</td>
-            </tr>
-            <tr>
-                <td>Blocked Bloom (8.26 bpk)</td>
-                <td>8.260</td>
-                <td>5</td>
-                <td>16.4</td>
-                <td>2.90%</td>
-            </tr>
-            <tr>
-                <td>Blocked Bloom (12 bpk)</td>
-                <td>12.000</td>
-                <td>4</td>
-                <td>14.8</td>
-                <td>1.97%</td>
-            </tr>
-            <tr>
-                <td>Naive Bloom (k=6)</td>
-                <td>8.500</td>
-                <td>7</td>
-                <td>17.6</td>
-                <td>1.69%</td>
-            </tr>
-        </table>
+    <h3>Final Results (Apple M2, 1M random keys)</h3>
+    <table class="metric-table">
+        <tr>
+            <th style="text-align: left;">Filter</th>
+            <th>bits/key</th>
+            <th>build (ms)</th>
+            <th>query (ns)</th>
+            <th>FP rate</th>
+        </tr>
+        <tr>
+            <td><strong>GBF v1.0 (this work)</strong></td>
+            <td>8.520</td>
+            <td>30</td>
+            <td>8.4</td>
+            <td>0.78%</td>
+        </tr>
+        <tr>
+            <td>Blocked Bloom (8.26 bpk)</td>
+            <td>8.260</td>
+            <td>5</td>
+            <td>16.4</td>
+            <td>2.90%</td>
+        </tr>
+        <tr>
+            <td>Blocked Bloom (12 bpk)</td>
+            <td>12.000</td>
+            <td>4</td>
+            <td>14.8</td>
+            <td>1.97%</td>
+        </tr>
+        <tr>
+            <td>Naive Bloom (k=6)</td>
+            <td>8.500</td>
+            <td>7</td>
+            <td>17.6</td>
+            <td>1.69%</td>
+        </tr>
+    </table>
 
-        <p><strong>At near-equal memory, GBF is ~2× faster on query and ~3.7× better on false positive rate than a competent Blocked Bloom.</strong> The remaining honest weakness: build is ~6× slower than Bloom.</p>
+    <p><strong>At near-equal memory, GBF is ~2× faster on query and ~3.7× better on false positive rate than a competent Blocked Bloom.</strong> The remaining honest weakness: build is ~6× slower than Bloom.</p>
 
-        <h2>The Brief</h2>
-        <blockquote>
-            "We're trying to beat industry-standard data structures at their own game, from scratch, in C++. Target: a membership filter that beats Bloom (used by Redis, RocksDB, Chrome) and the Xor filter (used by Cloudflare). Target metrics: &lt;9 bits/key, 2–3 hashes, &gt;250M ops/sec, zero false negatives. Pure C++17. No dependencies. Must compile in &lt;100 ms for 1M keys. Pick a target. We'll build it."
-        </blockquote>
+    <h2>The Brief</h2>
+    <blockquote>
+        "We're trying to beat industry-standard data structures at their own game, from scratch, in C++. Target: a membership filter that beats Bloom (used by Redis, RocksDB, Chrome) and the Xor filter (used by Cloudflare). Target metrics: &lt;9 bits/key, 2–3 hashes, &gt;250M ops/sec, zero false negatives. Pure C++17. No dependencies. Must compile in &lt;100 ms for 1M keys. Pick a target. We'll build it."
+    </blockquote>
 
-        <p>The starting hypothesis: instead of storing fingerprints, encode each block as a <strong>system of GF(2) linear equations</strong>, solved at build time via Gaussian elimination. At query time you compute <code>v · P (mod 2)</code> — a couple of parity checks against the block's payload — and compare against an 8-bit fingerprint. This is called a Ribbon Filter (Dillinger & Walzer 2021); I didn't know that at the start. I would learn.</p>
+    <p>The starting hypothesis: instead of storing fingerprints, encode each block as a <strong>system of GF(2) linear equations</strong>, solved at build time via Gaussian elimination. At query time you compute <code>v · P (mod 2)</code> — a couple of parity checks against the block's payload — and compare against an 8-bit fingerprint. This is called a Ribbon Filter (Dillinger & Walzer 2021); I didn't know that at the start. I would learn.</p>
 
-        <h2>Development Journey</h2>
+    <h2>Development Journey</h2>
 
-        <h3>v0.1 — Broken in a Way That Looked Great</h3>
-        <p>The first benchmark numbers were a dream:</p>
-        <pre>build: 246 ms
+    <h3>v0.1 — Broken in a Way That Looked Great</h3>
+    <p>The first benchmark numbers were a dream:</p>
+    <pre>build: 246 ms
 query: 14.8 ns
 memory: 85 bits/key
 false negatives: 992,079 / 1,000,000</pre>
-        <p><strong>99% of member keys were being reported as not present.</strong> Everything was broken. Two bugs:</p>
-        <ol>
-            <li>The cuckoo <code>BuildBlock</code> struct had a 512-byte temporary array inline. With <code>alignas(64)</code> padding, that turned 65-byte logical blocks into 128-byte physical ones. Hence the 10× memory blow-up.</li>
-            <li>The hash used during Gaussian elimination didn't match the hash used at query time. Each key got placed into the matrix with one seed pattern, but queried with a different one. Hence 99% false negatives.</li>
-        </ol>
+    <p><strong>99% of member keys were being reported as not present.</strong> Everything was broken. Two bugs:</p>
+    <ol>
+        <li>The cuckoo <code>BuildBlock</code> struct had a 512-byte temporary array inline. With <code>alignas(64)</code> padding, that turned 65-byte logical blocks into 128-byte physical ones. Hence the 10× memory blow-up.</li>
+        <li>The hash used during Gaussian elimination didn't match the hash used at query time. Each key got placed into the matrix with one seed pattern, but queried with a different one. Hence 99% false negatives.</li>
+    </ol>
 
-        <h3>v0.2 → v0.4 — Actually Competitive</h3>
-        <p><strong>v0.2:</strong> Moved temporary build state out of the persistent struct, introduced Structure-of-Arrays layout. 8.67 bits/key, 0 false negatives, 267 ms build.</p>
+    <h3>v0.2 → v0.4 — Actually Competitive</h3>
+    <p><strong>v0.2:</strong> Moved temporary build state out of the persistent struct, introduced Structure-of-Arrays layout. 8.67 bits/key, 0 false negatives, 267 ms build.</p>
 
-        <p><strong>v0.3:</strong> Parallelized the build via lock-free sharding. Build dropped to 103 ms.</p>
+    <p><strong>v0.3:</strong> Parallelized the build via lock-free sharding. Build dropped to 103 ms.</p>
 
-        <p><strong>v0.4:</strong> The big query-side win. Replaced every <code>% num_blocks</code> modulo in the hot path with a bitmask by rounding partition sizes to powers of two. Added explicit prefetch. Query latency dropped from 17 ns to 11.6 ns.</p>
+    <p><strong>v0.4:</strong> The big query-side win. Replaced every <code>% num_blocks</code> modulo in the hot path with a bitmask by rounding partition sizes to powers of two. Added explicit prefetch. Query latency dropped from 17 ns to 11.6 ns.</p>
 
-        <p>At v0.4 the filter was honestly competitive: ~11 ns query, 8.52 bits/key, 0.78% FP.</p>
+    <p>At v0.4 the filter was honestly competitive: ~11 ns query, 8.52 bits/key, 0.78% FP.</p>
 
-        <h3>v0.5 — The Honesty Pass</h3>
-        <p>Added three pieces of real infrastructure:</p>
-        <ul>
-            <li><strong>libFuzzer harness</strong> — 176,379 executions in 46 seconds, 0 crashes</li>
-            <li><strong>GitHub Actions CI</strong> — gcc + clang on real x86, full test + bench suite</li>
-            <li><strong>FastFilter-compatible C API</strong> — five functions matching Lemire's <code>xor8_*</code> naming</li>
-        </ul>
+    <h3>v0.5 — The Honesty Pass</h3>
+    <p>Added three pieces of real infrastructure:</p>
+    <ul>
+        <li><strong>libFuzzer harness</strong> — 176,379 executions in 46 seconds, 0 crashes</li>
+        <li><strong>GitHub Actions CI</strong> — gcc + clang on real x86, full test + bench suite</li>
+        <li><strong>FastFilter-compatible C API</strong> — five functions matching Lemire's <code>xor8_*</code> naming</li>
+    </ul>
 
-        <h3>v0.6 — Stacked Filters (Failed)</h3>
-        <p>Tried putting a tiny Bloom in front of GBF to short-circuit negative queries. Didn't work:</p>
-        <pre>50/50 mixed: 18.5 ns (GBF) → 14.0 ns (Stacked) but +24% is branch prediction artifact
+    <h3>v0.6 — Stacked Filters (Failed)</h3>
+    <p>Tried putting a tiny Bloom in front of GBF to short-circuit negative queries. Didn't work:</p>
+    <pre>50/50 mixed: 18.5 ns (GBF) → 14.0 ns (Stacked) but +24% is branch prediction artifact
 5/95 negative-heavy: 10.2 ns (GBF) → 10.8 ns (Stacked) — net loss</pre>
-        <p>GBF's existing prefetch already overlaps the cache-line fetches with hash computation. No miss latency left to hide.</p>
+    <p>GBF's existing prefetch already overlaps the cache-line fetches with hash computation. No miss latency left to hide.</p>
 
-        <h3>v0.7 — Bumping (Failed)</h3>
-        <p>Tried using the bumping technique from BuRR (Sanders et al.) to push block load factors higher. Measured results:</p>
-        <pre>GBF&lt;2>:       8.520 bpk, 28 ms build, 10.2 ns query
+    <h3>v0.7 — Bumping (Failed)</h3>
+    <p>Tried using the bumping technique from BuRR (Sanders et al.) to push block load factors higher. Measured results:</p>
+    <pre>GBF&lt;2>:       8.520 bpk, 28 ms build, 10.2 ns query
 GBF-Bump&lt;2>:  8.651 bpk, 27 ms build, 13.5 ns query</pre>
-        <p><strong>Worse on every axis.</strong> The power-of-2 partition sizing from v0.4 and the bumping idea are structurally incompatible — you can't have both without giving up the 5–10 ns query speedup that came from removing the modulo.</p>
+    <p><strong>Worse on every axis.</strong> The power-of-2 partition sizing from v0.4 and the bumping idea are structurally incompatible — you can't have both without giving up the 5–10 ns query speedup that came from removing the modulo.</p>
 
-        <h3>v0.8 — The Wild Idea Bag (1 out of 3)</h3>
-        <p>Three cross-disciplinary attempts in parallel:</p>
+    <h3>v0.8 — The Wild Idea Bag (1 out of 3)</h3>
+    <p>Three cross-disciplinary attempts in parallel:</p>
 
-        <h4>A. Gray-Code Cuckoo Placement</h4>
-        <p><strong>Failed.</strong> Constraining <code>h2</code> to a 6-bit Hamming neighborhood of <code>h1</code> clustered keys too tightly. Cuckoo placement broke at <code>TARGET_LOAD=62</code> and had to fall back to 56, which doubled <code>blocks_per_part</code>.</p>
+    <h4>A. Gray-Code Cuckoo Placement</h4>
+    <p><strong>Failed.</strong> Constraining <code>h2</code> to a 6-bit Hamming neighborhood of <code>h1</code> clustered keys too tightly. Cuckoo placement broke at <code>TARGET_LOAD=62</code> and had to fall back to 56, which doubled <code>blocks_per_part</code>.</p>
 
-        <h4>B. NEON SIMD Parity Verification</h4>
-        <p><strong>Worked.</strong> Replaced the 8-iteration parity loop with explicit NEON intrinsics:</p>
-        <pre>100% positive:     8.1 ns → 6.5 ns   (−20%)
+    <h4>B. NEON SIMD Parity Verification</h4>
+    <p><strong>Worked.</strong> Replaced the 8-iteration parity loop with explicit NEON intrinsics:</p>
+    <pre>100% positive:     8.1 ns → 6.5 ns   (−20%)
 50/50 mixed:       21.8 ns → 20.2 ns  (−7%)
 5/95 negative-heavy: 12.1 ns → 9.2 ns (−24%)</pre>
-        <p>Same memory, same FP rate, zero false negatives. Stable across runs.</p>
+    <p>Same memory, same FP rate, zero false negatives. Stable across runs.</p>
 
-        <h4>C. IBLT Auxiliary Structure</h4>
-        <p><strong>Failed.</strong> IBLTs measured 9.3% FP rate vs target 0.78%. IBLTs are set-reconciliation structures; pure membership is the wrong workload.</p>
+    <h4>C. IBLT Auxiliary Structure</h4>
+    <p><strong>Failed.</strong> IBLTs measured 9.3% FP rate vs target 0.78%. IBLTs are set-reconciliation structures; pure membership is the wrong workload.</p>
 
-        <h2>Final v1.0 Metrics</h2>
-        <table>
-            <tr>
-                <th>Metric</th>
-                <th>Value</th>
-            </tr>
-            <tr>
-                <td>bits/key</td>
-                <td><strong>8.520</strong></td>
-            </tr>
-            <tr>
-                <td>build (1M keys, 10 threads)</td>
-                <td><strong>~30 ms</strong></td>
-            </tr>
-            <tr>
-                <td>query latency</td>
-                <td><strong>8.4 ns</strong></td>
-            </tr>
-            <tr>
-                <td>batch query (prefetch)</td>
-                <td><strong>9.2 ns</strong></td>
-            </tr>
-            <tr>
-                <td>false-positive rate</td>
-                <td><strong>0.78%</strong></td>
-            </tr>
-            <tr>
-                <td>false negatives</td>
-                <td><strong>0</strong></td>
-            </tr>
-        </table>
+    <h2>Final v1.0 Metrics</h2>
+    <table class="metric-table">
+        <tr>
+            <th style="text-align: left;">Metric</th>
+            <th style="text-align: right;">Value</th>
+        </tr>
+        <tr>
+            <td>bits/key</td>
+            <td style="text-align: right;"><strong>8.520</strong></td>
+        </tr>
+        <tr>
+            <td>build (1M keys, 10 threads)</td>
+            <td style="text-align: right;"><strong>~30 ms</strong></td>
+        </tr>
+        <tr>
+            <td>query latency</td>
+            <td style="text-align: right;"><strong>8.4 ns</strong></td>
+        </tr>
+        <tr>
+            <td>batch query (prefetch)</td>
+            <td style="text-align: right;"><strong>9.2 ns</strong></td>
+        </tr>
+        <tr>
+            <td>false-positive rate</td>
+            <td style="text-align: right;"><strong>0.78%</strong></td>
+        </tr>
+        <tr>
+            <td>false negatives</td>
+            <td style="text-align: right;"><strong>0</strong></td>
+        </tr>
+    </table>
 
-        <p>Beats a competent Blocked Bloom on the same hardware on both query latency (~2× faster) and FP rate (~3.7× better) at near-equal memory.</p>
+    <p>Beats a competent Blocked Bloom on the same hardware on both query latency (~2× faster) and FP rate (~3.7× better) at near-equal memory.</p>
 
-        <h2>What I Learned</h2>
+    <h2>What I Learned</h2>
 
-        <h3>Most Ideas Fail</h3>
-        <p>I tried 8 algorithmic improvements past v0.4: stacked filters, paired-XOR, bumping, Gray-code cuckoo, IBLT aux, polynomial verification, holographic reduced representations, NEON parity. <strong>Seven failed. One worked.</strong> That's a hit rate of ~12%, which is actually pretty normal for systems-level optimization.</p>
+    <h3>Most Ideas Fail</h3>
+    <p>I tried 8 algorithmic improvements past v0.4: stacked filters, paired-XOR, bumping, Gray-code cuckoo, IBLT aux, polynomial verification, holographic reduced representations, NEON parity. <strong>Seven failed. One worked.</strong> That's a hit rate of ~12%, which is actually pretty normal for systems-level optimization.</p>
 
-        <h3>Cross-Disciplinary Borrows Usually Fail at the Interface</h3>
-        <p>The 1-in-8 win came from a borrow that didn't directly apply but pointed me at something the compiler was doing suboptimally. Borrows don't deliver the win themselves; they're prompts that make you look in places you wouldn't have.</p>
+    <h3>Cross-Disciplinary Borrows Usually Fail at the Interface</h3>
+    <p>The 1-in-8 win came from a borrow that didn't directly apply but pointed me at something the compiler was doing suboptimally. Borrows don't deliver the win themselves; they're prompts that make you look in places you wouldn't have.</p>
 
-        <h3>The Contribution is Engineering</h3>
-        <p>This is not a new algorithm. It's Ribbon-Filter math from 2021, broken into cache-line-sized local matrices (engineering choice), parallelized via lock-free sharding (engineering), accelerated via NEON SIMD (engineering). Every interesting decision happens at the interface between math and hardware.</p>
+    <h3>The Contribution is Engineering</h3>
+    <p>This is not a new algorithm. It's Ribbon-Filter math from 2021, broken into cache-line-sized local matrices (engineering choice), parallelized via lock-free sharding (engineering), accelerated via NEON SIMD (engineering). Every interesting decision happens at the interface between math and hardware.</p>
 
-        <h3>Failed Experiments Are the Content</h3>
-        <p>v0.6 stacked filters and v0.7 bumping both <strong>sounded right</strong> and both <strong>failed measurably</strong>, for non-obvious reasons that only became clear after running the benchmark. The failures are more informative than the success.</p>
+    <h3>Failed Experiments Are the Content</h3>
+    <p>v0.6 stacked filters and v0.7 bumping both <strong>sounded right</strong> and both <strong>failed measurably</strong>, for non-obvious reasons that only became clear after running the benchmark. The failures are more informative than the success.</p>
 
-        <h2>What I Will NOT Claim</h2>
-        <ul>
-            <li>This is not novel algorithmic science. It is engineering on top of the Ribbon Filter (Dillinger & Walzer 2021).</li>
-            <li>These numbers are <strong>Apple M2 only.</strong> I do not own x86 hardware. CI runs on GitHub's ubuntu-latest x86 runners (compile + test only); I have not measured x86 query latency or build throughput from any machine I control.</li>
-            <li>The bumping technique (v0.7) didn't work <em>here.</em> It may well work in a Ribbon variant without power-of-2 partition sizing. That's a different experiment.</li>
-            <li>This took 24 hours of wall clock — heavily AI-assisted (Claude wrote most of the C++ under my direction). It is what one person + a strong LLM can produce in a focused weekend.</li>
-        </ul>
+    <h2>What I Will NOT Claim</h2>
+    <ul>
+        <li>This is not novel algorithmic science. It is engineering on top of the Ribbon Filter (Dillinger & Walzer 2021).</li>
+        <li>These numbers are <strong>Apple M2 only.</strong> I do not own x86 hardware. CI runs on GitHub's ubuntu-latest x86 runners (compile + test only); I have not measured x86 query latency or build throughput from any machine I control.</li>
+        <li>The bumping technique (v0.7) didn't work <em>here.</em> It may well work in a Ribbon variant without power-of-2 partition sizing. That's a different experiment.</li>
+        <li>This took 24 hours of wall clock — heavily AI-assisted (Claude wrote most of the C++ under my direction). It is what one person + a strong LLM can produce in a focused weekend.</li>
+    </ul>
 
-        <h2>Numbers I Will Defend</h2>
-        <table>
-            <tr>
-                <th>Claim</th>
-                <th>Where to Verify</th>
-            </tr>
-            <tr>
-                <td>8.520 bits/key on M2, 1M keys</td>
-                <td><code>./build/gbf_bench</code></td>
-            </tr>
-            <tr>
-                <td>8.4 ns single-query, 9.2 ns batch</td>
-                <td><code>./build/gbf_bench</code></td>
-            </tr>
-            <tr>
-                <td>0 false negatives over 1M random keys</td>
-                <td><code>./build/gbf_test</code> (24 tests)</td>
-            </tr>
-            <tr>
-                <td>Beats Blocked Bloom on query + FP at same memory</td>
-                <td><code>./build/bench_vs</code></td>
-            </tr>
-            <tr>
-                <td>176,379 fuzz executions, 0 crashes</td>
-                <td><code>./build-fuzz/fuzz_gbf</code></td>
-            </tr>
-            <tr>
-                <td>Code compiles on linux/amd64</td>
-                <td><code>./scripts/x86-build-check.sh</code></td>
-            </tr>
-        </table>
+    <h2>Numbers I Will Defend</h2>
+    <table>
+        <tr>
+            <th>Claim</th>
+            <th>Where to Verify</th>
+        </tr>
+        <tr>
+            <td>8.520 bits/key on M2, 1M keys</td>
+            <td><code>./build/gbf_bench</code></td>
+        </tr>
+        <tr>
+            <td>8.4 ns single-query, 9.2 ns batch</td>
+            <td><code>./build/gbf_bench</code></td>
+        </tr>
+        <tr>
+            <td>0 false negatives over 1M random keys</td>
+            <td><code>./build/gbf_test</code> (24 tests)</td>
+        </tr>
+        <tr>
+            <td>Beats Blocked Bloom on query + FP at same memory</td>
+            <td><code>./build/bench_vs</code></td>
+        </tr>
+        <tr>
+            <td>176,379 fuzz executions, 0 crashes</td>
+            <td><code>./build-fuzz/fuzz_gbf</code></td>
+        </tr>
+        <tr>
+            <td>Code compiles on linux/amd64</td>
+            <td><code>./scripts/x86-build-check.sh</code></td>
+        </tr>
+    </table>
 
-        <p style="margin-top: 2rem;">If any of those don't reproduce on the same hardware, the writeup is wrong and I want to know.</p>
+    <p style="margin-top: 2rem;">If any of those don't reproduce on the same hardware, the writeup is wrong and I want to know.</p>
 
-        <h2>Meta</h2>
-        <p>Built in 24 hours, May 2026, on a single Apple M2 with one person and one LLM. The Ribbon Filter math is from Dillinger & Walzer (SEA 2021). The engineering, the benchmarks, the failures, and this writeup are mine.</p>
+    <h2>Meta</h2>
+    <p>Built in 24 hours, May 2026, on a single Apple M2 with one person and one LLM. The Ribbon Filter math is from Dillinger & Walzer (SEA 2021). The engineering, the benchmarks, the failures, and this writeup are mine.</p>
 
-        <p><strong>License:</strong> MIT</p>
-    </div>
+    <p><strong>License:</strong> MIT</p>
+</main>
 
-    <footer>
-        <p>elvec1o — 2026 · <a href="https://elvec1o.github.io/home">elvec1o.github.io/home</a></p>
-    </footer>
+<footer>
+    <p>elvec1o — 2026 · <a href="https://elvec1o.github.io/home">elvec1o.github.io/home</a></p>
+</footer>
 </body>
 </html>
