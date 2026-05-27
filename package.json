@@ -9,5 +9,8 @@
   },
   "dependencies": {
     "astro": "^4.0.0"
+  },
+  "devDependencies": {
+    "@rollup/rollup-linux-arm64-gnu": "^4.60.4"
   }
 }

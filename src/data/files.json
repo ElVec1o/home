@@ -236,5 +236,19 @@
     "dashboardLabel": "Dashboard",
     "size": "~50 KB",
     "date": "2026-05-26"
+  },
+  {
+    "id": "stratum-streaming",
+    "name": "Stratum — Streaming Primitives on Top of Classical Math",
+    "type": "document",
+    "description": "Week-long project building a streaming-analytics library with four primitives (Top-K, heavy hitters, cardinality, set membership). Zero-copy Python/C++/Rust bindings, mergeable summaries for persistence and distribution, and Apache Arrow bridge into DuckDB. Final metrics: 0.26 ns EVT membrane, 5.94 ns Galois filter, 0.76% FP rate. 16× faster than heapq for bulk operations.",
+    "filename": "stratum-viewer.html",
+    "viewerUrl": "stratum-viewer.html",
+    "dashboardUrl": "stratum-dashboard.html",
+    "url": "https://github.com/ElVec1o/Stratum",
+    "urlLabel": "GitHub Repo",
+    "dashboardLabel": "Dashboard",
+    "size": "~60 KB",
+    "date": "2026-05-27"
   }
 ]
