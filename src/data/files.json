@@ -250,5 +250,17 @@
     "dashboardLabel": "Dashboard",
     "size": "~60 KB",
     "date": "2026-05-27"
+  },
+  {
+    "id": "algo4-top-k-extreme",
+    "name": "Top-K Extreme — Streaming Top-K for uint64 on Apple M4",
+    "type": "document",
+    "description": "Three C++ primitives covering every K from 100 to 1M, beating std::priority_queue by 1.3x at small K and 23x at K=1M. Adaptive algorithm selection: async-membrane for K≤1K, sample-filter for K=10K, radix-select for K≥100K. Every number has adversarial correctness probe.",
+    "filename": "algo4-viewer.html",
+    "viewerUrl": "algo4-viewer.html",
+    "url": "https://github.com/ElVec1o/top-k-extreme",
+    "urlLabel": "GitHub Repo",
+    "size": "~18 KB",
+    "date": "2026-05-27"
   }
 ]
