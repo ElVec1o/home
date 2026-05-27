@@ -4,408 +4,328 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stratum Dashboard | elvec1o</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-            color: #e0e0e0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
             line-height: 1.6;
         }
 
-        .hero {
-            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
-            color: white;
-            padding: 2rem 1rem;
-            text-align: center;
-            border-bottom: 2px solid #0099ff;
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-        .hero p { font-size: 0.95rem; opacity: 0.95; }
 
-        .container {
-            max-width: 1200px;
+        .header-content {
+            max-width: 900px;
             margin: 0 auto;
-            padding: 2rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
+
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .logo img { height: 32px; width: auto; }
+        .title-info h1 { font-size: 1.1rem; font-weight: 600; color: var(--text); }
+
+        .title-info .meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .back-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+
+        .content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h2 { font-size: 1.3rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text); }
+        h3 { font-size: 1.05rem; font-weight: 600; margin: 1rem 0 0.75rem; color: var(--text); }
+
+        p { margin-bottom: 1rem; line-height: 1.7; }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
-            margin: 2rem 0;
+            margin: 1.5rem 0;
         }
 
         .stat-card {
-            background: rgba(0, 212, 255, 0.1);
-            border: 1px solid #0099ff;
-            border-radius: 8px;
-            padding: 1.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
             text-align: center;
         }
 
         .stat-card .label {
-            font-size: 0.85rem;
-            color: #aaa;
+            font-size: 0.75rem;
+            color: var(--text-muted);
             text-transform: uppercase;
             margin-bottom: 0.5rem;
         }
 
         .stat-card .value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #00d4ff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent);
             font-family: 'Monaco', monospace;
         }
 
         .stat-card .unit {
-            font-size: 0.9rem;
-            color: #888;
-            margin-top: 0.3rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
         }
 
-        .section {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 8px;
-            padding: 2rem;
-            margin: 2rem 0;
-        }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+        th { background: var(--bg-tertiary); font-weight: 600; color: var(--accent); }
+        tr:nth-child(even) { background: rgba(30, 30, 50, 0.2); }
 
-        .section h2 {
-            font-size: 1.4rem;
-            margin-bottom: 1.5rem;
-            color: #00d4ff;
-            border-bottom: 2px solid #0099ff;
-            padding-bottom: 0.5rem;
-        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
 
         .chart-container {
             position: relative;
-            height: 400px;
-            margin: 1rem 0;
+            height: 350px;
+            margin: 1.5rem 0;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-        }
-
-        th {
-            background: rgba(0, 212, 255, 0.1);
-            color: #00d4ff;
-            font-weight: 600;
-        }
-
-        tr:hover { background: rgba(0, 212, 255, 0.05); }
-
-        .comparison-table {
-            overflow-x: auto;
-        }
-
-        .roadmap {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        .roadmap-step {
-            background: rgba(0, 212, 255, 0.1);
-            border-left: 3px solid #0099ff;
-            padding: 1rem;
-            border-radius: 4px;
-        }
-
-        .roadmap-step .version {
-            color: #00d4ff;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .roadmap-step .desc {
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-            color: #aaa;
-        }
-
-        .code-block {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 4px;
-            padding: 1rem;
-            font-family: 'Monaco', monospace;
-            font-size: 0.85rem;
-            overflow-x: auto;
-            margin: 1rem 0;
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: #666;
-            font-size: 0.9rem;
-            border-top: 1px solid rgba(0, 212, 255, 0.2);
-            margin-top: 3rem;
-        }
-
-        .nav-link {
-            color: #00d4ff;
-            text-decoration: none;
-            margin: 0 1rem;
-        }
-
-        .nav-link:hover { text-decoration: underline; }
+        footer { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 3rem; }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <h1>Stratum Performance Dashboard</h1>
-        <p>Streaming analytics primitives: Live benchmarks and architecture overview</p>
-        <p style="margin-top: 1rem; font-size: 0.9rem;">
-            <a href="https://elvec1o.github.io/home/files/" class="nav-link">← Files</a>
-            <a href="stratum-viewer.html" class="nav-link">→ Full Article</a>
-        </p>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="https://elvec1o.github.io/home/" class="logo">
+                    <img src="https://elvec1o.github.io/home/img/logo-elvec1o.png" alt="elvec1o">
+                </a>
+                <div class="title-info">
+                    <h1>Stratum Performance Dashboard</h1>
+                    <div class="meta">
+                        <span>Benchmarks & metrics · May 2026</span>
+                    </div>
+                </div>
+            </div>
+            <a href="https://elvec1o.github.io/home/files/" class="back-link">← Files</a>
+        </div>
     </div>
 
-    <div class="container">
-        <!-- Stats Overview -->
+    <div class="content">
+        <h2>Core Primitives</h2>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="label">EVT Membrane Top-K</div>
+                <div class="label">EVT Membrane</div>
                 <div class="value">0.26</div>
                 <div class="unit">ns / event</div>
             </div>
             <div class="stat-card">
-                <div class="label">Galois Filter Lookup</div>
+                <div class="label">Galois Filter</div>
                 <div class="value">5.94</div>
                 <div class="unit">ns / contains()</div>
             </div>
             <div class="stat-card">
-                <div class="label">Misra-Gries Overhead</div>
+                <div class="label">Misra-Gries</div>
                 <div class="value">~10</div>
                 <div class="unit">ns / event</div>
             </div>
             <div class="stat-card">
-                <div class="label">HyperLogLog Latency</div>
+                <div class="label">HyperLogLog</div>
                 <div class="value">~12</div>
                 <div class="unit">ns / event</div>
             </div>
         </div>
 
-        <!-- Primitive Comparison -->
-        <div class="section">
-            <h2>Four Primitives vs. Classical Solutions</h2>
-            <div class="comparison-table">
-                <table>
-                    <tr>
-                        <th>Primitive</th>
-                        <th>Hot-path Cost</th>
-                        <th>State Size</th>
-                        <th>Classical Source</th>
-                    </tr>
-                    <tr>
-                        <td><strong>EVT membrane Top-K</strong></td>
-                        <td>0.26 ns / event</td>
-                        <td>O(K)</td>
-                        <td>Extreme value theory</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Galois bipartite filter</strong></td>
-                        <td>5.94 ns / contains()</td>
-                        <td>~10 bits/key</td>
-                        <td>Ribbon Filter (Dillinger & Walzer 2021)</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Misra-Gries heavy hitters</strong></td>
-                        <td>~10 ns / event</td>
-                        <td>O(K)</td>
-                        <td>Misra & Gries 1982</td>
-                    </tr>
-                    <tr>
-                        <td><strong>HyperLogLog cardinality</strong></td>
-                        <td>~12 ns / event</td>
-                        <td>16 KB</td>
-                        <td>Flajolet et al. 2007; Heule et al. 2013</td>
-                    </tr>
-                </table>
-            </div>
+        <h2>Throughput vs heapq (K=100, N=2M)</h2>
+        <table>
+            <tr>
+                <th>Approach</th>
+                <th>Throughput</th>
+                <th>Memory</th>
+                <th>p99.99 Latency</th>
+            </tr>
+            <tr>
+                <td>Python heapq</td>
+                <td>12.0 M ev/s</td>
+                <td>3,720 B</td>
+                <td>7.3 µs (GC)</td>
+            </tr>
+            <tr>
+                <td>Stratum (python backend)</td>
+                <td>191.3 M ev/s</td>
+                <td>800 B</td>
+                <td>~150 ns</td>
+            </tr>
+            <tr>
+                <td>Stratum (native backend)</td>
+                <td>25.5 M ev/s</td>
+                <td>3,200 B</td>
+                <td>5.94 ns</td>
+            </tr>
+        </table>
+
+        <h2>Throughput Chart</h2>
+        <div class="chart-container">
+            <canvas id="throughputChart"></canvas>
         </div>
 
-        <!-- Throughput Comparison -->
-        <div class="section">
-            <h2>Against heapq (K=100, N=2M random uint64)</h2>
-            <div class="chart-container">
-                <canvas id="throughputChart"></canvas>
-            </div>
-            <table>
-                <tr>
-                    <th>Approach</th>
-                    <th>Throughput</th>
-                    <th>Memory</th>
-                    <th>p99.99 Latency</th>
-                </tr>
-                <tr>
-                    <td>Python heapq min-heap</td>
-                    <td>12.0 M ev/s</td>
-                    <td>3,720 B</td>
-                    <td>7.3 µs (GC pauses)</td>
-                </tr>
-                <tr>
-                    <td>Stratum (python backend)</td>
-                    <td>191.3 M ev/s</td>
-                    <td>800 B</td>
-                    <td>~150 ns</td>
-                </tr>
-                <tr>
-                    <td>Stratum (native backend)</td>
-                    <td>25.5 M ev/s*</td>
-                    <td>3,200 B</td>
-                    <td>5.94 ns</td>
-                </tr>
-            </table>
-            <p style="margin-top: 1rem; font-size: 0.85rem; color: #aaa;">* per-event Python→C FFI overhead dominates. For streaming where tail matters, integrate from C++/Rust directly.</p>
+        <h2>Tail Latency Percentiles</h2>
+        <table>
+            <tr>
+                <th>Approach</th>
+                <th>p50</th>
+                <th>p99</th>
+                <th>p99.99</th>
+            </tr>
+            <tr>
+                <td>Python heapq</td>
+                <td>83 ns</td>
+                <td>167 ns</td>
+                <td>7330 ns</td>
+            </tr>
+            <tr>
+                <td>Stratum (python)</td>
+                <td>150 ns</td>
+                <td>150 ns</td>
+                <td>150 ns</td>
+            </tr>
+            <tr>
+                <td>Stratum (native)</td>
+                <td>5.94 ns</td>
+                <td>5.94 ns</td>
+                <td>5.94 ns</td>
+            </tr>
+        </table>
+
+        <div class="chart-container">
+            <canvas id="latencyChart"></canvas>
         </div>
 
-        <!-- Tail Latency -->
-        <div class="section">
-            <h2>Tail Latency Percentiles</h2>
-            <div class="chart-container">
-                <canvas id="tailLatencyChart"></canvas>
-            </div>
-        </div>
+        <h2>Development Timeline</h2>
+        <table>
+            <tr>
+                <th>Version</th>
+                <th>Focus</th>
+            </tr>
+            <tr>
+                <td><strong>v0.1 → v0.2</strong></td>
+                <td>Production hardening: mmap arena, C ABI, Python ctypes, CMake</td>
+            </tr>
+            <tr>
+                <td><strong>v0.3</strong></td>
+                <td>Math validation: Gaussian Cuckoo, GF(2) solve, AVX-512 filter</td>
+            </tr>
+            <tr>
+                <td><strong>v0.4</strong></td>
+                <td>HTTP/1.1 + SSE dashboard in ~400 lines C++</td>
+            </tr>
+            <tr>
+                <td><strong>v0.5</strong></td>
+                <td>Dual-backend pattern: numpy.argpartition vs native</td>
+            </tr>
+            <tr>
+                <td><strong>v0.6</strong></td>
+                <td>Mergeable summaries: Misra-Gries, HyperLogLog</td>
+            </tr>
+            <tr>
+                <td><strong>v0.7</strong></td>
+                <td>SQL bridge: Apache Arrow zero-copy to DuckDB/Polars</td>
+            </tr>
+        </table>
 
-        <!-- Development Timeline -->
-        <div class="section">
-            <h2>Development Journey</h2>
-            <div class="roadmap">
-                <div class="roadmap-step">
-                    <div class="version">v0.1 → v0.2</div>
-                    <div class="desc">Production hardening: mmap-backed arena, C ABI, ctypes bindings, CMake</div>
-                </div>
-                <div class="roadmap-step">
-                    <div class="version">v0.3</div>
-                    <div class="desc">Math validation: Two-step Gaussian Cuckoo, GF(2) solve, AVX-512 filter path</div>
-                </div>
-                <div class="roadmap-step">
-                    <div class="version">v0.4</div>
-                    <div class="desc">HTTP/1.1 + SSE dashboard in 400 lines C++, vanilla JS</div>
-                </div>
-                <div class="roadmap-step">
-                    <div class="version">v0.5</div>
-                    <div class="desc">Dual-backend pattern: numpy.argpartition for bulk, native for per-event</div>
-                </div>
-                <div class="roadmap-step">
-                    <div class="version">v0.6</div>
-                    <div class="desc">Mergeable summaries: Misra-Gries (1982), HyperLogLog at 16 KB</div>
-                </div>
-                <div class="roadmap-step">
-                    <div class="version">v0.7</div>
-                    <div class="desc">SQL bridge: Apache Arrow zero-copy to DuckDB, Polars, DataFusion</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Architecture -->
-        <div class="section">
-            <h2>Architecture</h2>
-            <p style="margin-bottom: 1.5rem;">Stratum ships as three integrated pieces:</p>
-            <table>
-                <tr>
-                    <th>Component</th>
-                    <th>Role</th>
-                    <th>Interface</th>
-                </tr>
-                <tr>
-                    <td><strong>C++ Core</strong></td>
-                    <td>Lock-free streaming primitives, dual backends (pure + AVX-512)</td>
-                    <td>C ABI, ctypes + numpy zero-copy</td>
-                </tr>
-                <tr>
-                    <td><strong>Rust Crate</strong></td>
-                    <td>Idiomatic Rust bindings, mergeable summary serialization</td>
-                    <td>crates.io, native Rust types</td>
-                </tr>
-                <tr>
-                    <td><strong>Apache Arrow</strong></td>
-                    <td>Persistence, distribution, time-window rollups without rescanning</td>
-                    <td>Virtual tables in any SQL engine (DuckDB, ClickHouse, Velox)</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Key Insights -->
-        <div class="section">
-            <h2>Key Insights</h2>
-            <h3 style="color: #aaa; font-size: 1.1rem; margin: 1rem 0 0.5rem;">The Cross-Disciplinary Borrow That Worked</h3>
-            <p>Noticing that "mergeable summary" from streaming-algorithms, "CRDT" from distributed-systems, and "commutative monoid" from algebra are all the same thing. Once seen, three separate operational properties (persistence, distribution, time-window rollups) collapse into one property.</p>
-
-            <h3 style="color: #aaa; font-size: 1.1rem; margin: 1rem 0 0.5rem;">Don't Fight the FFI Boundary</h3>
-            <p>Python→C FFI has ~600 ns overhead per call. The right move was admitting it, building a parallel pure-Python backend using numpy.argpartition, and reserving the native backend for streams that care about per-event tail latency.</p>
-
-            <h3 style="color: #aaa; font-size: 1.1rem; margin: 1rem 0 0.5rem;">Composition Beats Invention</h3>
-            <p>None of the four primitives are new. The interesting work was making them fit: same architectural shape, same API surface, same dual backend, same Arrow representation. The fit is the product.</p>
-        </div>
-
-        <!-- Final Metrics -->
-        <div class="section">
-            <h2>Final Metrics (Apple M-series, single thread)</h2>
-            <table>
-                <tr>
-                    <th>Metric</th>
-                    <th>Value</th>
-                </tr>
-                <tr>
-                    <td>EVT membrane check</td>
-                    <td><strong>0.26 ns</strong></td>
-                </tr>
-                <tr>
-                    <td>Galois filter contains()</td>
-                    <td><strong>5.94 ns</strong></td>
-                </tr>
-                <tr>
-                    <td>Filter build</td>
-                    <td><strong>4.1 M keys/sec</strong></td>
-                </tr>
-                <tr>
-                    <td>Bits/key (default)</td>
-                    <td><strong>10.41</strong></td>
-                </tr>
-                <tr>
-                    <td>Filter FP rate</td>
-                    <td><strong>0.76%</strong></td>
-                </tr>
-                <tr>
-                    <td>HLL accuracy (1M keys)</td>
-                    <td><strong>0.03%</strong></td>
-                </tr>
-                <tr>
-                    <td>Pipeline aggregate (4 cores)</td>
-                    <td><strong>322 M ops/sec</strong></td>
-                </tr>
-                <tr>
-                    <td>Misra-Gries snapshot (K=32)</td>
-                    <td><strong>416 bytes</strong></td>
-                </tr>
-            </table>
-        </div>
+        <h2>Final Metrics (Apple M-series)</h2>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>EVT membrane check</td>
+                <td>0.26 ns</td>
+            </tr>
+            <tr>
+                <td>Galois filter contains()</td>
+                <td>5.94 ns</td>
+            </tr>
+            <tr>
+                <td>Filter build (4.1 M keys/sec)</td>
+                <td>~240 ms for 1M keys</td>
+            </tr>
+            <tr>
+                <td>Bits/key (default)</td>
+                <td>10.41</td>
+            </tr>
+            <tr>
+                <td>Filter FP rate</td>
+                <td>0.76%</td>
+            </tr>
+            <tr>
+                <td>HLL accuracy (1M keys)</td>
+                <td>0.03%</td>
+            </tr>
+            <tr>
+                <td>Pipeline aggregate (4 cores)</td>
+                <td>322 M ops/sec</td>
+            </tr>
+            <tr>
+                <td>Misra-Gries snapshot (K=32)</td>
+                <td>416 bytes</td>
+            </tr>
+        </table>
     </div>
 
     <footer>
         <p>elvec1o — 2026 · <a href="https://elvec1o.github.io/home">elvec1o.github.io/home</a></p>
-        <p style="margin-top: 1rem; font-size: 0.85rem; color: #555;">Built May 2026, single Mac mini M-series, one person and one LLM</p>
     </footer>
 
     <script>
-        // Throughput comparison
+        // Throughput
         const throughputCtx = document.getElementById('throughputChart').getContext('2d');
         new Chart(throughputCtx, {
             type: 'bar',
@@ -414,58 +334,56 @@
                 datasets: [{
                     label: 'Throughput (M events/sec)',
                     data: [12.0, 191.3, 25.5],
-                    backgroundColor: ['rgba(200, 100, 100, 0.6)', 'rgba(0, 212, 255, 0.6)', 'rgba(0, 180, 255, 0.8)'],
-                    borderColor: ['#cc6464', '#00d4ff', '#00b4ff'],
-                    borderWidth: 2,
+                    backgroundColor: ['rgba(88, 166, 255, 0.3)', 'rgba(88, 166, 255, 0.6)', 'rgba(88, 166, 255, 0.9)'],
+                    borderColor: '#58a6ff',
+                    borderWidth: 1,
                     borderRadius: 4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { labels: { color: '#aaa' } }
-                },
+                plugins: { legend: { labels: { color: '#8b949e' } } },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#aaa' },
-                        grid: { color: 'rgba(0, 212, 255, 0.1)' }
+                        ticks: { color: '#8b949e' },
+                        grid: { color: '#30363d' }
                     },
                     x: {
-                        ticks: { color: '#aaa' },
+                        ticks: { color: '#8b949e' },
                         grid: { display: false }
                     }
                 }
             }
         });
 
-        // Tail latency percentiles
-        const tailCtx = document.getElementById('tailLatencyChart').getContext('2d');
-        new Chart(tailCtx, {
+        // Latency
+        const latencyCtx = document.getElementById('latencyChart').getContext('2d');
+        new Chart(latencyCtx, {
             type: 'bar',
             data: {
                 labels: ['heapq', 'Stratum (python)', 'Stratum (native)'],
                 datasets: [
                     {
-                        label: 'p50 (ns)',
+                        label: 'p50',
                         data: [83, 150, 5.94],
-                        backgroundColor: 'rgba(0, 212, 255, 0.3)',
-                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.3)',
+                        borderColor: '#58a6ff',
                         borderWidth: 1
                     },
                     {
-                        label: 'p99 (ns)',
+                        label: 'p99',
                         data: [167, 150, 5.94],
-                        backgroundColor: 'rgba(0, 180, 255, 0.5)',
-                        borderColor: '#00b4ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.6)',
+                        borderColor: '#58a6ff',
                         borderWidth: 1
                     },
                     {
-                        label: 'p99.99 (ns)',
+                        label: 'p99.99',
                         data: [7330, 150, 5.94],
-                        backgroundColor: 'rgba(0, 150, 255, 0.7)',
-                        borderColor: '#0096ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.9)',
+                        borderColor: '#58a6ff',
                         borderWidth: 1
                     }
                 ]
@@ -476,17 +394,15 @@
                 scales: {
                     y: {
                         type: 'logarithmic',
-                        ticks: { color: '#aaa' },
-                        grid: { color: 'rgba(0, 212, 255, 0.1)' }
+                        ticks: { color: '#8b949e' },
+                        grid: { color: '#30363d' }
                     },
                     x: {
-                        ticks: { color: '#aaa' },
+                        ticks: { color: '#8b949e' },
                         grid: { display: false }
                     }
                 },
-                plugins: {
-                    legend: { labels: { color: '#aaa' } }
-                }
+                plugins: { legend: { labels: { color: '#8b949e' } } }
             }
         });
     </script>

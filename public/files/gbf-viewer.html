@@ -1,82 +1,141 @@
 <!DOCTYPE html>
-<!-- Cache bust: v0.275 -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GBF — Beating Bloom Filters in 24 Hours | elvec1o</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #1a1a1a; }
-        a { color: #0066cc; text-decoration: none; }
+
+        :root {
+            --bg: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #d29922;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .logo img { height: 32px; width: auto; }
+        .title-info h1 { font-size: 1.1rem; font-weight: 600; color: var(--text); }
+
+        .title-info .meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .back-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+
+        .content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h2 { font-size: 1.3rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text); }
+        h3 { font-size: 1.05rem; font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--text); }
+        h4 { font-size: 0.95rem; font-weight: 600; margin: 1rem 0 0.5rem; color: var(--text); }
+
+        p { margin-bottom: 1rem; line-height: 1.7; }
+
+        a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; }
 
-        .hero {
-            background: #0a0a0a;
-            color: #fff;
-            padding: 3rem 1rem;
-            border-bottom: 1px solid #333;
-        }
-        .hero-content { max-width: 800px; margin: 0 auto; }
-        .hero-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
-        .hero-logo { width: 48px; height: 48px; }
-        .hero-title h1 { font-size: 2rem; font-weight: 700; }
-        .hero-meta { color: #aaa; font-size: 0.9rem; margin-top: 0.5rem; }
-        .hero-nav { margin-top: 1.5rem; }
-        .hero-nav a { color: #0a9dff; font-size: 0.9rem; }
-
-        main { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
-        .breadcrumb { font-size: 0.9rem; margin-bottom: 1.5rem; color: #666; }
-
-        h2 { font-size: 1.4rem; margin: 2rem 0 1rem; font-weight: 600; }
-        h3 { font-size: 1.1rem; margin: 1.5rem 0 0.8rem; font-weight: 600; }
-        h4 { font-size: 1rem; margin: 1.2rem 0 0.6rem; font-weight: 600; }
-        p { margin-bottom: 1rem; }
-        pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 0.9rem; margin: 1rem 0; }
-        code { font-family: monospace; background: #f5f5f5; padding: 0.2rem 0.4rem; border-radius: 2px; font-size: 0.9em; }
+        code { background: var(--bg-tertiary); padding: 0.2rem 0.4rem; border-radius: 2px; font-family: 'Monaco', monospace; font-size: 0.9em; }
+        pre { background: var(--bg-tertiary); padding: 1rem; border-radius: 4px; overflow-x: auto; font-family: 'Monaco', monospace; font-size: 0.85rem; margin: 1rem 0; border: 1px solid var(--border); }
         pre code { background: none; padding: 0; }
 
-        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-        th, td { border: 1px solid #e0e0e0; padding: 0.75rem; text-align: left; }
-        th { background: #f5f5f5; font-weight: 600; }
-        tr:nth-child(even) { background: #fafafa; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+        th { background: var(--bg-tertiary); font-weight: 600; color: var(--accent); }
+        tr:nth-child(even) { background: rgba(30, 30, 50, 0.2); }
 
-        blockquote { border-left: 3px solid #ddd; padding-left: 1rem; margin: 1rem 0; color: #666; font-style: italic; }
+        blockquote { border-left: 3px solid var(--accent); padding-left: 1rem; margin: 1.5rem 0; color: var(--text-muted); font-style: italic; }
+
         ul, ol { margin: 1rem 0 1rem 2rem; }
         li { margin-bottom: 0.5rem; }
 
-        footer { text-align: center; padding: 2rem 1rem; color: #666; font-size: 0.9rem; border-top: 1px solid #e0e0e0; margin-top: 3rem; }
+        footer { text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 3rem; }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <div class="hero-content">
-            <div class="hero-header">
-                <a href="https://elvec1o.github.io/home/">
-                    <img src="https://elvec1o.github.io/home/img/logo-elvec1o.png" alt="elvec1o" class="hero-logo">
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="https://elvec1o.github.io/home/" class="logo">
+                    <img src="https://elvec1o.github.io/home/img/logo-elvec1o.png" alt="elvec1o">
                 </a>
-                <div style="flex: 1;">
+                <div class="title-info">
                     <h1>GBF — Beating Bloom Filters in 24 Hours</h1>
-                    <div class="hero-meta">Weekend project · May 2026</div>
-                </div>
-                <div style="text-align: right;">
-                    <a href="https://elvec1o.github.io/home/files/" style="color: #0a9dff; font-weight: 600;">← Files</a>
+                    <div class="meta">
+                        <span>Weekend project · May 2026</span>
+                        <span><a href="https://github.com/ElVec1o/GBF-NEON" target="_blank">GitHub Repo</a></span>
+                    </div>
                 </div>
             </div>
-            <div class="hero-nav">
-                <a href="https://github.com/ElVec1o/GBF-NEON" target="_blank">→ GitHub Repo</a>
-            </div>
+            <a href="https://elvec1o.github.io/home/files/" class="back-link">← Files</a>
         </div>
     </div>
 
-    <main>
+    <div class="content">
         <h2>Overview</h2>
         <p>I spent one weekend trying to build a membership filter that beats Bloom and Xor at their own game in C++. I ended up with something that genuinely does, on the machine I had to test on. This is what actually happened — eight ideas, seven of them failed, one of them shipped, and the path between them turned out to be the interesting part.</p>
 
         <h3>Final Results (Apple M2, 1M random keys)</h3>
         <table>
             <tr>
-                <th style="text-align: left;">Filter</th>
+                <th>Filter</th>
                 <th>bits/key</th>
                 <th>build (ms)</th>
                 <th>query (ns)</th>
@@ -183,32 +242,32 @@ GBF-Bump&lt;2>:  8.651 bpk, 27 ms build, 13.5 ns query</pre>
         <h2>Final v1.0 Metrics</h2>
         <table>
             <tr>
-                <th style="text-align: left;">Metric</th>
-                <th style="text-align: right;">Value</th>
+                <th>Metric</th>
+                <th>Value</th>
             </tr>
             <tr>
                 <td>bits/key</td>
-                <td style="text-align: right;"><strong>8.520</strong></td>
+                <td><strong>8.520</strong></td>
             </tr>
             <tr>
                 <td>build (1M keys, 10 threads)</td>
-                <td style="text-align: right;"><strong>~30 ms</strong></td>
+                <td><strong>~30 ms</strong></td>
             </tr>
             <tr>
                 <td>query latency</td>
-                <td style="text-align: right;"><strong>8.4 ns</strong></td>
+                <td><strong>8.4 ns</strong></td>
             </tr>
             <tr>
                 <td>batch query (prefetch)</td>
-                <td style="text-align: right;"><strong>9.2 ns</strong></td>
+                <td><strong>9.2 ns</strong></td>
             </tr>
             <tr>
                 <td>false-positive rate</td>
-                <td style="text-align: right;"><strong>0.78%</strong></td>
+                <td><strong>0.78%</strong></td>
             </tr>
             <tr>
                 <td>false negatives</td>
-                <td style="text-align: right;"><strong>0</strong></td>
+                <td><strong>0</strong></td>
             </tr>
         </table>
 
@@ -268,13 +327,13 @@ GBF-Bump&lt;2>:  8.651 bpk, 27 ms build, 13.5 ns query</pre>
             </tr>
         </table>
 
-        <p style="margin-top: 2rem; color: #666; font-style: italic;">If any of those don't reproduce on the same hardware, the writeup is wrong and I want to know.</p>
+        <p style="margin-top: 2rem;">If any of those don't reproduce on the same hardware, the writeup is wrong and I want to know.</p>
 
         <h2>Meta</h2>
         <p>Built in 24 hours, May 2026, on a single Apple M2 with one person and one LLM. The Ribbon Filter math is from Dillinger & Walzer (SEA 2021). The engineering, the benchmarks, the failures, and this writeup are mine.</p>
 
         <p><strong>License:</strong> MIT</p>
-    </main>
+    </div>
 
     <footer>
         <p>elvec1o — 2026 · <a href="https://elvec1o.github.io/home">elvec1o.github.io/home</a></p>
