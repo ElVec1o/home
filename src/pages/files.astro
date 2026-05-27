@@ -44,24 +44,31 @@ const types = [...new Set(files.map(f => f.type))];
           )}
         </div>
         <div class="file-actions">
-          {/* External website - Visit button */}
-          {file.url && (
-            <a href={file.url} class="visit-btn" target="_blank">{file.urlLabel ? `→ ${file.urlLabel}` : '→ Visit'}</a>
+          <div class="file-actions-row">
+            {/* External website - Visit button */}
+            {file.url && (
+              <a href={file.url} class="visit-btn" target="_blank">{file.urlLabel ? `→ ${file.urlLabel}` : '→ Visit'}</a>
+            )}
+            {file.filename && file.filename.endsWith('.jsx') && (
+              <a href={`${base}/files/${file.filename.replace('.jsx', '_play.html')}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
+            )}
+            {file.filename && file.filename.endsWith(".html") && !file.viewerUrl && (
+              <a href={`${base}/files/${file.filename}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
+            )}
+            {file.viewerUrl && (
+              <a href={`${base}/files/${file.viewerUrl}`} class="visualize-btn" target="_blank">👁 Visualize</a>
+            )}
+            {file.filename && !file.url && !file.viewerUrl && (file.isFolder ? (
+              <a href={`${base}/files/${file.filename}`} class="download-btn">→ Browse</a>
+            ) : !file.viewerUrl && (
+              <a href={`${base}/files/${file.filename}`} class="download-btn" download>↓ Download</a>
+            ))}
+          </div>
+          {file.dashboardUrl && (
+            <div class="file-actions-dashboard">
+              <a href={`${base}/files/${file.dashboardUrl}`} class="dashboard-btn" target="_blank">📊 {file.dashboardLabel ? file.dashboardLabel : 'Dashboard'}</a>
+            </div>
           )}
-          {file.filename && file.filename.endsWith('.jsx') && (
-            <a href={`${base}/files/${file.filename.replace('.jsx', '_play.html')}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
-          )}
-          {file.filename && file.filename.endsWith(".html") && !file.viewerUrl && (
-            <a href={`${base}/files/${file.filename}`} class="play-btn" target="_blank">{file.type === 'game' ? '▶ Play Now' : '▶ Try Now'}</a>
-          )}
-          {file.viewerUrl && (
-            <a href={`${base}/files/${file.viewerUrl}`} class="visualize-btn" target="_blank">👁 Visualize</a>
-          )}
-          {file.filename && !file.url && !file.viewerUrl && (file.isFolder ? (
-            <a href={`${base}/files/${file.filename}`} class="download-btn">→ Browse</a>
-          ) : !file.viewerUrl && (
-            <a href={`${base}/files/${file.filename}`} class="download-btn" download>↓ Download</a>
-          ))}
         </div>
       </div>
     ))}
@@ -257,8 +264,29 @@ const types = [...new Set(files.map(f => f.type))];
   }
   .file-actions {
     display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .file-actions-row {
+    display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+  }
+  .file-actions-dashboard {
+    display: flex;
+  }
+  .dashboard-btn {
+    background: #8b5cf6;
+    color: #fff;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  .dashboard-btn:hover {
+    background: #7c3aed;
+    color: #fff;
   }
   .download-btn, .play-btn, .visit-btn {
     padding: 0.5rem 1rem;
