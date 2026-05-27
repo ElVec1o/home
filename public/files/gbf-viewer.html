@@ -6,6 +6,16 @@
     <title>GBF — Beating Bloom Filters in 24 Hours | elvec1o</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0d1117;
+            --bg-secondary: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
@@ -14,20 +24,49 @@
         }
         a { color: #0066cc; text-decoration: none; }
         a:hover { text-decoration: underline; }
+
+        /* Dark header matching Kimi */
         header {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 1rem 0;
-            margin-bottom: 2rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         .header-content {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 0 1rem;
             display: flex;
+            justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
             gap: 1rem;
         }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text);
+        }
+        .logo img { height: 32px; width: auto; }
+        .title-info h1 { font-size: 1.1rem; font-weight: 600; color: var(--text); }
+        .title-info .meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .back-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .back-link:hover { text-decoration: underline; }
         .header-nav { display: flex; gap: 1rem; font-size: 0.9rem; }
         main { max-width: 800px; margin: 0 auto; padding: 0 1rem 2rem; }
         .breadcrumb { font-size: 0.9rem; margin-bottom: 1.5rem; color: #666; }
@@ -104,21 +143,23 @@
 <body>
 <header>
     <div class="header-content">
-        <a href="https://elvec1o.github.io/home/">home</a>
-        <span style="color:#999">·</span>
-        <a href="https://elvec1o.github.io/home/files/">files</a>
+        <div class="header-left">
+            <a href="https://elvec1o.github.io/home/" class="logo">
+                <img src="https://elvec1o.github.io/home/img/logo-elvec1o.png" alt="elvec1o">
+            </a>
+            <div class="title-info">
+                <h1>GBF — Beating Bloom Filters in 24 Hours</h1>
+                <div class="meta">
+                    <span>Weekend project · May 2026</span>
+                    <span><a href="https://github.com/ElVec1o/GBF-NEON" target="_blank">GitHub Repo</a></span>
+                </div>
+            </div>
+        </div>
+        <a href="https://elvec1o.github.io/home/files/" class="back-link">← Files</a>
     </div>
 </header>
 
 <main>
-    <div class="breadcrumb"><a href="https://elvec1o.github.io/home/files/">← Files</a></div>
-
-    <h1>GBF — Beating Bloom Filters in 24 Hours</h1>
-
-    <div class="buttons">
-        <a class="button primary" href="https://github.com/ElVec1o/GBF-NEON">→ GitHub Repo</a>
-        <a class="button" href="https://elvec1o.github.io/home/files/gbf-dashboard.html">📊 Dashboard</a>
-    </div>
 
     <h2>Overview</h2>
     <p>I spent one weekend trying to build a membership filter that beats Bloom and Xor at their own game in C++. I ended up with something that genuinely does, on the machine I had to test on. This is what actually happened — eight ideas, seven of them failed, one of them shipped, and the path between them turned out to be the interesting part.</p>
