@@ -8,7 +8,7 @@ import siteConfig from '../data/site-config.json';
 const totalBreaks = breaksData.filter(b => b.visible !== false).length;
 const totalWriteups = writeupsData.length;
 const totalObservations = observationsData.length;
-const categories = [...new Set(breaksData.filter(b => b.category).map(b => b.category.split(' ')[1]))];
+const techniques = [...new Set(writeupsData.map(w => w.technique))];
 const base = import.meta.env.BASE_URL;
 
 // Top entry from each section for Recent Work
@@ -30,9 +30,9 @@ const xposts = breaksData.filter(b => b.type === 'xpost' && b.visible !== false 
 
   <h2>Stats</h2>
   <p>
-    1500+ jailbreaks on <a href="https://app.grayswan.ai/arena/leaderboard/global" target="_blank">Gray Swan Arena</a><br>
+    3600+ jailbreaks on <a href="https://app.grayswan.ai/arena/leaderboard/global" target="_blank">Gray Swan Arena</a><br>
     {totalBreaks} Gray Swan breaks · {totalWriteups} security writeups · {totalObservations} behavioural observations<br>
-    {categories.length} technique categories
+    {techniques.length} technique categories
   </p>
 
   <h2>Recent Work</h2>
