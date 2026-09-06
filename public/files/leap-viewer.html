@@ -3,37 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nested Leap-Year Sequences — Linear Complexity | elvec1o</title>
+    <title>The GF(p)-Linear Complexity of Nested Leap-Year Sequences | elvec1o</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         :root {
-            --bg: #fafafa;
-            --bg-secondary: #f5f5f5;
-            --border: #e1e4e8;
-            --text: #24292e;
-            --text-muted: #6a737d;
-            --accent: #0366d6;
+            --bg: #0d1117;
+            --bg-secondary: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
         }
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #0d1117;
-                --bg-secondary: #161b22;
-                --border: #30363d;
-                --text: #c9d1d9;
-                --text-muted: #8b949e;
-                --accent: #58a6ff;
-            }
-        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            color: var(--text);
-            background: var(--bg);
+            color: #1a1a1a;
+            background: #fafafa;
         }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* Dark header matching Kimi */
         header {
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border);
-            padding: 1.5rem 2rem;
+            padding: 1rem 2rem;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -43,194 +39,307 @@
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            gap: 2rem;
-        }
-        .header-left h1 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .header-meta {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-        .header-links {
-            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
             gap: 1rem;
         }
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: var(--bg);
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text);
+        }
+        .logo img { height: 32px; width: auto; }
+        .title-info h1 { font-size: 1.1rem; font-weight: 600; color: var(--text); }
+        .title-info .meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .back-link {
             color: var(--accent);
             text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .header-nav { display: flex; gap: 1rem; font-size: 0.9rem; }
+        main { max-width: 800px; margin: 0 auto; padding: 0 1rem 2rem; }
+        .breadcrumb { font-size: 0.9rem; margin-bottom: 1.5rem; color: #666; }
+        h1 { font-size: 2rem; margin-bottom: 1rem; font-weight: 600; }
+        h2 { font-size: 1.4rem; margin: 2rem 0 1rem; font-weight: 600; }
+        h3 { font-size: 1.1rem; margin: 1.5rem 0 0.8rem; font-weight: 600; }
+        p { margin-bottom: 1rem; }
+        pre {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+            line-height: 1.4;
+        }
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 2px;
+            font-size: 0.9em;
+        }
+        pre code { background: none; padding: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        th { background: #f5f5f5; font-weight: 600; }
+        tr:nth-child(even) { background: #fafafa; }
+        .metric-table th { text-align: right; }
+        .metric-table td:first-child { font-weight: 500; }
+        blockquote {
+            border-left: 3px solid #ddd;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #666;
+            font-style: italic;
+        }
+        ul, ol { margin: 1rem 0 1rem 2rem; }
+        li { margin-bottom: 0.5rem; }
+        .section { margin: 2rem 0; }
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 3rem;
+        }
+        .buttons { display: flex; gap: 1rem; margin: 2rem 0; flex-wrap: wrap; }
+        .button {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            border: 1px solid #0066cc;
+            border-radius: 4px;
+            background: white;
+            color: #0066cc;
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn:hover {
-            border-color: var(--accent);
-            background: var(--bg-secondary);
-        }
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-        main {
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-        section {
-            margin-bottom: 3rem;
-        }
-        h2 {
-            font-size: 1.3rem;
-            margin: 1.5rem 0 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        .theorem {
-            background: var(--bg-secondary);
-            border-left: 4px solid var(--accent);
-            padding: 1rem;
+        .button:hover { background: #0066cc; color: white; text-decoration: none; }
+        .button.primary { background: #0066cc; color: white; }
+        figure { margin: 1.5rem 0; }
+        figure img { width: 100%; border: 1px solid #e0e0e0; border-radius: 4px; }
+        figcaption { font-size: 0.85rem; color: #666; margin-top: 0.5rem; text-align: center; }
+        .callout {
+            background: #f9f7e8;
+            border-left: 3px solid #d4a017;
+            padding: 0.75rem 1rem;
             margin: 1rem 0;
-            border-radius: 4px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.95rem;
-            overflow-x: auto;
-        }
-        code {
-            background: var(--bg-secondary);
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Menlo', monospace;
-        }
-        a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .key-results {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        .result-card {
-            background: var(--bg-secondary);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-        .result-card h3 {
-            margin-bottom: 0.5rem;
-            color: var(--accent);
-        }
-        .result-card p {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-        }
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.95em;
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <div class="header-left">
-                <h1>Linear Complexity of Nested Leap-Year Sequences</h1>
-                <div class="header-meta">Vico Bonfioli · 2026-09-05</div>
-            </div>
-            <div class="header-links">
-                <a href="https://github.com/ElVec1o/nested-leap-complexity" class="btn">GitHub Repo</a>
-                <a href="leap-dashboard.html" class="btn btn-primary">Dashboard</a>
+<header>
+    <div class="header-content">
+        <div class="header-left">
+            <a href="https://elvec1o.github.io/home/" class="logo">
+                <img src="https://elvec1o.github.io/home/img/logo-elvec1o.png" alt="elvec1o">
+            </a>
+            <div class="title-info">
+                <h1>The GF(p)-Linear Complexity of Nested Leap-Year Sequences</h1>
+                <div class="meta">
+                    <span>Mathematical paper · September 2026</span>
+                    <span><a href="https://github.com/ElVec1o/nested-leap-complexity" target="_blank">GitHub Repo</a></span>
+                    <span><a href="https://zenodo.org/record/22540620" target="_blank">Zenodo DOI</a></span>
+                </div>
             </div>
         </div>
-    </header>
+        <a href="https://elvec1o.github.io/home/files/" class="back-link">← Files</a>
+    </div>
+</header>
 
-    <main>
-        <section>
-            <h2>Abstract</h2>
-            <p>For a positive integer n and a prime p, the staircase sequence g_n(Y) = floor(Y/n) mod p is a linear recurring sequence over F_p with minimal polynomial (x-1)(x^n-1) and linear complexity n+1.</p>
-            <p>We determine the linear complexity of every F_p-linear combination of such sequences: it is M+1 minus a sum of Euler-φ terms, one for each divisor d of M = lcm(m_i) at which a certain linear form in the coefficients vanishes modulo p.</p>
-            <p>For the nested leap-correction sequence L_{a,b,c} = g_a - g_{ab} + g_{abc}, the finite-field model of a calendar with leap rule "every a years, except every ab, except every abc", this specializes to:</p>
-            <div class="theorem">
-L(L_{a,b,c}) = abc+1 - (ab-a)·[p | c-1] - a·[p | bc-c+1]
-            </div>
-            <p>For the Gregorian rule (a,b,c)=(4,25,4) the leap-year count Λ(Y) therefore has linear complexity exactly 401 modulo every prime p ∤ 400 except p=3 (complexity 305) and p=97 (complexity 397).</p>
-        </section>
+<main>
 
-        <section>
-            <h2>Key Results</h2>
-            <div class="key-results">
-                <div class="result-card">
-                    <h3>Theorem A</h3>
-                    <p><strong>Single Staircase:</strong> The sequence g_n has minimal polynomial (x-1)(x^n-1) and linear complexity n+1.</p>
-                </div>
-                <div class="result-card">
-                    <h3>Theorem C</h3>
-                    <p><strong>Nested Sequence:</strong> For L_{a,b,c}, the complexity depends on whether p divides c-1 or bc-c+1.</p>
-                </div>
-                <div class="result-card">
-                    <h3>Gregorian Calendar</h3>
-                    <p><strong>Leap-Year Count:</strong> Complexity is exactly 401 for the Gregorian rule, except for p=3 and p=97.</p>
-                </div>
-            </div>
-        </section>
+    <h2>Abstract</h2>
+    <p>
+        For a positive integer <code>n</code> and a prime <code>p</code>, the staircase sequence
+        <code>g_n(Y) = ⌊Y/n⌋ mod p</code> is a linear recurring sequence over F_p with minimal polynomial
+        <code>(x-1)(x^n-1)</code> and linear complexity <code>n+1</code>.
+    </p>
+    <p>
+        We determine the linear complexity of every F_p-linear combination of such sequences: it is
+        <code>M+1</code> minus a sum of Euler-φ terms, one for each divisor <code>d</code> of
+        <code>M = lcm(m_i)</code> at which a certain linear form in the coefficients vanishes modulo <code>p</code>.
+    </p>
+    <p>
+        For the nested leap-correction sequence <code>L_{a,b,c} = g_a - g_{ab} + g_{abc}</code>,
+        the finite-field model of a calendar with leap rule "every <code>a</code> years, except every <code>ab</code>, except every <code>abc</code>",
+        this specializes to:
+    </p>
+    <pre>L(L_{a,b,c}) = abc+1 − (ab−a)·[p | c−1] − a·[p | bc−c+1]</pre>
+    <p>
+        For the Gregorian rule <code>(a,b,c)=(4,25,4)</code> the leap-year count Λ(Y) therefore has
+        linear complexity exactly <strong>401</strong> modulo every prime <code>p ∤ 400</code> except
+        <code>p=3</code> (complexity 305) and <code>p=97</code> (complexity 397).
+    </p>
 
-        <section>
-            <h2>The Problem</h2>
-            <p>The weekday of a Gregorian date is determined by Y modulo 400 and by the day-of-year; the only irregular ingredient is the number of leap years before year Y:</p>
-            <div class="theorem">
-Λ(Y) = floor(Y/4) - floor(Y/100) + floor(Y/400)
-            </div>
-            <p>Reduced modulo 7, Λ is a periodic sequence over F_7 and therefore a linear recurring sequence. This note determines its linear complexity: the length of the shortest linear feedback shift register that generates it.</p>
-        </section>
+    <div class="buttons">
+        <a href="https://github.com/ElVec1o/nested-leap-complexity/releases/download/v1.0.0/nested-leap-complexity.pdf" class="button primary">PDF Paper</a>
+        <a href="leap-dashboard.html" class="button primary">Dashboard</a>
+    </div>
 
-        <section>
-            <h2>Methodology</h2>
-            <p>The standard approach for linear recurring sequences: write the generating function as a reduced rational function and read the linear complexity off the degree of the denominator.</p>
-            <p>For staircase sequences, the generating function is:</p>
-            <div class="theorem">
-∑_{Y≥0} floor(Y/n)·x^Y = (x^n)/((1-x)(1-x^n))
-            </div>
-            <p>All proofs are elementary, by counting common roots of the numerator and denominator.</p>
-        </section>
+    <h2>The Problem</h2>
+    <p>
+        The weekday of a Gregorian date is determined by <code>Y</code> modulo 400 and by the day-of-year;
+        the only irregular ingredient is the number of leap years before year <code>Y</code>:
+    </p>
+    <pre>Λ(Y) = ⌊Y/4⌋ − ⌊Y/100⌋ + ⌊Y/400⌋</pre>
+    <p>
+        Reduced modulo 7, Λ is a periodic sequence over F_7 and therefore a linear recurring sequence.
+        One can ask for its <em>linear complexity</em>: the length of the shortest linear feedback shift
+        register that generates it. This note answers that question for the general family obtained by
+        replacing <code>(4, 100, 400)</code> with <code>(a, ab, abc)</code> and 7 with any prime
+        <code>p</code> not dividing <code>abc</code>.
+    </p>
 
-        <section>
-            <h2>Files</h2>
-            <ul style="margin-left: 1.5rem;">
-                <li><code>nested-leap-complexity.pdf</code> — Full paper (10 pages)</li>
-                <li><code>nested-leap-complexity.tex</code> — LaTeX source</li>
-                <li><code>nested-leap-complexity.md</code> — Markdown version</li>
-                <li><code>verify.py</code> — Regenerates all computational claims</li>
-            </ul>
-        </section>
+    <h2>Key Theorems</h2>
 
-        <section>
-            <h2>Reproducibility</h2>
-            <p>Run the verification script:</p>
-            <div class="theorem" style="padding: 1rem; margin: 1rem 0;">
-python3 code/verify.py
-            </div>
-            <p>Requires Python 3 with numpy and sympy. Runs in about a minute.</p>
-        </section>
-    </main>
+    <h3>Theorem A: Single Staircase</h3>
+    <p>
+        For every positive integer <code>n</code> and every prime <code>p</code>, the sequence
+        <code>g_n</code> over F_p has minimal polynomial <code>(x-1)(x^n-1)</code> and linear complexity
+        <code>n+1</code>.
+    </p>
 
-    <footer>
-        <p>elvec1o — 2026</p>
-    </footer>
+    <h3>Theorem B: Upper Bound</h3>
+    <p>
+        For positive integers <code>a, b, c</code> and any prime <code>p</code>,
+        <code>L(L_{a,b,c}) ≤ abc+1</code>, and the minimal polynomial of <code>L_{a,b,c}</code>
+        divides <code>(x-1)(x^{abc}-1)</code>.
+    </p>
+
+    <h3>Theorem C: Exact Value (Gregorian Calendar)</h3>
+    <p>
+        Let <code>a, b, c</code> be positive integers and <code>p</code> a prime with <code>p ∤ abc</code>. Then:
+    </p>
+    <pre>L(L_{a,b,c}) =
+  abc+1 − (ab−a)        if p | c−1
+  abc+1 − a             if p | bc−c+1
+  abc+1                 otherwise</pre>
+    <p>
+        The first two conditions cannot hold simultaneously.
+    </p>
+
+    <h3>Theorem D: Arbitrary Linear Combinations</h3>
+    <p>
+        For arbitrary moduli <code>m_1, …, m_k</code>, let <code>M = lcm(m_i)</code> and
+        <code>σ_d = Σ_{i: d|m_i} c_i·(M/m_i)</code> for each divisor <code>d</code> of <code>M</code>. Then:
+    </p>
+    <pre>L(s) = M+1 − Σ_{d|M, d>1} φ(d)·[σ_d=0] − ε</pre>
+    <p>
+        where <code>ε ∈ {0,1,2}</code> depends on whether certain divisibility conditions hold at <code>x=1</code>.
+    </p>
+
+    <h2>Results for Key Primes</h2>
+
+    <table class="metric-table">
+        <thead>
+            <tr>
+                <th>Prime p</th>
+                <th>Complexity L(Λ)</th>
+                <th>Condition</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Most p ∤ 400</td>
+                <td><strong>401</strong></td>
+                <td>p ∤ (c−1) and p ∤ (bc−c+1)</td>
+                <td>Generic case</td>
+            </tr>
+            <tr>
+                <td>p = 3</td>
+                <td><strong>305</strong></td>
+                <td>p | (4−1) = 3</td>
+                <td>Deficit: 96 = (100−4)</td>
+            </tr>
+            <tr>
+                <td>p = 97</td>
+                <td><strong>397</strong></td>
+                <td>p | (100−25+1) = 76</td>
+                <td>Deficit: 4 = a</td>
+            </tr>
+            <tr>
+                <td>p ∈ {2, 5}</td>
+                <td>—</td>
+                <td>p | 400</td>
+                <td>Excluded (characteristic divides M)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Methodology</h2>
+    <p>
+        The standard approach for linear recurring sequences over a field: write the generating function
+        as a reduced rational function and read the linear complexity off the degree of the denominator.
+    </p>
+    <p>
+        For the staircase sequence, the generating function is:
+    </p>
+    <pre>Σ_{Y≥0} ⌊Y/n⌋·x^Y = (x^n) / ((1−x)(1−x^n))</pre>
+    <p>
+        For linear combinations, we find the gcd of the numerator and denominator after combining
+        over a common denominator. The deficit—how much the complexity falls short of the upper
+        bound—is exactly this gcd degree, computed via root-counting.
+    </p>
+    <p>
+        <strong>All proofs are elementary</strong>, using only root-counting on the numerator and
+        denominator of the generating function. No deep algebra or machinery is required.
+    </p>
+
+    <h2>Files</h2>
+    <ul>
+        <li><code>nested-leap-complexity.pdf</code> — Full paper (10 pages, all proofs)</li>
+        <li><code>nested-leap-complexity.tex</code> — LaTeX source</li>
+        <li><code>nested-leap-complexity.md</code> — Markdown version</li>
+        <li><code>verify.py</code> — Regenerates every computational claim</li>
+    </ul>
+
+    <h2>Reproducibility</h2>
+    <p>
+        To verify all computational claims in the paper, run:
+    </p>
+    <pre>python3 code/verify.py</pre>
+    <p>
+        <strong>Requirements:</strong> Python 3 with <code>numpy</code> and <code>sympy</code>
+        <br><strong>Runtime:</strong> ~1 minute on a typical machine
+    </p>
+
+    <h2>Citation</h2>
+    <p>
+        <strong>Bibtex:</strong>
+    </p>
+    <pre>@article{bonfioli2026leap,
+  title={The $\mathrm{GF}(p)$-Linear Complexity of Nested Leap-Year Sequences},
+  author={Bonfioli, Vico},
+  year={2026},
+  doi={10.5281/zenodo.22540620}
+}</pre>
+
+</main>
+
+<footer>
+    elvec1o — 2026
+</footer>
+
 </body>
 </html>
