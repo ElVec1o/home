@@ -267,12 +267,16 @@
   },
   {
     "id": "nested-leap-complexity",
-    "name": "The $\\mathrm{GF}(p)$-Linear Complexity of Nested Leap-Year Sequences",
+    "name": "The GF(p)-Linear Complexity of Nested Leap-Year Sequences",
     "type": "paper",
     "category": "MATHS",
-    "description": "Determines the linear complexity of arbitrary $\\mathbb{F}_p$-linear combinations of staircase sequences $\\lfloor Y/n\\rfloor \\bmod p$. Applied to the Gregorian leap-year count $\\Lambda(Y) = \\lfloor Y/4\\rfloor - \\lfloor Y/100\\rfloor + \\lfloor Y/400\\rfloor$: linear complexity is $abc+1$ minus a sum of Euler-$\\varphi$ terms, one for each divisor at which a certain linear form vanishes modulo $p$. For $(a,b,c)=(4,25,4)$ the leap-year count has complexity exactly 401 modulo every prime except $p=3$ (complexity 305) and $p=97$ (complexity 397). All results are elementary, proved by root-counting on rational generating functions.",
+    "description": "Determines the linear complexity of arbitrary Fp-linear combinations of staircase sequences floor(Y/n) mod p. Applied to the Gregorian leap-year count Λ(Y) = floor(Y/4) - floor(Y/100) + floor(Y/400): linear complexity is abc+1 minus a sum of Euler-φ terms, one for each divisor at which a certain linear form vanishes modulo p. For (a,b,c)=(4,25,4) the leap-year count has complexity exactly 401 modulo every prime except p=3 (complexity 305) and p=97 (complexity 397). All results are elementary, proved by root-counting on rational generating functions.",
+    "filename": "leap-viewer.html",
+    "viewerUrl": "leap-viewer.html",
+    "dashboardUrl": "leap-dashboard.html",
     "url": "https://github.com/ElVec1o/nested-leap-complexity",
     "urlLabel": "GitHub Repo",
+    "dashboardLabel": "Dashboard",
     "size": "~100 KB",
     "date": "2026-09-05"
   }

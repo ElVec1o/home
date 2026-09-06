@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nested Leap-Year Sequences — Linear Complexity | elvec1o</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #fafafa;
+            --bg-secondary: #f5f5f5;
+            --border: #e1e4e8;
+            --text: #24292e;
+            --text-muted: #6a737d;
+            --accent: #0366d6;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0d1117;
+                --bg-secondary: #161b22;
+                --border: #30363d;
+                --text: #c9d1d9;
+                --text-muted: #8b949e;
+                --accent: #58a6ff;
+            }
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+        }
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+        .header-left h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .header-meta {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .header-links {
+            display: flex;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        section {
+            margin-bottom: 3rem;
+        }
+        h2 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .theorem {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.95rem;
+            overflow-x: auto;
+        }
+        code {
+            background: var(--bg-secondary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .key-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .result-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .result-card h3 {
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        .result-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <h1>Linear Complexity of Nested Leap-Year Sequences</h1>
+                <div class="header-meta">Vico Bonfioli · 2026-09-05</div>
+            </div>
+            <div class="header-links">
+                <a href="https://github.com/ElVec1o/nested-leap-complexity" class="btn">GitHub Repo</a>
+                <a href="leap-dashboard.html" class="btn btn-primary">Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section>
+            <h2>Abstract</h2>
+            <p>For a positive integer n and a prime p, the staircase sequence g_n(Y) = floor(Y/n) mod p is a linear recurring sequence over F_p with minimal polynomial (x-1)(x^n-1) and linear complexity n+1.</p>
+            <p>We determine the linear complexity of every F_p-linear combination of such sequences: it is M+1 minus a sum of Euler-φ terms, one for each divisor d of M = lcm(m_i) at which a certain linear form in the coefficients vanishes modulo p.</p>
+            <p>For the nested leap-correction sequence L_{a,b,c} = g_a - g_{ab} + g_{abc}, the finite-field model of a calendar with leap rule "every a years, except every ab, except every abc", this specializes to:</p>
+            <div class="theorem">
+L(L_{a,b,c}) = abc+1 - (ab-a)·[p | c-1] - a·[p | bc-c+1]
+            </div>
+            <p>For the Gregorian rule (a,b,c)=(4,25,4) the leap-year count Λ(Y) therefore has linear complexity exactly 401 modulo every prime p ∤ 400 except p=3 (complexity 305) and p=97 (complexity 397).</p>
+        </section>
+
+        <section>
+            <h2>Key Results</h2>
+            <div class="key-results">
+                <div class="result-card">
+                    <h3>Theorem A</h3>
+                    <p><strong>Single Staircase:</strong> The sequence g_n has minimal polynomial (x-1)(x^n-1) and linear complexity n+1.</p>
+                </div>
+                <div class="result-card">
+                    <h3>Theorem C</h3>
+                    <p><strong>Nested Sequence:</strong> For L_{a,b,c}, the complexity depends on whether p divides c-1 or bc-c+1.</p>
+                </div>
+                <div class="result-card">
+                    <h3>Gregorian Calendar</h3>
+                    <p><strong>Leap-Year Count:</strong> Complexity is exactly 401 for the Gregorian rule, except for p=3 and p=97.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>The Problem</h2>
+            <p>The weekday of a Gregorian date is determined by Y modulo 400 and by the day-of-year; the only irregular ingredient is the number of leap years before year Y:</p>
+            <div class="theorem">
+Λ(Y) = floor(Y/4) - floor(Y/100) + floor(Y/400)
+            </div>
+            <p>Reduced modulo 7, Λ is a periodic sequence over F_7 and therefore a linear recurring sequence. This note determines its linear complexity: the length of the shortest linear feedback shift register that generates it.</p>
+        </section>
+
+        <section>
+            <h2>Methodology</h2>
+            <p>The standard approach for linear recurring sequences: write the generating function as a reduced rational function and read the linear complexity off the degree of the denominator.</p>
+            <p>For staircase sequences, the generating function is:</p>
+            <div class="theorem">
+∑_{Y≥0} floor(Y/n)·x^Y = (x^n)/((1-x)(1-x^n))
+            </div>
+            <p>All proofs are elementary, by counting common roots of the numerator and denominator.</p>
+        </section>
+
+        <section>
+            <h2>Files</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><code>nested-leap-complexity.pdf</code> — Full paper (10 pages)</li>
+                <li><code>nested-leap-complexity.tex</code> — LaTeX source</li>
+                <li><code>nested-leap-complexity.md</code> — Markdown version</li>
+                <li><code>verify.py</code> — Regenerates all computational claims</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Reproducibility</h2>
+            <p>Run the verification script:</p>
+            <div class="theorem" style="padding: 1rem; margin: 1rem 0;">
+python3 code/verify.py
+            </div>
+            <p>Requires Python 3 with numpy and sympy. Runs in about a minute.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>elvec1o — 2026</p>
+    </footer>
+</body>
+</html>

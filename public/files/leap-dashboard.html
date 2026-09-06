@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leap-Year Linear Complexity Dashboard | elvec1o</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #fafafa;
+            --bg-secondary: #f5f5f5;
+            --border: #e1e4e8;
+            --text: #24292e;
+            --text-muted: #6a737d;
+            --accent: #0366d6;
+            --accent-secondary: #28a745;
+            --warning: #d73a49;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0d1117;
+                --bg-secondary: #161b22;
+                --border: #30363d;
+                --text: #c9d1d9;
+                --text-muted: #8b949e;
+                --accent: #58a6ff;
+                --accent-secondary: #3fb950;
+                --warning: #ff7b72;
+            }
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+        }
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+        h1 {
+            font-size: 1.5rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+        }
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+        .stats-table th {
+            background: var(--bg);
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            color: var(--accent);
+        }
+        .stats-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .stats-table tr:hover {
+            background: var(--bg);
+        }
+        .highlight {
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+        }
+        .warning {
+            color: var(--warning);
+            font-weight: 600;
+        }
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg);
+            color: var(--text);
+        }
+        .info-box {
+            background: var(--bg);
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Linear Complexity Dashboard</h1>
+            <a href="leap-viewer.html" class="btn">← Back to Paper</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="info-box">
+            <strong>Gregorian Calendar Rule:</strong> Every 4 years, except every 100, except every 400.
+            <br><strong>Formula:</strong> L(L_{a,b,c}) = abc+1 − (ab−a)·[p | c−1] − a·[p | bc−c+1]
+            <br><strong>For (a,b,c)=(4,25,4):</strong> Leap-year count has complexity 401 mod p (with exceptions below)
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Chart 1: Complexity by Prime -->
+            <div class="card">
+                <h2>Linear Complexity vs Prime</h2>
+                <div class="chart-container">
+                    <canvas id="complexityChart"></canvas>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">Shows how Λ(Y) mod p has different linear complexity depending on p. The Gregorian rule achieves 401 for most primes.</p>
+            </div>
+
+            <!-- Card 2: Key Statistics -->
+            <div class="card">
+                <h2>Key Primes</h2>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Prime p</th>
+                            <th>L(Λ)</th>
+                            <th>Condition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 0.5rem; color: var(--text-muted);">Most primes p ∤ 400</td>
+                        </tr>
+                        <tr>
+                            <td>p ≠ 2, 3, 5, 97</td>
+                            <td><span class="highlight">401</span></td>
+                            <td>p ∤ 400 and p ∤ 3 conditions</td>
+                        </tr>
+                        <tr>
+                            <td class="warning">p = 3</td>
+                            <td><span class="highlight">305</span></td>
+                            <td>p | 3−1 = 2</td>
+                        </tr>
+                        <tr>
+                            <td class="warning">p = 97</td>
+                            <td><span class="highlight">397</span></td>
+                            <td>p | 4·25−25+1 = 76</td>
+                        </tr>
+                        <tr>
+                            <td>p ∈ {2, 5}</td>
+                            <td>-</td>
+                            <td>p | 400 (excluded)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Chart 2: Complexity by Parameter -->
+            <div class="card">
+                <h2>Varying Parameters a, b, c</h2>
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Parameter a:</label>
+                        <input type="number" id="paramA" value="4" min="1" max="20">
+                    </div>
+                    <div class="control-group">
+                        <label>Prime p:</label>
+                        <input type="number" id="paramP" value="7" min="2" max="997">
+                    </div>
+                    <button onclick="updateComplexityTable()" class="btn">Update</button>
+                </div>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="paramChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Card 3: Theoretical Notes -->
+            <div class="card">
+                <h2>Theoretical Foundations</h2>
+                <ul style="margin-left: 1.5rem; font-size: 0.95rem;">
+                    <li><strong>Generating Function:</strong> Uses generating functions and root-counting on rational functions</li>
+                    <li><strong>Minimal Polynomial:</strong> Derived from (x−1)(x^{abc}−1) divisibility</li>
+                    <li><strong>Euler φ Function:</strong> Deficit terms use φ(d) for divisors of M = lcm(m_i)</li>
+                    <li><strong>Elementary Proofs:</strong> All results use only root-counting, no deep algebra</li>
+                    <li><strong>Separability:</strong> Key assumption: p ∤ M ensures x^M−1 is separable</li>
+                </ul>
+            </div>
+
+            <!-- Chart 3: Coverage Analysis -->
+            <div class="card">
+                <h2>Complexity Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">For Gregorian rule (a,b,c)=(4,25,4), shown are first 50 primes p ∤ 400.</p>
+            </div>
+
+            <!-- Card 4: Verification -->
+            <div class="card">
+                <h2>Verification</h2>
+                <p style="margin-bottom: 1rem; font-size: 0.95rem;">All computational claims in the paper are regenerated by <code>verify.py</code>:</p>
+                <div class="info-box">
+                    <code>python3 code/verify.py</code>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">Requires: Python 3, numpy, sympy</p>
+                    <p style="margin-top: 0.25rem; font-size: 0.9rem; color: var(--text-muted);">Runtime: ~1 minute</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>elvec1o — 2026 · <a href="https://github.com/ElVec1o/nested-leap-complexity">GitHub Repository</a></p>
+    </footer>
+
+    <script>
+        // Data for Gregorian rule (a,b,c)=(4,25,4)
+        const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113];
+        const complexities = [
+            null, // 2 divides 400
+            305,  // 3: p | c-1
+            null, // 5 divides 400
+            401,  // 7
+            401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401, 401,
+            397,  // 97: p | bc-c+1
+            401, 401, 401, 401, 401
+        ];
+
+        // Filter out primes that divide 400
+        const filteredPrimes = primes.filter((p, i) => complexities[i] !== null);
+        const filteredComplexities = complexities.filter(c => c !== null);
+
+        // Create Complexity vs Prime chart
+        const ctx1 = document.getElementById('complexityChart').getContext('2d');
+        const complexityChart = new Chart(ctx1, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Linear Complexity L(Λ) mod p',
+                    data: filteredPrimes.map((p, i) => ({x: p, y: filteredComplexities[i]})),
+                    borderColor: '#0366d6',
+                    backgroundColor: 'rgba(3, 102, 214, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    showLine: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: { display: true, text: 'Prime p' },
+                        min: 0,
+                        max: 115
+                    },
+                    y: {
+                        title: { display: true, text: 'Complexity' },
+                        min: 300,
+                        max: 405
+                    }
+                }
+            }
+        });
+
+        // Create Distribution chart (histogram of complexities)
+        const complexityCounts = {};
+        filteredComplexities.forEach(c => {
+            complexityCounts[c] = (complexityCounts[c] || 0) + 1;
+        });
+
+        const ctx2 = document.getElementById('distributionChart').getContext('2d');
+        const distributionChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(complexityCounts).sort((a, b) => a - b),
+                datasets: [{
+                    label: 'Number of Primes',
+                    data: Object.keys(complexityCounts).sort((a, b) => a - b).map(c => complexityCounts[c]),
+                    backgroundColor: '#0366d6',
+                    borderColor: '#0366d6',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Parameter variation chart
+        function updateComplexityTable() {
+            const a = parseInt(document.getElementById('paramA').value) || 4;
+            const p = parseInt(document.getElementById('paramP').value) || 7;
+
+            // Generate data for varying b and c
+            const bValues = [5, 10, 15, 20, 25, 30];
+            const data = [];
+
+            bValues.forEach(b => {
+                const abc = a * b * 4; // c=4 for Gregorian
+                const pointSize = Math.min(abc / 50, 15);
+                data.push({x: b, y: abc + 1, r: pointSize});
+            });
+
+            const ctx3 = document.getElementById('paramChart').getContext('2d');
+            if (window.paramChartInstance) {
+                window.paramChartInstance.destroy();
+            }
+
+            window.paramChartInstance = new Chart(ctx3, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: `Bound abc+1 (a=${a}, p=${p})`,
+                        data: data,
+                        backgroundColor: 'rgba(3, 102, 214, 0.3)',
+                        borderColor: '#0366d6',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Parameter b' } },
+                        y: { title: { display: true, text: 'Complexity Bound' } }
+                    }
+                }
+            });
+        }
+
+        // Initialize parameter chart
+        updateComplexityTable();
+    </script>
+</body>
+</html>
