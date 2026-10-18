@@ -1,0 +1,25 @@
+[
+  {
+    "id": "moving-sofa-postmortem",
+    "type": "Post-mortem",
+    "title": "Chasing the ambidextrous moving sofa: how we attacked it, and how we were beaten",
+    "date": "2026-10-18",
+    "summary": "Project post-mortem on Romik's ambidextrous sofa (area 1.6449552…). What we proved by hand, where the global bound stayed open, and how a Lean 4 formalisation posted on 2026-10-11 reached the same claim first.",
+    "status": "Not finished",
+    "href": "maths/moving-sofa-postmortem/",
+    "repo": "https://github.com/ElVec1o/moving-sofa-local-max",
+    "repoLabel": "GitHub Repo"
+  },
+  {
+    "id": "nested-leap-complexity",
+    "type": "Paper",
+    "title": "The GF(p)-Linear Complexity of Nested Leap-Year Sequences",
+    "date": "2026-09-05",
+    "summary": "Linear complexity of F_p-linear combinations of staircase sequences, applied to the Gregorian leap-year count. Exact value 401 for most primes; exceptions at p=3 and p=97.",
+    "status": "Published (Zenodo)",
+    "href": "files/leap-viewer.html",
+    "repo": "https://github.com/ElVec1o/nested-leap-complexity",
+    "repoLabel": "GitHub Repo",
+    "doi": "10.5281/zenodo.22540620"
+  }
+]

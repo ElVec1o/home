@@ -1,0 +1,19 @@
+---
+import Base from './Base.astro';
+const { title } = Astro.props;
+---
+<Base title={title}>
+  <article class="prose">
+    <slot />
+  </article>
+</Base>
+
+<style is:global>
+  .prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  .prose th, .prose td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; vertical-align: top; }
+  .prose th { background: #f5f5f5; }
+  .prose p, .prose li { line-height: 1.6; }
+  .prose ul { margin: 0.5rem 0 1rem 1.5rem; }
+  .prose .meta { color: #666; font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .prose .meta a { color: #111; }
+</style>

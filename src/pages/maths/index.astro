@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import mathsData from '../../data/maths.json';
+
+const base = import.meta.env.BASE_URL;
+---
+<Base title="Maths — elvec1o">
+  <h1>Maths</h1>
+  <p class="subtitle">Where we record our mathematical work: papers, proof attempts, and post-mortems. Work in progress is marked as such.</p>
+
+  <div class="entries">
+    {mathsData.map(m => (
+      <div class="entry">
+        <div class="entry-head">
+          <span class="type-tag">{m.type}</span>
+          <span class="status">{m.status}</span>
+          <span class="date">{m.date}</span>
+        </div>
+        <h2><a href={`${base}/${m.href}`}>{m.title}</a></h2>
+        <p class="desc">{m.summary}</p>
+        <p class="links">
+          <a href={`${base}/${m.href}`}>→ Read</a>
+          <a href={m.repo} target="_blank">{m.repoLabel}</a>
+          {m.doi && <a href={`https://doi.org/${m.doi}`} target="_blank">DOI {m.doi}</a>}
+        </p>
+      </div>
+    ))}
+  </div>
+
+  <p style="margin-top: 2rem;"><a href={`${base}/`}>← Back home</a></p>
+</Base>
+
+<style>
+  .subtitle { color: #666; margin-bottom: 2rem; }
+  .entries { display: flex; flex-direction: column; gap: 1.5rem; }
+  .entry { border: 2px solid #eee; padding: 1.25rem 1.5rem; background: #fff; }
+  .entry:hover { border-color: #111; }
+  .entry-head { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; }
+  .type-tag { border: 1px solid #111; padding: 0.1rem 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7rem; }
+  .status { color: #b26a00; }
+  .entry h2 { font-size: 1.1rem; margin: 0 0 0.5rem; border: none; padding: 0; }
+  .desc { margin: 0 0 0.75rem; line-height: 1.5; }
+  .links { margin: 0; font-size: 0.9rem; display: flex; gap: 1.25rem; flex-wrap: wrap; }
+</style>
